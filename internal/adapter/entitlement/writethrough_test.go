@@ -33,8 +33,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/entitlement"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/entitlement"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 type fakeWriter struct {
