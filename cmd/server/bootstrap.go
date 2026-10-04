@@ -31,8 +31,8 @@ import (
 	cgcdb "github.com/apollo-chora/chora-common/db"
 	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	tenancyoutbox "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	tenancyoutbox "github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
 )
 
 func bootstrapDBPool(ctx context.Context) (*pgxpool.Pool, func()) {

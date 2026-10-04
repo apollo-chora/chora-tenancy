@@ -14,8 +14,8 @@ package main
 import (
 	"errors"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 type registryBootstrapSubscriber struct {

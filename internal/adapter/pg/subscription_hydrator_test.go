@@ -6,7 +6,7 @@ package pg_test
 import (
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
 )
 
 func TestTranslateAddOnCode(t *testing.T) {

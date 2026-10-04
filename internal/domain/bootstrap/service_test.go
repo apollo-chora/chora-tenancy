@@ -12,8 +12,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 // fakeRepo records the calls Service.Bootstrap makes against it and

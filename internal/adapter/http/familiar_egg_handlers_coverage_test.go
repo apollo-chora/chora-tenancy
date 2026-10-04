@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareggstripe "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiareggstripe"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggstripe "github.com/apollo-chora/chora-tenancy/internal/adapter/familiareggstripe"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 func TestCheckout_RejectsWrongMethod(t *testing.T) {
@@ -127,7 +127,7 @@ func TestCheckout_OutsideAvailabilityWindow(t *testing.T) {
 	_ = catalog.Upsert(context.Background(), &familiareag.CatalogEntry{
 		SKU: "egg.season.v1", DisplayName: "Seasonal", PriceCents: 100, Currency: "SGD",
 		BreedDistribution: familiareag.BreedDistribution{"owl": 50, "fox": 50},
-		Purchasable: true, SoftExpiryDays: 30, HardExpiryDays: 60,
+		Purchasable:       true, SoftExpiryDays: 30, HardExpiryDays: 60,
 		AvailableFrom: &past, AvailableUntil: &yesterday, CreatedAt: now, UpdatedAt: now,
 	})
 	body := strings.NewReader(`{"egg_sku":"egg.season.v1"}`)

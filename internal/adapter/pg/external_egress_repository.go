@@ -31,7 +31,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/external_egress"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/external_egress"
 )
 
 // TenantTxRunner is the narrow slice of *PgxPoolQuerier this repository needs.

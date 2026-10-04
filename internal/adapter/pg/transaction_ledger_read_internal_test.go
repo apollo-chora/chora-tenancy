@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // ----------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 // Package httpapi — A-Tenant-Lifecycle (S6.2) admin handlers for the
 // 5-screen UX surface per docs/design/ux_tenant_addon_lifecycle.md:
 //
-//   Screen 2 — addon detail audit trail (GET .../audit)
-//   Screen 4 — preview-tier-change (POST .../preview-tier-change)
-//   Screen 5 — request-deactivation with type-to-confirm + super-admin
-//              override (POST .../request-deactivation)
-//   Screen 5 — marketplace tile detail by id (GET /marketplace/addons/{id})
+//	Screen 2 — addon detail audit trail (GET .../audit)
+//	Screen 4 — preview-tier-change (POST .../preview-tier-change)
+//	Screen 5 — request-deactivation with type-to-confirm + super-admin
+//	           override (POST .../request-deactivation)
+//	Screen 5 — marketplace tile detail by id (GET /marketplace/addons/{id})
 //
 // These complement the existing v2_handlers.go endpoints (PATCH change-tier,
 // POST :deactivate, GET addons, GET addons/{id}/usage).
@@ -20,9 +20,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	stripestub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/stripe"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	stripestub "github.com/apollo-chora/chora-tenancy/internal/adapter/stripe"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 // imdaDimensionAccountability is the canonical IMDA D1 label per ADR-141.
@@ -150,19 +150,19 @@ func handleAdminPreviewTierChange(deps V2Deps, tenantID, planID string, w http.R
 		effectiveAt = cycleEnd
 	}
 	v2WriteJSON(w, http.StatusOK, map[string]interface{}{
-		"tenant_id":                 tenantID,
-		"addon_plan_id":             a.ID,
-		"from_tier":                 sub.CurrentTier,
-		"to_tier":                   targetTier.Code,
-		"current_monthly_cents":     currentTier.MonthlyPriceCents,
-		"target_monthly_cents":      targetTier.MonthlyPriceCents,
-		"billing_delta_cents":       delta,
-		"next_invoice_total_cents":  targetTier.MonthlyPriceCents,
-		"proration_mode":            prorationMode,
-		"effective_at":              effectiveAt.Format(time.RFC3339Nano),
-		"deferred_to_cycle_end":     deferred,
-		"schedule_id":               scheduleID,
-		"currency":                  targetTier.Currency,
+		"tenant_id":                tenantID,
+		"addon_plan_id":            a.ID,
+		"from_tier":                sub.CurrentTier,
+		"to_tier":                  targetTier.Code,
+		"current_monthly_cents":    currentTier.MonthlyPriceCents,
+		"target_monthly_cents":     targetTier.MonthlyPriceCents,
+		"billing_delta_cents":      delta,
+		"next_invoice_total_cents": targetTier.MonthlyPriceCents,
+		"proration_mode":           prorationMode,
+		"effective_at":             effectiveAt.Format(time.RFC3339Nano),
+		"deferred_to_cycle_end":    deferred,
+		"schedule_id":              scheduleID,
+		"currency":                 targetTier.Currency,
 	})
 }
 
@@ -209,19 +209,19 @@ func handleAdminPreviewTierChangeViaPayments(deps V2Deps, tenantID string, a *ad
 		}
 	}
 	v2WriteJSON(w, http.StatusOK, map[string]interface{}{
-		"tenant_id":                 tenantID,
-		"addon_plan_id":             a.ID,
-		"from_tier":                 sub.CurrentTier,
-		"to_tier":                   targetTier.Code,
-		"current_monthly_cents":     currentTier.MonthlyPriceCents,
-		"target_monthly_cents":      targetTier.MonthlyPriceCents,
-		"billing_delta_cents":       out.BillingDeltaCents,
-		"next_invoice_total_cents":  out.NextInvoiceTotalCents,
-		"proration_mode":            out.ProrationMode,
-		"effective_at":              effectiveAt.Format(time.RFC3339Nano),
-		"deferred_to_cycle_end":     deferred,
-		"schedule_id":               "",
-		"currency":                  out.Currency,
+		"tenant_id":                tenantID,
+		"addon_plan_id":            a.ID,
+		"from_tier":                sub.CurrentTier,
+		"to_tier":                  targetTier.Code,
+		"current_monthly_cents":    currentTier.MonthlyPriceCents,
+		"target_monthly_cents":     targetTier.MonthlyPriceCents,
+		"billing_delta_cents":      out.BillingDeltaCents,
+		"next_invoice_total_cents": out.NextInvoiceTotalCents,
+		"proration_mode":           out.ProrationMode,
+		"effective_at":             effectiveAt.Format(time.RFC3339Nano),
+		"deferred_to_cycle_end":    deferred,
+		"schedule_id":              "",
+		"currency":                 out.Currency,
 	})
 }
 

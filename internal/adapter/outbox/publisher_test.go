@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
 )
 
 func canonicalHeader() events.Header {
@@ -152,9 +152,9 @@ func TestOutboxPublisher_Publish_RejectsInvalidTopic(t *testing.T) {
 	hdr := canonicalHeader()
 	for _, bad := range []string{
 		"not.a.topic",
-		"chora.unknown.aggregate.event.v1",     // wrong domain
-		"chora.tenancy.addon.activated",        // missing version
-		"chora.tenancy.addon.activated.v",      // bad version
+		"chora.unknown.aggregate.event.v1", // wrong domain
+		"chora.tenancy.addon.activated",    // missing version
+		"chora.tenancy.addon.activated.v",  // bad version
 	} {
 		if _, err := pub.PublishWithError(bad, hdr, map[string]interface{}{}); err == nil {
 			t.Errorf("topic %q: expected error; got nil", bad)
@@ -305,11 +305,11 @@ func TestOutboxPublisher_Publish_DefaultsSourceProjectAndService(t *testing.T) {
 func TestOutboxPublisher_Publish_DerivesAggregateTypeFromTopic(t *testing.T) {
 	t.Parallel()
 	cases := map[string]string{
-		"chora.tenancy.tenant.created.v1":             "tenant",
-		"chora.tenancy.tenant.golive.v1":              "tenant",
-		"chora.tenancy.addon.activated.v1":            "addon",
-		"chora.tenancy.addon.upgraded.v1":             "addon",
-		"chora.tenancy.addon.usage_recorded.v1":       "addon",
+		"chora.tenancy.tenant.created.v1":       "tenant",
+		"chora.tenancy.tenant.golive.v1":        "tenant",
+		"chora.tenancy.addon.activated.v1":      "addon",
+		"chora.tenancy.addon.upgraded.v1":       "addon",
+		"chora.tenancy.addon.usage_recorded.v1": "addon",
 	}
 	for topic, wantAggregate := range cases {
 		t.Run(topic, func(t *testing.T) {

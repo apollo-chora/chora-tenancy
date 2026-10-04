@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 // TestCatalogueSeed_FullMigrationSetLeavesNoDrift is the acceptance test for

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	stripestub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/stripe"
+	stripestub "github.com/apollo-chora/chora-tenancy/internal/adapter/stripe"
 )
 
 func TestStripeStubClient_AttachPaymentMethod_ReturnsMockToken(t *testing.T) {

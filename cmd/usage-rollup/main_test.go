@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 func TestLoadConfig_DefaultsTopicName(t *testing.T) {

@@ -7,10 +7,10 @@
 //     Checkout session. Lifecycle states match the
 //     familiar_egg_purchases.state column CHECK constraint:
 //
-//       checkout_started -> paid -> provisioned
-//                        -> payment_failed
-//                        -> refunded
-//                        -> expired
+//     checkout_started -> paid -> provisioned
+//     -> payment_failed
+//     -> refunded
+//     -> expired
 //
 //   - CatalogEntry: a per-tenant or platform-global egg SKU. Carries the
 //     IMDA D2 transparency-required breed_distribution probability table.
@@ -130,24 +130,24 @@ func RarityForProbability(pct float64) string {
 // TenantID is empty string when this is a platform-global SKU
 // (familiar_egg_catalog.tenant_id IS NULL).
 type CatalogEntry struct {
-	SKU                       string
-	TenantID                  string // "" = platform-global
-	DisplayName               string
-	Description               string
-	PriceCents                int64
-	Currency                  string
-	SuggestedFocalAtomID      string
-	BreedDistribution         BreedDistribution
-	BreedDistributionUpdated  time.Time
-	Purchasable               bool
-	IsTrial                   bool
-	SoftExpiryDays            int
-	HardExpiryDays            int
-	AvailableFrom             *time.Time
-	AvailableUntil            *time.Time
-	CreatedAt                 time.Time
-	UpdatedAt                 time.Time
-	DeletedAt                 *time.Time
+	SKU                      string
+	TenantID                 string // "" = platform-global
+	DisplayName              string
+	Description              string
+	PriceCents               int64
+	Currency                 string
+	SuggestedFocalAtomID     string
+	BreedDistribution        BreedDistribution
+	BreedDistributionUpdated time.Time
+	Purchasable              bool
+	IsTrial                  bool
+	SoftExpiryDays           int
+	HardExpiryDays           int
+	AvailableFrom            *time.Time
+	AvailableUntil           *time.Time
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
+	DeletedAt                *time.Time
 }
 
 // AvailableAt reports whether the SKU is available at `at`. Nil
@@ -277,21 +277,21 @@ type NewPurchaseInput struct {
 func NewPurchase(in NewPurchaseInput) *Purchase {
 	now := in.Now.UTC()
 	return &Purchase{
-		PurchaseID:        in.PurchaseID,
-		TenantID:          in.TenantID,
-		PurchaserGCID:     in.PurchaserGCID,
-		EggSKU:            in.EggSKU,
+		PurchaseID:           in.PurchaseID,
+		TenantID:             in.TenantID,
+		PurchaserGCID:        in.PurchaserGCID,
+		EggSKU:               in.EggSKU,
 		SuggestedFocalAtomID: in.SuggestedFocalAtomID,
-		State:             StateCheckoutStarted,
-		AmountCents:       in.AmountCents,
-		Currency:          in.Currency,
-		StripeSessionID:   in.StripeSessionID,
-		StripeCheckoutURL: in.StripeCheckoutURL,
-		CheckoutStartedAt: now,
-		SoftExpiryAt:      now.AddDate(0, 0, in.SoftExpiryDays),
-		HardExpiryAt:      now.AddDate(0, 0, in.HardExpiryDays),
-		CreatedAt:         now,
-		UpdatedAt:         now,
+		State:                StateCheckoutStarted,
+		AmountCents:          in.AmountCents,
+		Currency:             in.Currency,
+		StripeSessionID:      in.StripeSessionID,
+		StripeCheckoutURL:    in.StripeCheckoutURL,
+		CheckoutStartedAt:    now,
+		SoftExpiryAt:         now.AddDate(0, 0, in.SoftExpiryDays),
+		HardExpiryAt:         now.AddDate(0, 0, in.HardExpiryDays),
+		CreatedAt:            now,
+		UpdatedAt:            now,
 	}
 }
 

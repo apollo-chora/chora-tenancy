@@ -67,16 +67,16 @@ import (
 )
 
 const (
-	envSourceDSN        = "CHORA_DB_DSN"
-	envDestDSN          = "CHORA_PAYMENTS_DB_DSN"
-	envMode             = "EXTRACT_MODE"
-	envDirection        = "DIRECTION"
-	envManaDefaultSKU   = "EXTRACT_MANA_DEFAULT_SKU"
-	envParityTolerance  = "EXTRACT_PARITY_TOLERANCE"
-	modeDryRun          = "dry_run"
-	modeApply           = "apply"
-	directionForward    = "forward"
-	directionReverse    = "reverse"
+	envSourceDSN         = "CHORA_DB_DSN"
+	envDestDSN           = "CHORA_PAYMENTS_DB_DSN"
+	envMode              = "EXTRACT_MODE"
+	envDirection         = "DIRECTION"
+	envManaDefaultSKU    = "EXTRACT_MANA_DEFAULT_SKU"
+	envParityTolerance   = "EXTRACT_PARITY_TOLERANCE"
+	modeDryRun           = "dry_run"
+	modeApply            = "apply"
+	directionForward     = "forward"
+	directionReverse     = "reverse"
 	defaultManaLegacySKU = "mana.tenant_topup.legacy_v1"
 )
 
@@ -84,12 +84,12 @@ const (
 // `feedback_no_stubs_real_wiring` — no defaults that silently mask a
 // missing DSN.
 type runConfig struct {
-	sourceDSN        string
-	destDSN          string
-	mode             string // dry_run | apply
-	direction        string // forward | reverse
-	manaDefaultSKU   string
-	parityTolerance  int64
+	sourceDSN       string
+	destDSN         string
+	mode            string // dry_run | apply
+	direction       string // forward | reverse
+	manaDefaultSKU  string
+	parityTolerance int64
 }
 
 func parseConfig() (runConfig, error) {

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/observability"
+	"github.com/apollo-chora/chora-tenancy/internal/observability"
 )
 
 func TestFromRequest_MintsFreshTraceWhenAbsent(t *testing.T) {

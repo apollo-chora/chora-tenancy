@@ -16,7 +16,7 @@
 //	{ "code": "...", "message": "..." }
 //
 // Tracing: per-route OTel span; envelope traceparent extracted/minted via
-// chora-go-common/observability.HTTPMiddleware (mounted by the caller of
+// chora-common/observability.HTTPMiddleware (mounted by the caller of
 // NewRouter).
 package billingwebhook
 
@@ -32,10 +32,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
-	"github.com/5007-Capstone/chora/libs/chora-go-common/observability"
+	"github.com/apollo-chora/chora-common/idempotent"
+	"github.com/apollo-chora/chora-common/observability"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/webhook"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
 )
 
 // Publisher is the port the HTTP adapter calls to fan-out a verified

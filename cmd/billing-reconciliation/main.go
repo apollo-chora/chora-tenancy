@@ -27,10 +27,10 @@ import (
 	"github.com/apollo-chora/chora-common/observability"
 	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/billingpubsub"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/billingstripe"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/config"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/reconciliation"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingpubsub"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingstripe"
+	"github.com/apollo-chora/chora-tenancy/internal/config"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
 )
 
 const (

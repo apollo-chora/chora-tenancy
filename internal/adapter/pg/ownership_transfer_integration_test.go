@@ -24,8 +24,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/ownership"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/ownership"
 )
 
 type transferFixture struct {

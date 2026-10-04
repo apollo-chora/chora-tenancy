@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
 )
 
 // TestMembershipRepository_ListByGCID_CallsSecurityDefinerFunction asserts

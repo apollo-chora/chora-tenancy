@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/inmem"
-	domain "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/inmem"
+	domain "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
 func TestTenantRepo_SaveAndGet(t *testing.T) {

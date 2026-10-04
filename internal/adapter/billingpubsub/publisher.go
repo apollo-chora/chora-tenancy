@@ -1,4 +1,4 @@
-// Package billingpubsub adapts the chora-go-common pubsub primitive to the
+// Package billingpubsub adapts the chora-common pubsub primitive to the
 // billing-webhook + reconciliation flows hosted under chora-tenancy.
 //
 // Ported from services/chora-billing-webhook/internal/adapter/pubsub as part
@@ -11,8 +11,8 @@
 //     Pub/Sub publisher, so reconciliation Job runs publish two governance
 //     events (completed, anomaly).
 //
-// Production wires the chora-go-common in-memory bus first; Cloud Pub/Sub
-// drop-in lives at libs/chora-go-common/pubsub/cloud_pubsub.go and slots in
+// Production wires the chora-common in-memory bus first; Cloud Pub/Sub
+// drop-in lives at chora-common/pubsub/cloud_pubsub.go and slots in
 // via the same OutboxCompatible interface.
 //
 // JSON payload shape: temporary MVP body. Production swaps to Protobuf via
@@ -26,24 +26,24 @@ import (
 	"strings"
 	"time"
 
-	cgcenvelope "github.com/5007-Capstone/chora/libs/chora-go-common/envelope"
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/reconciliation"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/webhook"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
 )
 
 // DefaultSourceService is the canonical source_service envelope value used
 // when EmitterConfig.SourceService is left empty.
 const DefaultSourceService = "chora-tenancy-billing-webhook"
 
-// Bus is the publisher contract this adapter consumes. The chora-go-common
+// Bus is the publisher contract this adapter consumes. The chora-common
 // InMemoryBus satisfies it; in production it's the Cloud Pub/Sub adapter.
 type Bus = cgcpubsub.OutboxCompatible
 
 // EmitterConfig is the construction-time wiring for both publishers.
 type EmitterConfig struct {
-	// Bus is the underlying chora-go-common publisher.
+	// Bus is the underlying chora-common publisher.
 	Bus Bus
 
 	// SourceProject is the GCP project the service runs in
@@ -59,7 +59,7 @@ type EmitterConfig struct {
 }
 
 // WebhookPublisher publishes a webhook.Classification to the chora event
-// topology, mediated by the chora-go-common pubsub.Bus.
+// topology, mediated by the chora-common pubsub.Bus.
 type WebhookPublisher struct {
 	cfg EmitterConfig
 }
@@ -78,7 +78,7 @@ func NewWebhookPublisher(cfg EmitterConfig) *WebhookPublisher {
 	return &WebhookPublisher{cfg: cfg}
 }
 
-// Publish renders the classification onto the chora-go-common envelope +
+// Publish renders the classification onto the chora-common envelope +
 // Protobuf-equivalent JSON payload, then publishes to the canonical topic.
 //
 // On DLQ classifications: publishes to webhook.DLQTopic with the same

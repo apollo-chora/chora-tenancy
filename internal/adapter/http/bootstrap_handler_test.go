@@ -25,17 +25,17 @@ import (
 	"testing"
 	"time"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 // fakeBootstrapService records calls and returns canned values for the
 // HTTP-layer tests.
 type fakeBootstrapService struct {
-	out         *bootstrap.Output
-	err         error
-	calls       int
-	lastInput   bootstrap.Input
+	out       *bootstrap.Output
+	err       error
+	calls     int
+	lastInput bootstrap.Input
 }
 
 func (s *fakeBootstrapService) Bootstrap(_ context.Context, in bootstrap.Input) (*bootstrap.Output, error) {

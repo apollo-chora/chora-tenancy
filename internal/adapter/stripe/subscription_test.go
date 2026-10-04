@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	stripestub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/stripe"
+	stripestub "github.com/apollo-chora/chora-tenancy/internal/adapter/stripe"
 )
 
 func newScheduleClient(t *testing.T) *stripestub.Client {

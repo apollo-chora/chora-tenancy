@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/billingstripe"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingstripe"
 )
 
 func TestNew_DefaultsApplied(t *testing.T) {

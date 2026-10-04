@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/member"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/member"
 )
 
 const (

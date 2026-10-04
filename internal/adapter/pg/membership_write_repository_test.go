@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
+	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
 )
 
 const (

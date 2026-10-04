@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/webhook"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
 )
 
 func TestClassifyStripeEvent_RoutingByMetadata(t *testing.T) {

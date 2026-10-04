@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 // TenantRepository is the pgx-backed implementation of tenant.Repository.
@@ -159,17 +159,17 @@ func (r *TenantRepository) FindBySlug(ctx context.Context, slug string) (*tenant
 
 func scanTenant(row Row) (*tenant.Tenant, error) {
 	var (
-		t                  tenant.Tenant
-		parentID           string
-		branding           []byte
-		status             string
-		slug               string
-		country            string
-		currency           string
-		stripeCustomer     string
-		activatedAt        *time.Time
-		wizardCompletedAt  *time.Time
-		deletedAt          *time.Time
+		t                 tenant.Tenant
+		parentID          string
+		branding          []byte
+		status            string
+		slug              string
+		country           string
+		currency          string
+		stripeCustomer    string
+		activatedAt       *time.Time
+		wizardCompletedAt *time.Time
+		deletedAt         *time.Time
 	)
 	err := row.Scan(
 		&t.ID,

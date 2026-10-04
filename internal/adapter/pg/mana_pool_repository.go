@@ -65,7 +65,7 @@ import (
 	"strings"
 	"time"
 
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // ErrPolicyUnsupported is returned when an AllocationPolicy cannot be

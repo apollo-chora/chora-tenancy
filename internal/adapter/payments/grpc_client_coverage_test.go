@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/payments"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/payments"
 )
 
 func TestNewGRPCClient_DialsAndCloses(t *testing.T) {

@@ -12,7 +12,7 @@ package pg
 import (
 	"context"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/atomcount"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/atomcount"
 )
 
 // AtomCountWriteRepo folds per-tenant atom-count deltas under tenant RLS.

@@ -3,7 +3,7 @@
 //
 // Coverage classes (per #12 contract):
 //   - Happy path: returns sorted (DESC by probability) BreedOdds + total_weight
-//     + distribution_updated_at, mirroring the REST endpoint shape.
+//   - distribution_updated_at, mirroring the REST endpoint shape.
 //   - 404 NotFound: SKU does not exist.
 //   - Tenant-scope rejection: SKU's tenant_id != caller tenant AND != NULL.
 //   - Platform-global SKU: tenant_id IS NULL → any caller can read.
@@ -23,10 +23,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	tenancyv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/services/tenancy/v1"
+	tenancyv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/services/tenancy/v1"
 
-	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // fakeCatalog is a test stub for the CatalogLookup port.
@@ -239,9 +239,9 @@ func TestPreviewEggOdds_OddsSortStable(t *testing.T) {
 	// Verify DESC by probability, alphabetical tie-break.
 	entry := newCatalogEntry("")
 	entry.BreedDistribution = familiareag.BreedDistribution{
-		"owl":  25,
-		"fox":  25,
-		"cat":  50,
+		"owl": 25,
+		"fox": 25,
+		"cat": 50,
 	}
 	cat := &fakeCatalog{entry: entry, found: true}
 	srv := tenancygrpc.NewFamiliarEggServer(cat)

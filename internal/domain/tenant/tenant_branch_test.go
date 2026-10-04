@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 func TestTenant_Close_Idempotent(t *testing.T) {

@@ -14,7 +14,7 @@ import (
 	"context"
 	"testing"
 
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // fakePoolStore implements pool.PoolStore for engine unit tests.

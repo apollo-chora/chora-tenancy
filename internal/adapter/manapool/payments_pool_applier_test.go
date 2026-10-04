@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/manapool"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/manapool"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // newTestPool returns a non-zero TenantManaPool with the given starting balance.

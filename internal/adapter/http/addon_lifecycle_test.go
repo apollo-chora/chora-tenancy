@@ -12,12 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 const (

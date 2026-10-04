@@ -21,7 +21,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
 )
 
 // hydStub satisfies both pg.QueryRunner and pg.TxQuerier so the hydrator's

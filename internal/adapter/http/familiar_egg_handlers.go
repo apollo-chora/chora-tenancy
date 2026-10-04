@@ -34,11 +34,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareggstripe "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiareggstripe"
-	familiareggpub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pubsub"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/webhook"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggstripe "github.com/apollo-chora/chora-tenancy/internal/adapter/familiareggstripe"
+	familiareggpub "github.com/apollo-chora/chora-tenancy/internal/adapter/pubsub"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // ---------------------------------------------------------------------------
@@ -118,11 +118,11 @@ type EggCheckoutOutput struct {
 
 // FamiliarEggDeps wires the Iter G.3 handler set.
 type FamiliarEggDeps struct {
-	Purchases     PurchaseStore
-	Catalog       CatalogStore
-	Stripe        familiareggstripe.Client
-	Publisher     familiareggpub.EggPublisher
-	WebhookIdem   WebhookIdemStore
+	Purchases   PurchaseStore
+	Catalog     CatalogStore
+	Stripe      familiareggstripe.Client
+	Publisher   familiareggpub.EggPublisher
+	WebhookIdem WebhookIdemStore
 
 	// Payments delegates the Stripe Checkout session + FamiliarEgg purchase
 	// persistence to chora-payments (ADR-164). Required for /checkout; the
@@ -371,10 +371,10 @@ func handleEggOdds(d FamiliarEggDeps, sku string, w http.ResponseWriter, r *http
 		return
 	}
 	v2WriteJSON(w, http.StatusOK, map[string]any{
-		"sku":                       e.SKU,
-		"odds":                      e.BreedDistribution.Odds(),
-		"total_weight":              e.BreedDistribution.Total(),
-		"distribution_updated_at":   e.BreedDistributionUpdated.UTC().Format(time.RFC3339Nano),
+		"sku":                     e.SKU,
+		"odds":                    e.BreedDistribution.Odds(),
+		"total_weight":            e.BreedDistribution.Total(),
+		"distribution_updated_at": e.BreedDistributionUpdated.UTC().Format(time.RFC3339Nano),
 		// IMDA D2 transparency tag.
 		"chora_imda_dimension": "transparency",
 	})
@@ -777,8 +777,8 @@ func (s *InMemoryWebhookIdemStore) MarkSeen(_ context.Context, eventID string, a
 // InMemoryPurchaseStore is the dev-mode PurchaseStore fallback used when
 // CHORA_DB_DSN is unset. NOT safe for production; rows lost on restart.
 type InMemoryPurchaseStore struct {
-	rows map[string]*familiareag.Purchase // purchase_id -> row
-	bySession map[string]string             // session_id -> purchase_id
+	rows      map[string]*familiareag.Purchase // purchase_id -> row
+	bySession map[string]string                // session_id -> purchase_id
 }
 
 // NewInMemoryPurchaseStore constructs the in-mem PurchaseStore.
@@ -847,49 +847,49 @@ func NewInMemoryCatalogStore() *InMemoryCatalogStore {
 	now := time.Now().UTC()
 	rows := map[string]*familiareag.CatalogEntry{
 		"egg.trial.v1": {
-			SKU:               "egg.trial.v1",
-			DisplayName:       "Trial Egg",
-			Description:       "Your first Familiar — free to try. Uniform odds across all breeds. One per learner, ever.",
-			PriceCents:        0,
-			Currency:          "SGD",
-			BreedDistribution: familiareag.BreedDistribution{"owl": 20.0, "fox": 20.0, "penguin": 20.0, "dragon": 20.0, "phoenix": 20.0},
+			SKU:                      "egg.trial.v1",
+			DisplayName:              "Trial Egg",
+			Description:              "Your first Familiar — free to try. Uniform odds across all breeds. One per learner, ever.",
+			PriceCents:               0,
+			Currency:                 "SGD",
+			BreedDistribution:        familiareag.BreedDistribution{"owl": 20.0, "fox": 20.0, "penguin": 20.0, "dragon": 20.0, "phoenix": 20.0},
 			BreedDistributionUpdated: now,
-			Purchasable:        false,
-			IsTrial:            true,
-			SoftExpiryDays:     30,
-			HardExpiryDays:     60,
-			CreatedAt:          now,
-			UpdatedAt:          now,
+			Purchasable:              false,
+			IsTrial:                  true,
+			SoftExpiryDays:           30,
+			HardExpiryDays:           60,
+			CreatedAt:                now,
+			UpdatedAt:                now,
 		},
 		"egg.standard.v1": {
-			SKU:               "egg.standard.v1",
-			DisplayName:       "Standard Egg",
-			Description:       "A versatile Familiar egg. Pick any focal atom from your Knowledge Graph at hatching. Common breeds favored.",
-			PriceCents:        999,
-			Currency:          "SGD",
-			BreedDistribution: familiareag.BreedDistribution{"owl": 28.0, "fox": 27.0, "penguin": 25.0, "dragon": 12.0, "phoenix": 8.0},
+			SKU:                      "egg.standard.v1",
+			DisplayName:              "Standard Egg",
+			Description:              "A versatile Familiar egg. Pick any focal atom from your Knowledge Graph at hatching. Common breeds favored.",
+			PriceCents:               999,
+			Currency:                 "SGD",
+			BreedDistribution:        familiareag.BreedDistribution{"owl": 28.0, "fox": 27.0, "penguin": 25.0, "dragon": 12.0, "phoenix": 8.0},
 			BreedDistributionUpdated: now,
-			Purchasable:        true,
-			IsTrial:            false,
-			SoftExpiryDays:     30,
-			HardExpiryDays:     60,
-			CreatedAt:          now,
-			UpdatedAt:          now,
+			Purchasable:              true,
+			IsTrial:                  false,
+			SoftExpiryDays:           30,
+			HardExpiryDays:           60,
+			CreatedAt:                now,
+			UpdatedAt:                now,
 		},
 		"egg.premium.v1": {
-			SKU:               "egg.premium.v1",
-			DisplayName:       "Premium Egg",
-			Description:       "A premium Familiar egg with rarer breeds weighted. Includes Source Revelation preview boost at Stage 3.",
-			PriceCents:        2999,
-			Currency:          "SGD",
-			BreedDistribution: familiareag.BreedDistribution{"owl": 15.0, "fox": 13.0, "penguin": 12.0, "dragon": 30.0, "phoenix": 30.0},
+			SKU:                      "egg.premium.v1",
+			DisplayName:              "Premium Egg",
+			Description:              "A premium Familiar egg with rarer breeds weighted. Includes Source Revelation preview boost at Stage 3.",
+			PriceCents:               2999,
+			Currency:                 "SGD",
+			BreedDistribution:        familiareag.BreedDistribution{"owl": 15.0, "fox": 13.0, "penguin": 12.0, "dragon": 30.0, "phoenix": 30.0},
 			BreedDistributionUpdated: now,
-			Purchasable:        true,
-			IsTrial:            false,
-			SoftExpiryDays:     45,
-			HardExpiryDays:     90,
-			CreatedAt:          now,
-			UpdatedAt:          now,
+			Purchasable:              true,
+			IsTrial:                  false,
+			SoftExpiryDays:           45,
+			HardExpiryDays:           90,
+			CreatedAt:                now,
+			UpdatedAt:                now,
 		},
 	}
 	return &InMemoryCatalogStore{rows: rows}
@@ -957,4 +957,3 @@ func (s *InMemoryCatalogStore) SoftDelete(_ context.Context, tenantID, sku strin
 	e.DeletedAt = &now
 	return nil
 }
-

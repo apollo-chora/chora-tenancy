@@ -6,7 +6,7 @@ package member_test
 import (
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/member"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/member"
 )
 
 func TestRegistry_BulkInvite_DedupesAcrossBatches(t *testing.T) {
@@ -80,7 +80,7 @@ func TestRegistry_BulkInvite_DedupesWithinSameBatch(t *testing.T) {
 	reg := member.NewRegistry()
 	res, err := reg.BulkInvite(tenantA, []member.InviteRequest{
 		{Email: "alice@acme.com", Roles: []string{"learner"}},
-		{Email: "ALICE@acme.com", Roles: []string{"learner"}}, // case-insensitive dup
+		{Email: "ALICE@acme.com", Roles: []string{"learner"}},   // case-insensitive dup
 		{Email: " alice@acme.com ", Roles: []string{"learner"}}, // whitespace dup
 		{Email: "bob@acme.com", Roles: []string{"learner"}},
 	})

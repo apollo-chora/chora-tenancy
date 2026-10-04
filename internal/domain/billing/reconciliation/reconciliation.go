@@ -118,7 +118,7 @@ type EventLogFeeder interface {
 }
 
 // Emitter is the outbound event publisher port. Production wires a
-// chora-go-common/outbox-backed publisher; tests use a fake recorder.
+// chora-common/outbox-backed publisher; tests use a fake recorder.
 type Emitter interface {
 	EmitCompleted(ctx context.Context, r Report) error
 	EmitAnomaly(ctx context.Context, r Report) error

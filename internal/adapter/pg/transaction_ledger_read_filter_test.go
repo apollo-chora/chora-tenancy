@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // ---- fakes for ScopeTxQuerier / Tx / Rows ----------------------------------

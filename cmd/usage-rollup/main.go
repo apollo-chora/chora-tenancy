@@ -32,8 +32,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
 )
 
 const (

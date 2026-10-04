@@ -22,8 +22,8 @@ import (
 	"sync"
 	"testing"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 // fakeBrandingTenantRepo is a minimal `tenant.Repository` fake. Only

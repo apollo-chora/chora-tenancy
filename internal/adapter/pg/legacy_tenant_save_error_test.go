@@ -12,8 +12,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	tenancy "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	tenancy "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
 func TestLegacyTenantStore_Save_ReturnsExecError(t *testing.T) {

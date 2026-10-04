@@ -27,7 +27,7 @@
 //	chora-observability pattern at token_usage_binding.go.
 //
 // Idempotency: every handler is wrapped by the PaymentsSubscriber's inbox
-// (libs/chora-go-common/idempotent.Store) so Pub/Sub redelivery + multi-
+// (chora-common/idempotent.Store) so Pub/Sub redelivery + multi-
 // replica replays are no-ops. Postgres-backed inbox when CHORA_OUTBOX_DSN
 // is set; in-memory fallback for dev.
 //
@@ -44,10 +44,10 @@ import (
 	"sync"
 	"time"
 
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
-	tnevents "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	tnevents "github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 
-	paymentsv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/payments/v1"
+	paymentsv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/payments/v1"
 	"google.golang.org/protobuf/proto"
 )
 

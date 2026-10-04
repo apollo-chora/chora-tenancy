@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	domain "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
+	domain "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
 const (

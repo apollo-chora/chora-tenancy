@@ -20,9 +20,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
-	poolpkg "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
+	poolpkg "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // grantTx records every statement and can be told to fail a chosen one.

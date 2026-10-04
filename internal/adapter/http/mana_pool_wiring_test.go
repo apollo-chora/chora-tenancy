@@ -26,9 +26,9 @@ import (
 	"sync"
 	"testing"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/manapool"
-	pooldom "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/manapool"
+	pooldom "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // manaDo issues a request with explicit header control (adminDo always

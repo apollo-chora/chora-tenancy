@@ -18,16 +18,16 @@ package pubsub
 import (
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // Canonical topic names.
 const (
-	TopicCheckoutStarted   = "chora.tenancy.familiar_egg.checkout_started.v1"
-	TopicPaymentSucceeded  = "chora.tenancy.familiar_egg.payment_succeeded.v1"
-	TopicPaymentFailed     = "chora.tenancy.familiar_egg.payment_failed.v1"
-	TopicRefunded          = "chora.tenancy.familiar_egg.refunded.v1"
+	TopicCheckoutStarted  = "chora.tenancy.familiar_egg.checkout_started.v1"
+	TopicPaymentSucceeded = "chora.tenancy.familiar_egg.payment_succeeded.v1"
+	TopicPaymentFailed    = "chora.tenancy.familiar_egg.payment_failed.v1"
+	TopicRefunded         = "chora.tenancy.familiar_egg.refunded.v1"
 )
 
 // EggPublisher is the port the HTTP + webhook handlers use to emit

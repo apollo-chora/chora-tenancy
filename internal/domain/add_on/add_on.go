@@ -187,7 +187,7 @@ func NewSeedCatalogue() *Catalogue {
 	seed := []*AddOn{
 		{ID: NewUUIDv7(), Code: "base", DisplayName: "Chora Base", Category: "Core",
 			MonthlyPriceCents: 0, AlwaysOn: true, PlanFamily: "base",
-			Tiers: []Tier{{Code: "default", DisplayName: "Default", Currency: "SGD"}},
+			Tiers:     []Tier{{Code: "default", DisplayName: "Default", Currency: "SGD"}},
 			CreatedAt: now},
 		{ID: NewUUIDv7(), Code: "tms", DisplayName: "Training Management Suite", Category: "Delivery",
 			MonthlyPriceCents: 4900, PlanFamily: "tms",

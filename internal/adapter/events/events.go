@@ -9,14 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/env"
+	"github.com/apollo-chora/chora-common/env"
 )
 
 const (
 	sourceService = "chora-tenancy"
 )
 
-//
 // Was a hardcoded literal until 2026-09-02 (CHO-2419). No manifest could reach
 // it, so a second org stamped every event with chora-489812 and any consumer
 // filtering on source_project would have been filtering on a lie.

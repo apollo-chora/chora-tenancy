@@ -50,21 +50,21 @@ const (
 
 // ExportJob is the async export handle (read model + lifecycle).
 type ExportJob struct {
-	JobID              string
-	TenantID           string // concrete tenant | NilTenantUUID (span-all)
-	OwnerGCID          string
-	LearnerGCID        string // learner scope bound learner ("" otherwise)
-	Scope              string // "learner" | "tenant" | "master"
+	JobID           string
+	TenantID        string // concrete tenant | NilTenantUUID (span-all)
+	OwnerGCID       string
+	LearnerGCID     string // learner scope bound learner ("" otherwise)
+	Scope           string // "learner" | "tenant" | "master"
 	ManagedTenantID string
-	Filters            ReadFilters // frozen at create time (window included)
-	Format             string
-	Status             string
-	GCSObject          string
-	DownloadURL        string
-	ExpiresAt          time.Time
-	Error              string
-	AttemptCount       int
-	CreatedAt          time.Time
+	Filters         ReadFilters // frozen at create time (window included)
+	Format          string
+	Status          string
+	GCSObject       string
+	DownloadURL     string
+	ExpiresAt       time.Time
+	Error           string
+	AttemptCount    int
+	CreatedAt       time.Time
 }
 
 // AttemptExceeds reports whether the job has been claimed more than max times
@@ -73,13 +73,13 @@ func (j ExportJob) AttemptExceeds(max int) bool { return j.AttemptCount > max }
 
 // NewExportJob is the create input the repo persists as a PENDING row.
 type NewExportJob struct {
-	TenantID           string // concrete tenant | NilTenantUUID
-	OwnerGCID          string
-	LearnerGCID        string
-	Scope              string
+	TenantID        string // concrete tenant | NilTenantUUID
+	OwnerGCID       string
+	LearnerGCID     string
+	Scope           string
 	ManagedTenantID string
-	Format             string
-	Filters            ReadFilters // resolved (window already defaulted) by the gRPC layer
+	Format          string
+	Filters         ReadFilters // resolved (window already defaulted) by the gRPC layer
 }
 
 // ExportJobRepository is the persistence port for export jobs.

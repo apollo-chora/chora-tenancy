@@ -3,17 +3,25 @@
 // transaction_ledger_read_repository_integration_test.go — live SQL behaviour
 // of the B3 (CHO-1939) projection read repo. Seeds via the B2 write repo (real
 // write→read round-trip) across two tenants + two learners, then asserts:
+//
 //   - tenant scope isolation (RLS pins the caller tenant)
+//
 //   - learner scope (own learner_gcid only)
+//
 //   - master span-all ("platform" sentinel) returns every tenant
+//
 //   - master single-franchisee narrows to one tenant
+//
 //   - keyset cursor pagination (occurred_at desc) is complete + dup-free
+//
 //   - amount sort orders by the unified magnitude
+//
 //   - summary KPIs (counts by kind/status, per-currency net, mana up/spent)
+//
 //   - mana_spend_daily drill-down (parent + per-call detail)
 //
-//	export CHORA_TEST_DSN=postgres://chora_tenancy_app_rw:...@.../chora_tenancy
-//	go test -tags integration -run TestTransactionLedgerReadRepo ./internal/adapter/pg/...
+//     export CHORA_TEST_DSN=postgres://chora_tenancy_app_rw:...@.../chora_tenancy
+//     go test -tags integration -run TestTransactionLedgerReadRepo ./internal/adapter/pg/...
 package pg_test
 
 import (
@@ -23,8 +31,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 func TestTransactionLedgerReadRepo(t *testing.T) {

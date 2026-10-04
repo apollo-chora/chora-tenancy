@@ -50,7 +50,7 @@ import (
 	"strings"
 	"time"
 
-	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
+	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
 )
 
 // MembershipRepository is the pgx-backed implementation of

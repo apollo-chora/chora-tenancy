@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events/protodecode"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events/protodecode"
 )
 
 type minimalPayload struct {

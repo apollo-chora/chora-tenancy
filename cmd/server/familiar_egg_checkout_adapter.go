@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/payments"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/payments"
 )
 
 // familiarEggCheckoutAdapter adapts the concrete chora-payments gRPC client to

@@ -14,8 +14,8 @@ import (
 	"log"
 	"sync"
 
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
-	tnevents "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	tnevents "github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 )
 
 // startTransactionLedgerSubscribers spawns one goroutine per ADR-205 source

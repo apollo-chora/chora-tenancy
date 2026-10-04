@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 func TestPaging(t *testing.T) {

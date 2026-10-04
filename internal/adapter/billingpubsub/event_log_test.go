@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	cgcenvelope "github.com/5007-Capstone/chora/libs/chora-go-common/envelope"
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/billingpubsub"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/webhook"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingpubsub"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
 )
 
 func TestEventLogReplayFeeder_Record(t *testing.T) {

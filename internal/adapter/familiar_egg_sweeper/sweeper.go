@@ -27,9 +27,9 @@ import (
 	"log"
 	"time"
 
-	familiareggpub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pubsub"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggpub "github.com/apollo-chora/chora-tenancy/internal/adapter/pubsub"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // PurchaseStore is the persistence port the sweeper depends on.
@@ -56,13 +56,13 @@ func (NoopManaCreditIssuer) IssueRefundCredit(_ context.Context, tenantID, gcid 
 
 // Config wires the sweeper.
 type Config struct {
-	Enabled        bool
-	Store          PurchaseStore
-	Publisher      familiareggpub.EggPublisher
-	ManaCredits    ManaCreditIssuer
-	PollInterval   time.Duration
-	BatchSize      int
-	Now            func() time.Time
+	Enabled      bool
+	Store        PurchaseStore
+	Publisher    familiareggpub.EggPublisher
+	ManaCredits  ManaCreditIssuer
+	PollInterval time.Duration
+	BatchSize    int
+	Now          func() time.Time
 }
 
 // Sweeper expires unhatched egg purchases past hard_expiry_at.

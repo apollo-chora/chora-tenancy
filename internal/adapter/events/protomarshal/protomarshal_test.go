@@ -19,7 +19,7 @@ import (
 
 	"google.golang.org/protobuf/encoding/protowire"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events/protomarshal"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events/protomarshal"
 )
 
 // fixedEnvelope returns an envelope with deterministic values for byte-level

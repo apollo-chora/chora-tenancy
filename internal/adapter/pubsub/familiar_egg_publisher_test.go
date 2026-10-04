@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareggpub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pubsub"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggpub "github.com/apollo-chora/chora-tenancy/internal/adapter/pubsub"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 func TestEmitCheckoutStarted_PublishesToCheckoutStartedTopic(t *testing.T) {

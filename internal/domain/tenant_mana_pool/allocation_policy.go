@@ -4,14 +4,14 @@
 // driving the auto-allocation engine:
 //
 //   - ManualPolicy{}            — admin allocates one-at-a-time per learner.
-//                                 No auto-allocation events fire.
+//     No auto-allocation events fire.
 //   - OnEnrollmentPolicy{N}     — N units granted when a learner enrols in a
-//                                 tenant course.
+//     tenant course.
 //   - EqualSplitPolicy{}        — pool's monthly drip distributed equally
-//                                 across active learners (computed at the
-//                                 month boundary by OnMonthlyTick).
+//     across active learners (computed at the
+//     month boundary by OnMonthlyTick).
 //   - TierBasedPolicy{tier→N}   — different allocation amounts per learner
-//                                 role (lookup by GCID's role at enrollment).
+//     role (lookup by GCID's role at enrollment).
 //
 // PolicyConfig is the API config block (matches the OpenAPI
 // AllocationPolicyConfig schema). PolicyFromConfig materialises a typed
@@ -57,7 +57,7 @@ type AllocationPolicy interface {
 // ManualPolicy fires no auto-allocations.
 type ManualPolicy struct{}
 
-func (ManualPolicy) Kind() PolicyKind                         { return PolicyKindManual }
+func (ManualPolicy) Kind() PolicyKind                             { return PolicyKindManual }
 func (ManualPolicy) UnitsForLearner(LearnerContext) (int64, bool) { return 0, false }
 
 // -----------------------------------------------------------------------------
@@ -87,7 +87,7 @@ func (p OnEnrollmentPolicy) UnitsForLearner(LearnerContext) (int64, bool) {
 // enrollment.
 type EqualSplitPolicy struct{}
 
-func (EqualSplitPolicy) Kind() PolicyKind                         { return PolicyKindEqualSplit }
+func (EqualSplitPolicy) Kind() PolicyKind                             { return PolicyKindEqualSplit }
 func (EqualSplitPolicy) UnitsForLearner(LearnerContext) (int64, bool) { return 0, false }
 
 // ComputeMonthlyUnits returns the per-learner allotment when the monthly
@@ -130,10 +130,10 @@ func (p TierBasedPolicy) UnitsForLearner(ctx LearnerContext) (int64, bool) {
 // the HTTP layer to ship a config block from `PATCH .../mana-pool/policy`
 // into the domain via PolicyFromConfig.
 type PolicyConfig struct {
-	Policy             string
-	UnitsOnEnrollment  int64
-	TierAmounts        map[string]int64
-	AllocationTTLDays  int
+	Policy            string
+	UnitsOnEnrollment int64
+	TierAmounts       map[string]int64
+	AllocationTTLDays int
 }
 
 // PolicyFromConfig materialises a typed AllocationPolicy from the wire

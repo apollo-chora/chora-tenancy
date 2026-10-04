@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareggstripe "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiareggstripe"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggstripe "github.com/apollo-chora/chora-tenancy/internal/adapter/familiareggstripe"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // odds endpoint hits the cross-tenant guard via a tenant-bound SKU.
@@ -146,11 +146,11 @@ func TestAdminCatalog_FallbackDTOWhenGetReturnsNil(t *testing.T) {
 	t.Parallel()
 	cat := &postUpsertNilCatalog{base: httpapi.NewInMemoryCatalogStore()}
 	mux := httpapi.NewFamiliarEggMux(httpapi.FamiliarEggDeps{
-		Purchases: httpapi.NewInMemoryPurchaseStore(),
-		Catalog:   cat,
-		Stripe:    familiareggstripe.NewStubClient(),
-		Publisher: events.NewRecorder(),
-		WebhookIdem: httpapi.NewInMemoryWebhookIdemStore(),
+		Purchases:     httpapi.NewInMemoryPurchaseStore(),
+		Catalog:       cat,
+		Stripe:        familiareggstripe.NewStubClient(),
+		Publisher:     events.NewRecorder(),
+		WebhookIdem:   httpapi.NewInMemoryWebhookIdemStore(),
 		WebhookSecret: testWebhookSecret,
 		Now:           func() time.Time { return time.Now().UTC() },
 	})
@@ -189,11 +189,11 @@ func (c *postUpsertNilCatalog) SoftDelete(ctx context.Context, tenantID, sku str
 func TestCatalogList_StoreError(t *testing.T) {
 	t.Parallel()
 	mux := httpapi.NewFamiliarEggMux(httpapi.FamiliarEggDeps{
-		Purchases: httpapi.NewInMemoryPurchaseStore(),
-		Catalog:   &failingCatalog{},
-		Stripe:    familiareggstripe.NewStubClient(),
-		Publisher: events.NewRecorder(),
-		WebhookIdem: httpapi.NewInMemoryWebhookIdemStore(),
+		Purchases:     httpapi.NewInMemoryPurchaseStore(),
+		Catalog:       &failingCatalog{},
+		Stripe:        familiareggstripe.NewStubClient(),
+		Publisher:     events.NewRecorder(),
+		WebhookIdem:   httpapi.NewInMemoryWebhookIdemStore(),
 		WebhookSecret: testWebhookSecret,
 		Now:           func() time.Time { return time.Now().UTC() },
 	})
@@ -210,11 +210,11 @@ func TestCatalogList_StoreError(t *testing.T) {
 func TestAdminCatalog_UpsertError(t *testing.T) {
 	t.Parallel()
 	mux := httpapi.NewFamiliarEggMux(httpapi.FamiliarEggDeps{
-		Purchases: httpapi.NewInMemoryPurchaseStore(),
-		Catalog:   &failingCatalog{},
-		Stripe:    familiareggstripe.NewStubClient(),
-		Publisher: events.NewRecorder(),
-		WebhookIdem: httpapi.NewInMemoryWebhookIdemStore(),
+		Purchases:     httpapi.NewInMemoryPurchaseStore(),
+		Catalog:       &failingCatalog{},
+		Stripe:        familiareggstripe.NewStubClient(),
+		Publisher:     events.NewRecorder(),
+		WebhookIdem:   httpapi.NewInMemoryWebhookIdemStore(),
 		WebhookSecret: testWebhookSecret,
 		Now:           func() time.Time { return time.Now().UTC() },
 	})
@@ -233,11 +233,11 @@ func TestAdminCatalog_UpsertError(t *testing.T) {
 func TestAdminCatalogDelete_StoreError(t *testing.T) {
 	t.Parallel()
 	mux := httpapi.NewFamiliarEggMux(httpapi.FamiliarEggDeps{
-		Purchases: httpapi.NewInMemoryPurchaseStore(),
-		Catalog:   &failingCatalog{},
-		Stripe:    familiareggstripe.NewStubClient(),
-		Publisher: events.NewRecorder(),
-		WebhookIdem: httpapi.NewInMemoryWebhookIdemStore(),
+		Purchases:     httpapi.NewInMemoryPurchaseStore(),
+		Catalog:       &failingCatalog{},
+		Stripe:        familiareggstripe.NewStubClient(),
+		Publisher:     events.NewRecorder(),
+		WebhookIdem:   httpapi.NewInMemoryWebhookIdemStore(),
 		WebhookSecret: testWebhookSecret,
 		Now:           func() time.Time { return time.Now().UTC() },
 	})

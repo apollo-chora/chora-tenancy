@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/payments"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/payments"
 )
 
 func TestNewHTTPClient_RequiresAddr(t *testing.T) {

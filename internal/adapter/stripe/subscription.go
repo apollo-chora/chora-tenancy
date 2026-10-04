@@ -4,16 +4,18 @@
 // transitions). The H+ tier-change preview + change-tier flow consumes
 // this adapter:
 //
-//   • Upgrades — current phase replaced immediately (1 phase total).
-//   • Downgrades — current phase + next phase (defer to cycle end). Stripe
+//   - Upgrades — current phase replaced immediately (1 phase total).
+//   - Downgrades — current phase + next phase (defer to cycle end). Stripe
 //     Subscription Schedule with `phases[1].start_date = cycle_end` is the
 //     production wire; the stub mirrors the same shape with mock IDs.
-//   • Preview-only — returns the same payload but never persists; the
+//   - Preview-only — returns the same payload but never persists; the
 //     ScheduleID is left empty so the caller can detect preview mode.
 //
 // Per CLAUDE.md §6 (no inline config) Stripe URL + key flow from env vars
 // sourced from Terraform / Secret Manager. Real wiring (M14) hits
-//   POST /v1/subscription_schedules { phases: [{...}, {...}] }
+//
+//	POST /v1/subscription_schedules { phases: [{...}, {...}] }
+//
 // with `Idempotency-Key: chora.tenancy.schedule.<tenant>.<subscription>`.
 package stripestub
 

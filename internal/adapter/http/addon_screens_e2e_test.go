@@ -1,7 +1,7 @@
 // Package httpapi_test — A-Tenant-Lifecycle (S6.2) end-to-end tests that
 // walk the 8-stage value stream from docs/design/ux_tenant_addon_lifecycle.md:
 //
-//   Discover → Evaluate → Purchase → Operate → Monitor → Upgrade → Audit
+//	Discover → Evaluate → Purchase → Operate → Monitor → Upgrade → Audit
 //
 // Verifies the cross-screen flow integrity: events emitted on purchase are
 // surfaced in the audit screen; tier changes update the dashboard list;
@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 // TestE2E_DiscoverEvaluatePurchaseUpgradeAudit walks the full value stream
@@ -116,10 +116,10 @@ func TestE2E_DiscoverEvaluatePurchaseUpgradeAudit(t *testing.T) {
 
 // TestE2E_RequestDeactivation_FlowsCompliancePathThenSuperAdminOverride
 // walks the deactivation sub-flow for a compliance-locked add-on:
-// 1. tenant_admin attempts → 423.
-// 2. super_admin without override flag → 423.
-// 3. super_admin with override + correct confirmation_text → 202 +
-//    chora.tenancy.addon.deactivation_requested.v1 with super_admin_override=true.
+//  1. tenant_admin attempts → 423.
+//  2. super_admin without override flag → 423.
+//  3. super_admin with override + correct confirmation_text → 202 +
+//     chora.tenancy.addon.deactivation_requested.v1 with super_admin_override=true.
 func TestE2E_RequestDeactivation_CompliancePath(t *testing.T) {
 	t.Parallel()
 	srv, deps := newAdminServer(t)

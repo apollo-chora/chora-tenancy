@@ -27,10 +27,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	stripestub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/stripe"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	stripestub "github.com/apollo-chora/chora-tenancy/internal/adapter/stripe"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 // V1MountInto adds the Phyllis MVP §5.2 + addon lifecycle routes to the v2
@@ -271,11 +271,11 @@ func handleV1Golive(deps V2Deps, tenantID string, w http.ResponseWriter, r *http
 		Traceparent: r.Header.Get("traceparent"),
 	}
 	deps.Events.Publish("chora.tenancy.tenant.golive.v1", hdr, map[string]interface{}{
-		"tenant_id":              t.ID,
-		"stripe_customer_id":     res.CustomerID,
-		"activated_at":           t.ActivatedAt.Format(time.RFC3339Nano),
-		"chora_imda_dimension":   "accountability",
-		"imda_lifecycle_stage":   "post_deploy",
+		"tenant_id":            t.ID,
+		"stripe_customer_id":   res.CustomerID,
+		"activated_at":         t.ActivatedAt.Format(time.RFC3339Nano),
+		"chora_imda_dimension": "accountability",
+		"imda_lifecycle_stage": "post_deploy",
 	})
 	v2WriteJSON(w, http.StatusOK, v1TenantDTO(t))
 }
@@ -731,4 +731,3 @@ func v1TenantDTO(t *tenant.Tenant) map[string]interface{} {
 	}
 	return out
 }
-

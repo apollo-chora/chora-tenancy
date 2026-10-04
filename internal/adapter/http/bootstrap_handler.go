@@ -19,10 +19,10 @@
 //
 // Domain → HTTP status mapping:
 //
-//   (no platform_operator role) → 403 AUTH_PLATFORM_OPERATOR_REQUIRED
-//   bootstrap.ErrInvalidArgument  → 400 Bad Request
-//   bootstrap.ErrAlreadyMember    → 409 Conflict
-//   (other errors)                → 500 Internal Server Error
+//	(no platform_operator role) → 403 AUTH_PLATFORM_OPERATOR_REQUIRED
+//	bootstrap.ErrInvalidArgument  → 400 Bad Request
+//	bootstrap.ErrAlreadyMember    → 409 Conflict
+//	(other errors)                → 500 Internal Server Error
 //
 // JSON body decoding + response writing reuse the v2 helpers
 // (v2Decode / v2WriteJSON / v2WriteError) for envelope consistency.
@@ -34,8 +34,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/auth/servicemesh"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
+	"github.com/apollo-chora/chora-common/auth/servicemesh"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 // rolePlatformOperator is the role required to create a private tenant

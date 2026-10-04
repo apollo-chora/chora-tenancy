@@ -20,16 +20,16 @@ import (
 	"strconv"
 	"time"
 
-	commonv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/common/v1"
-	tenancyv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/tenancy/v1"
+	commonv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/common/v1"
+	tenancyv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/tenancy/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/tracing"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
+	"github.com/apollo-chora/chora-common/tracing"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/env"
+	"github.com/apollo-chora/chora-common/env"
 )
 
 // newOutboxUUIDv7 mints a UUIDv7 string for the outbox row primary key
@@ -58,7 +58,7 @@ func newOutboxUUIDv7() string {
 // chora-contracts/asyncapi/tenancy/tenant-bootstrapped-v1.yaml and the
 // Protobuf at chora-contracts/proto/events/tenancy/tenant_bootstrapped.proto.
 const (
-	TopicTenantBootstrapped     = "chora.tenancy.tenant.bootstrapped.v1"
+	TopicTenantBootstrapped      = "chora.tenancy.tenant.bootstrapped.v1"
 	aggregateTypeTenantBootstrap = "tenant"
 	eventTypeTenantBootstrap     = "tenancy.tenant.bootstrapped"
 

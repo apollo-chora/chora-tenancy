@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 // fakeTenantRepo records lookups and returns scripted results.

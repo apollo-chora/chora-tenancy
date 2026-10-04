@@ -32,9 +32,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // manaAllocationDashboard is a READ CACHE for the dashboard summary only.

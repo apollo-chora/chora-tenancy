@@ -31,8 +31,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	tenancy "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	tenancy "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
 // Phyllis demo cast (deterministic UUIDs — see chora-infra/seed/phyllis/02_tenancy.sql).

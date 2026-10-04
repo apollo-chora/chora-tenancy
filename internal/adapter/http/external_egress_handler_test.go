@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/auth/servicemesh"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/external_egress"
+	"github.com/apollo-chora/chora-common/auth/servicemesh"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/external_egress"
 )
 
 const (

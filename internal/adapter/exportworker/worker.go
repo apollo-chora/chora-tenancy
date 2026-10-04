@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"time"
 
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // Logger is the minimal logging surface (satisfied by the service logger).

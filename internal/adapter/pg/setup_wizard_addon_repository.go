@@ -62,9 +62,9 @@ func (r *SetupWizardAddonRepository) Upsert(ctx context.Context, tenantID, code,
 // ReplaceSet enforces REPLACE semantics on the wizard's add-on
 // selections — the input `codes` is treated as the COMPLETE set the
 // user wants persisted for (tenant). Inside a single tx:
-//   1. UPSERT each code in `codes` (new rows in `pending_activation`;
-//      existing rows refresh updated_at without status change).
-//   2. DELETE every row for `tenantID` whose code is NOT in `codes`.
+//  1. UPSERT each code in `codes` (new rows in `pending_activation`;
+//     existing rows refresh updated_at without status change).
+//  2. DELETE every row for `tenantID` whose code is NOT in `codes`.
 //
 // Empty `codes` is a valid input — it means "remove all selections".
 // The admin-side add_on_subscriptions table is NOT touched; that lane

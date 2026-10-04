@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // exportClaimReservationSecs hides a just-claimed (or crashed-worker) job from
@@ -247,7 +247,7 @@ func marshalExportFilters(f tl.ReadFilters) (string, error) {
 	out := exportFiltersJSON{
 		Kind: f.Kind, Status: f.Status,
 		SortField: int(f.Sort.Field), SortDesc: f.Sort.Desc,
-		LearnerGCIDs:        f.LearnerGCIDs,
+		LearnerGCIDs:     f.LearnerGCIDs,
 		ManagedTenantIDs: f.ManagedTenantIDs,
 	}
 	if !f.From.IsZero() {
@@ -279,7 +279,7 @@ func unmarshalExportFilters(s string) (tl.ReadFilters, error) {
 	f := tl.ReadFilters{
 		Kind: in.Kind, Status: in.Status, LearnerGCIDs: learners,
 		ManagedTenantIDs: in.ManagedTenantIDs,
-		Sort:                tl.SortSpec{Field: tl.SortField(in.SortField), Desc: in.SortDesc},
+		Sort:             tl.SortSpec{Field: tl.SortField(in.SortField), Desc: in.SortDesc},
 	}
 	if in.From != "" {
 		if t, err := time.Parse(time.RFC3339Nano, in.From); err == nil {

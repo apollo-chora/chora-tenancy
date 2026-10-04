@@ -7,11 +7,11 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	governancev1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/governance/v1"
+	governancev1 "github.com/apollo-chora/chora-contracts/gen/go/chora/governance/v1"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/tracing"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	"github.com/apollo-chora/chora-common/tracing"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // captureStore records Insert'd rows for assertion; other Store methods no-op.

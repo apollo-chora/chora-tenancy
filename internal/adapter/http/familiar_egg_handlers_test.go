@@ -16,11 +16,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareggstripe "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiareggstripe"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	familiareggpub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pubsub"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggstripe "github.com/apollo-chora/chora-tenancy/internal/adapter/familiareggstripe"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	familiareggpub "github.com/apollo-chora/chora-tenancy/internal/adapter/pubsub"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // fakeEggCheckoutClient is the test double for the chora-payments delegate

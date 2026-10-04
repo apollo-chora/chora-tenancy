@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 const sampleGCID = "01935f12-0000-7000-8000-000000000001"

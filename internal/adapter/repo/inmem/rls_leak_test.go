@@ -58,8 +58,8 @@ var expectedRLSTables = []string{
 // allowed); listed here so the test can document the rationale + flag
 // drift.
 var nonRLSTables = map[string]string{
-	"tenants":  "Hub+ marketplace reads cross-tenant for parent-rollup views",
-	"add_ons":  "catalogue is global by definition (composable add-on plans, NOT tier pricing)",
+	"tenants": "Hub+ marketplace reads cross-tenant for parent-rollup views",
+	"add_ons": "catalogue is global by definition (composable add-on plans, NOT tier pricing)",
 }
 
 func readMigrationsConcat(t *testing.T) string {

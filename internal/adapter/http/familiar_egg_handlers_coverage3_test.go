@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareggstripe "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiareggstripe"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggstripe "github.com/apollo-chora/chora-tenancy/internal/adapter/familiareggstripe"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // partialFailingPurchaseStore looks up successfully but fails on UpdateState.
@@ -238,7 +238,7 @@ func TestInMemoryCatalogStore_ListExcludesCrossTenant(t *testing.T) {
 		SKU: "egg.t1.v1", TenantID: "t-1",
 		DisplayName: "T1", PriceCents: 100, Currency: "SGD",
 		BreedDistribution: familiareag.BreedDistribution{"owl": 100},
-		Purchasable: true, SoftExpiryDays: 30, HardExpiryDays: 60,
+		Purchasable:       true, SoftExpiryDays: 30, HardExpiryDays: 60,
 	})
 	list, err := s.ListForTenant(context.Background(), "t-2", time.Now())
 	if err != nil {

@@ -26,10 +26,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	cgcdb "github.com/5007-Capstone/chora/libs/chora-go-common/db"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
+	cgcdb "github.com/apollo-chora/chora-common/db"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 func liveEntitlementDB(t *testing.T) *pgxpool.Pool {

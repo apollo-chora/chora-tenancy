@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/external_egress"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/external_egress"
 )
 
 const (
@@ -56,8 +56,8 @@ func (t *egressStubTx) QueryRow(_ context.Context, sql string, args ...any) pg.R
 }
 
 type egressStubRunner struct {
-	tx           *egressStubTx
-	gotTenantID  string
+	tx            *egressStubTx
+	gotTenantID   string
 	txInvocations int
 }
 

@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	manapool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/manapool"
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	manapool "github.com/apollo-chora/chora-tenancy/internal/adapter/manapool"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 func TestRecorderPublisher_Publishes7TopicTypes(t *testing.T) {

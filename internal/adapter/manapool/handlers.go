@@ -1,14 +1,14 @@
 // Package manapool — HTTP handlers for the 8 BE-USR-3 endpoints
 // (matches chora-contracts/openapi/tenancy-admin.yaml v1.2):
 //
-//   POST   /api/v1/admin/tenants/{tenantId}/mana-pool                       — create
-//   GET    /api/v1/admin/tenants/{tenantId}/mana-pool                       — detail
-//   POST   /api/v1/admin/tenants/{tenantId}/mana-pool:topup                 — top-up
-//   POST   /api/v1/admin/tenants/{tenantId}/mana-pool:auto-renew            — auto-renew
-//   PATCH  /api/v1/admin/tenants/{tenantId}/mana-pool/policy                — set policy
-//   POST   /api/v1/admin/tenants/{tenantId}/mana-allocations                — manual allocation
-//   GET    /api/v1/admin/tenants/{tenantId}/mana-allocations                — list
-//   DELETE /api/v1/admin/tenants/{tenantId}/mana-allocations/{allocationId} — revoke
+//	POST   /api/v1/admin/tenants/{tenantId}/mana-pool                       — create
+//	GET    /api/v1/admin/tenants/{tenantId}/mana-pool                       — detail
+//	POST   /api/v1/admin/tenants/{tenantId}/mana-pool:topup                 — top-up
+//	POST   /api/v1/admin/tenants/{tenantId}/mana-pool:auto-renew            — auto-renew
+//	PATCH  /api/v1/admin/tenants/{tenantId}/mana-pool/policy                — set policy
+//	POST   /api/v1/admin/tenants/{tenantId}/mana-allocations                — manual allocation
+//	GET    /api/v1/admin/tenants/{tenantId}/mana-allocations                — list
+//	DELETE /api/v1/admin/tenants/{tenantId}/mana-allocations/{allocationId} — revoke
 //
 // Endpoints require X-Tenant-Id; the X-GCID header carries the admin actor.
 package manapool
@@ -23,8 +23,8 @@ import (
 	"strings"
 	"time"
 
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // HandlerDeps wires the dependencies for NewServer.
@@ -160,10 +160,10 @@ type allocPolicyConfigDTO struct {
 }
 
 type createPoolReq struct {
-	InitialTopupUnits      int64                 `json:"initial_topup_units,omitempty"`
-	InitialTopupAmtCents   int64                 `json:"initial_topup_amount_cents,omitempty"`
-	InitialTopupCurrency   string                `json:"initial_topup_currency,omitempty"`
-	AutoAllocationPolicy   *allocPolicyConfigDTO `json:"auto_allocation_policy,omitempty"`
+	InitialTopupUnits    int64                 `json:"initial_topup_units,omitempty"`
+	InitialTopupAmtCents int64                 `json:"initial_topup_amount_cents,omitempty"`
+	InitialTopupCurrency string                `json:"initial_topup_currency,omitempty"`
+	AutoAllocationPolicy *allocPolicyConfigDTO `json:"auto_allocation_policy,omitempty"`
 }
 
 func poolDetailHandler(deps HandlerDeps, tenantID string, w http.ResponseWriter, r *http.Request) {
@@ -538,15 +538,15 @@ func revokeAllocationHandler(deps HandlerDeps, tenantID, allocationID string, w 
 
 func poolDTO(p *pool.TenantManaPool) map[string]interface{} {
 	out := map[string]interface{}{
-		"pool_id":                   p.PoolID,
-		"tenant_id":                 p.TenantID,
-		"balance_units":             p.BalanceUnits,
-		"monthly_topup_units":       p.MonthlyTopupUnits,
-		"auto_allocation_policy":    policyDTO(p.AutoAllocationPolicy),
-		"lifetime_topped_up_units":  p.LifetimeToppedUpUnits,
-		"lifetime_allocated_units":  p.LifetimeAllocatedUnits,
-		"version":                   p.Version,
-		"created_at":                p.CreatedAt.Format(time.RFC3339Nano),
+		"pool_id":                  p.PoolID,
+		"tenant_id":                p.TenantID,
+		"balance_units":            p.BalanceUnits,
+		"monthly_topup_units":      p.MonthlyTopupUnits,
+		"auto_allocation_policy":   policyDTO(p.AutoAllocationPolicy),
+		"lifetime_topped_up_units": p.LifetimeToppedUpUnits,
+		"lifetime_allocated_units": p.LifetimeAllocatedUnits,
+		"version":                  p.Version,
+		"created_at":               p.CreatedAt.Format(time.RFC3339Nano),
 	}
 	if p.LastToppedUpAt != nil {
 		out["last_topped_up_at"] = p.LastToppedUpAt.Format(time.RFC3339Nano)
@@ -567,12 +567,12 @@ func policyDTO(p pool.AllocationPolicy) map[string]interface{} {
 
 func allocationDTO(a *allocation.TenantManaAllocation) map[string]interface{} {
 	out := map[string]interface{}{
-		"allocation_id":    a.AllocationID,
-		"tenant_id":        a.TenantID,
-		"gcid":             a.GCID,
-		"units":            a.Units,
-		"source_pool_id":   a.SourcePoolID,
-		"status":           string(a.Status),
+		"allocation_id":     a.AllocationID,
+		"tenant_id":         a.TenantID,
+		"gcid":              a.GCID,
+		"units":             a.Units,
+		"source_pool_id":    a.SourcePoolID,
+		"status":            string(a.Status),
 		"allocation_reason": string(a.Reason),
 		"allocated_by_gcid": a.AllocatedByGCID,
 		"allocated_at":      a.AllocatedAt.Format(time.RFC3339Nano),

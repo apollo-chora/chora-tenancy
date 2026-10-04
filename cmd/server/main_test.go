@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	tenancyoutbox "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	tenancyoutbox "github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
 )
 
 func TestValidateFamiliarEggProdEnv_DevPermissive_AllMissing(t *testing.T) {

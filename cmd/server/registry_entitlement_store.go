@@ -39,10 +39,10 @@
 package main
 
 import (
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
 // registryEntitlementStore wraps the in-memory SubscriptionRegistry to

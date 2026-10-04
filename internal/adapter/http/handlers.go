@@ -33,8 +33,8 @@ import (
 	"strings"
 	"time"
 
-	domain "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/observability"
+	domain "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
+	"github.com/apollo-chora/chora-tenancy/internal/observability"
 )
 
 // Deps wires the persistence ports into the legacy /api/* HTTP layer.

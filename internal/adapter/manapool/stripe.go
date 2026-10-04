@@ -19,7 +19,7 @@ import (
 	"strings"
 	"sync"
 
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // StripeClient is the port the HTTP layer consumes; production wires a
@@ -52,7 +52,7 @@ type ChargeResponse struct {
 // production use.
 type StripeStub struct {
 	mu       sync.Mutex
-	failNext string                // when non-empty, next Charge fails with this code
+	failNext string                    // when non-empty, next Charge fails with this code
 	seen     map[string]ChargeResponse // idempotency_key -> response
 	counter  int
 }

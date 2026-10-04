@@ -7,7 +7,7 @@
 // Same architecture as services/chora-identity/.../events/cloud_publisher.go
 // — different Header / Payload shape because the chora-tenancy publisher
 // API was designed before chora-identity's. Both ultimately produce a
-// chora-go-common envelope.Envelope + Protobuf-marshalled payload at the
+// chora-common envelope.Envelope + Protobuf-marshalled payload at the
 // outbox row.
 package events
 
@@ -20,10 +20,10 @@ import (
 	"sync"
 	"time"
 
-	cgcenvelope "github.com/5007-Capstone/chora/libs/chora-go-common/envelope"
-	cgcoutbox "github.com/5007-Capstone/chora/libs/chora-go-common/outbox"
+	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
+	cgcoutbox "github.com/apollo-chora/chora-common/outbox"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events/protomarshal"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events/protomarshal"
 )
 
 // CloudPublisherConfig tunes the CloudPublisher.
@@ -32,7 +32,7 @@ type CloudPublisherConfig struct {
 	AggregateType string
 }
 
-// CloudPublisher writes events to the chora-go-common outbox recorder.
+// CloudPublisher writes events to the chora-common outbox recorder.
 type CloudPublisher struct {
 	rec cgcoutbox.Recorder
 	cfg CloudPublisherConfig

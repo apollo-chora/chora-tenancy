@@ -30,11 +30,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	cgcdb "github.com/5007-Capstone/chora/libs/chora-go-common/db"
-	cgcsecrets "github.com/5007-Capstone/chora/libs/chora-go-common/secrets"
+	cgcdb "github.com/apollo-chora/chora-common/db"
+	cgcsecrets "github.com/apollo-chora/chora-common/secrets"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 func liveDB(t *testing.T) *pgxpool.Pool {

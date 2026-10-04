@@ -9,7 +9,7 @@
 // usage_recorded.v1 deterministically.
 //
 // Idempotent on (tenant_id, addon_code, source_event_id) via the
-// chora-go-common/idempotent.Store inbox — replayed events DO NOT
+// chora-common/idempotent.Store inbox — replayed events DO NOT
 // double-count, even across pod restarts + multi-replica deployments.
 // The old in-process `seenIDs map[string]struct{}` was insufficient
 // under chaos (M12.3 inbox audit doc 2026-05-12 §"Why the in-process
@@ -30,9 +30,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
+	"github.com/apollo-chora/chora-common/idempotent"
 
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 // InboxTTL is the dedupe-key retention window for the subscriber's inbox.
@@ -44,8 +44,8 @@ const InboxTTL = 24 * time.Hour
 // ConsumptionEvent is the input shape for the subscriber. Fields are the
 // subset of the upstream event payload that chora-tenancy cares about.
 type ConsumptionEvent struct {
-	Topic         string    // "chora.consumption.daily_dose.served.v1"
-	EventID       string    // upstream event_id (UUIDv7) — idempotency key seed
+	Topic         string // "chora.consumption.daily_dose.served.v1"
+	EventID       string // upstream event_id (UUIDv7) — idempotency key seed
 	TenantID      string
 	GCID          string
 	AddonCode     string // optional override; if empty, derived from Topic
@@ -57,7 +57,7 @@ type ConsumptionEvent struct {
 //
 // Inbox dedupe (M12.3 W2b, 2026-05-12): the per-event dedupe key
 // (tenant_id :: addon_code :: source_event_id) lives in a
-// chora-go-common/idempotent.Store. Production wires PostgresStore
+// chora-common/idempotent.Store. Production wires PostgresStore
 // against the chora_tenancy database's idempotency_keys table; dev /
 // tests use MemoryStore. The store survives pod-death and is shared
 // across replicas, which the previous in-process dedup map (`seenIDs`)

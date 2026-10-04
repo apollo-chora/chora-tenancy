@@ -3,12 +3,12 @@
 // The engine is invoked from two sources:
 //
 //   - OnLearnerEnrolled — invoked from the chora.identity.user_membership.created.v1
-//                         subscriber inside chora-tenancy. Consults the
-//                         tenant's pool policy and emits an allocation
-//                         intent if applicable.
+//     subscriber inside chora-tenancy. Consults the
+//     tenant's pool policy and emits an allocation
+//     intent if applicable.
 //   - OnMonthlyTick     — invoked from a Cloud Scheduler / monthly cron.
-//                         For EqualSplit policies, computes per-learner
-//                         units and emits one intent per active learner.
+//     For EqualSplit policies, computes per-learner
+//     units and emits one intent per active learner.
 //
 // The engine is stateless aside from its dependencies. It returns a slice
 // of AllocationIntent values; the caller (HTTP/event adapter) is
@@ -67,8 +67,8 @@ type LearnerCounter interface {
 
 // PolicyEngine wires the dependencies together.
 type PolicyEngine struct {
-	store    PoolStore
-	counter  LearnerCounter
+	store   PoolStore
+	counter LearnerCounter
 }
 
 // NewPolicyEngine constructs a PolicyEngine. `counter` may be nil for

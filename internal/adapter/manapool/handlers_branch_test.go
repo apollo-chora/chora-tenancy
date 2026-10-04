@@ -11,8 +11,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	manapool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/manapool"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	manapool "github.com/apollo-chora/chora-tenancy/internal/adapter/manapool"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // doReq issues a request with a custom body, method, path and tenant header.

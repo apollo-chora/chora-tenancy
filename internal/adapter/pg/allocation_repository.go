@@ -2,14 +2,16 @@
 // economy + egg-refund credit paths.
 //
 // Schema source: migrations/0003_tenant_mana_pool.sql (base) +
-//                migrations/0009_tenant_mana_allocation_refund.sql
-//                (egg_hard_expiry_refund reason + nullable source_pool_id
-//                + partial UNIQUE INDEX on idempotency_key).
+//
+//	migrations/0009_tenant_mana_allocation_refund.sql
+//	(egg_hard_expiry_refund reason + nullable source_pool_id
+//	+ partial UNIQUE INDEX on idempotency_key).
 //
 // Hexagonal port mapped: chora-tenancy/internal/adapter/manapool.AllocationGetter +
-//                        AllocationSaver. The familiar_egg_sweeper's
-//                        CreditIssuer (manapool.NewCreditIssuer) consumes
-//                        these methods to issue durable refund credits.
+//
+//	AllocationSaver. The familiar_egg_sweeper's
+//	CreditIssuer (manapool.NewCreditIssuer) consumes
+//	these methods to issue durable refund credits.
 //
 // Idempotency contract: Save uses INSERT ... ON CONFLICT (idempotency_key)
 // DO NOTHING. The CreditIssuer pre-checks via GetByIdempotencyKey;
@@ -23,7 +25,7 @@ import (
 	"fmt"
 	"strings"
 
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
 )
 
 // AllocationRepository is the pgx-backed implementation of the

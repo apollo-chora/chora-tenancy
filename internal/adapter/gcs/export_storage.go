@@ -25,7 +25,7 @@ import (
 
 	"cloud.google.com/go/storage"
 
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // ErrExportStorageNotWired is returned when the bucket is empty.

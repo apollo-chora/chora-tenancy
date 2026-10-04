@@ -41,7 +41,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	paymentsv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/services/payments/v1"
+	paymentsv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/services/payments/v1"
 )
 
 // ErrNoAddr is returned when CHORA_PAYMENTS_GRPC_ADDR is unset or empty.

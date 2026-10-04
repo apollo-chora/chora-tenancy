@@ -4,42 +4,42 @@
 // that, post Wave 1 Stage D cutover, live in chora-payments:
 //
 //   - FamiliarEggPurchase   — ADR-149 Familiar-egg purchases. payment_
-//                             captured → emit
-//                             chora.consumption.familiar.egg_purchased.v1
-//                             so chora-consumption provisions the Stage-0
-//                             familiar_instances row. refunded with
-//                             credit_only=true → credit a tenant_mana_pool
-//                             allocation for the buyer (ADR-149
-//                             §"Unhatched egg expiry") + emit
-//                             chora.consumption.familiar.egg_revoked.v1.
-//                             refunded with credit_only=false → cash-refund
-//                             path; emit revocation only.
+//     captured → emit
+//     chora.consumption.familiar.egg_purchased.v1
+//     so chora-consumption provisions the Stage-0
+//     familiar_instances row. refunded with
+//     credit_only=true → credit a tenant_mana_pool
+//     allocation for the buyer (ADR-149
+//     §"Unhatched egg expiry") + emit
+//     chora.consumption.familiar.egg_revoked.v1.
+//     refunded with credit_only=false → cash-refund
+//     path; emit revocation only.
 //   - TenantManaTopUp       — tenant mana pool top-ups. payment_captured →
-//                             credit tenant_mana_pool.balance_units +=
-//                             mana_units + emit the legacy
-//                             chora.tenancy.tenant_mana_pool.topped_up.v1
-//                             bridge event for downstream consumers during
-//                             the rollback window. refunded → debit
-//                             balance_units -= mana_units_to_debit.
+//     credit tenant_mana_pool.balance_units +=
+//     mana_units + emit the legacy
+//     chora.tenancy.tenant_mana_pool.topped_up.v1
+//     bridge event for downstream consumers during
+//     the rollback window. refunded → debit
+//     balance_units -= mana_units_to_debit.
 //
 // All subscriber paths are idempotent on event_id via the shared
-// libs/chora-go-common/idempotent.Store. Replays are no-ops.
+// chora-common/idempotent.Store. Replays are no-ops.
 //
 // Topic taxonomy (consumed):
 //
-//   chora.payments.familiar_egg_purchase.payment_captured.v1
-//   chora.payments.familiar_egg_purchase.refunded.v1
-//   chora.payments.familiar_egg_purchase.expired.v1
-//   chora.payments.tenant_mana_topup.payment_captured.v1
-//   chora.payments.tenant_mana_topup.refunded.v1
+//	chora.payments.familiar_egg_purchase.payment_captured.v1
+//	chora.payments.familiar_egg_purchase.refunded.v1
+//	chora.payments.familiar_egg_purchase.expired.v1
+//	chora.payments.tenant_mana_topup.payment_captured.v1
+//	chora.payments.tenant_mana_topup.refunded.v1
 //
 // Subscription naming convention (matches chora-tenancy convention):
 //
-//   chora-tenancy-payments-{aggregate}-{event_type}
+//	chora-tenancy-payments-{aggregate}-{event_type}
 //
 // Composes with:
 //
-//   - libs/chora-go-common/idempotent.Store (Postgres inbox in prod;
+//   - chora-common/idempotent.Store (Postgres inbox in prod;
 //     MemoryStore for dev/tests) — survives pod-death + works across
 //     replicas (per `agentic-resilience-d6` skill Pillar 2 step 3b).
 //   - events.Recorder / events.CloudPublisher port (in-process vs outbox).
@@ -53,7 +53,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
+	"github.com/apollo-chora/chora-common/idempotent"
 )
 
 // Inbound topic constants — chora-tenancy consumes these from chora-payments.
@@ -73,9 +73,9 @@ const (
 	// + smart-retry-exhausted dunning). Subscription-payment-failed +
 	// payment-recovered drive the dunning banner + chora-notifications
 	// emails (registry past_due flag wired in Phase 2b FE PR).
-	TopicTenantAddonSubscriptionCancelled      = "chora.payments.tenant_addon_purchase.cancelled.v1"
-	TopicTenantAddonSubscriptionPaymentFailed  = "chora.payments.tenant_addon_purchase.subscription_payment_failed.v1"
-	TopicTenantAddonPaymentRecovered           = "chora.payments.tenant_addon_purchase.payment_recovered.v1"
+	TopicTenantAddonSubscriptionCancelled     = "chora.payments.tenant_addon_purchase.cancelled.v1"
+	TopicTenantAddonSubscriptionPaymentFailed = "chora.payments.tenant_addon_purchase.subscription_payment_failed.v1"
+	TopicTenantAddonPaymentRecovered          = "chora.payments.tenant_addon_purchase.payment_recovered.v1"
 	// CHO-1779 — schedule_released event. chora-payments emits this when
 	// Stripe activates the deferred end-of-cycle tier change at cycle
 	// anchor. chora-tenancy promotes ScheduledTier → CurrentTier on the
@@ -95,8 +95,8 @@ const (
 	// IAM exist). The old chora.consumption.familiar.egg_purchased.v1 name was a
 	// legacy cross-domain topic the outbox correctly rejects.
 	TopicTenancyFamiliarEggPaymentSucceeded = "chora.tenancy.familiar_egg.payment_succeeded.v1"
-	TopicConsumptionFamiliarEggRevoked   = "chora.consumption.familiar.egg_revoked.v1"
-	TopicLegacyTenantManaPoolToppedUp    = "chora.tenancy.tenant_mana_pool.topped_up.v1"
+	TopicConsumptionFamiliarEggRevoked      = "chora.consumption.familiar.egg_revoked.v1"
+	TopicLegacyTenantManaPoolToppedUp       = "chora.tenancy.tenant_mana_pool.topped_up.v1"
 	// CHO-1740 — emitted by the tenant_addon_purchase.payment_captured
 	// handler after a successful subscription Activate. Carries the
 	// canonical tenant addon lifecycle event (TenantAddonActivated /
@@ -347,9 +347,9 @@ type RegistryDeactivationAnchorer interface {
 
 // PaymentsSubscriberDeps wires the subscriber.
 type PaymentsSubscriberDeps struct {
-	Publisher  PublisherPort
-	Pool       PoolApplier
-	Inbox      idempotent.Store
+	Publisher PublisherPort
+	Pool      PoolApplier
+	Inbox     idempotent.Store
 	// CHO-1740 — required for the tenant_addon_purchase handlers. When
 	// nil the H+ Marketplace handlers fail-loud (preventing silent
 	// payment-without-activation).

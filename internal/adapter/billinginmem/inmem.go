@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/reconciliation"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
 )
 
 // InMemoryStripeFeeder maps a date (YYYYMMDD UTC) to a captured-cents total.

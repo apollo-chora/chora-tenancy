@@ -6,7 +6,7 @@
 // Idempotent on (tenant_id, addon_code, source_event_id) — replayed
 // events must NOT double-count, even across pod restarts + multi-replica
 // deployments. The inbox dedup primitive is
-// chora-go-common/idempotent.Store; production wires PostgresStore.
+// chora-common/idempotent.Store; production wires PostgresStore.
 package usagesub_test
 
 import (

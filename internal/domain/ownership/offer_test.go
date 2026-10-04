@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/ownership"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/ownership"
 )
 
 const (

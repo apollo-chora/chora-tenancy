@@ -3,39 +3,39 @@
 //
 // SQL contract:
 //
-//   HasAnyMembership:
-//     Calls the `list_memberships_by_gcid(uuid)` SECURITY DEFINER
-//     function (migration 0011) which runs with `row_security = off`
-//     so the cross-tenant membership directory read is NOT filtered
-//     by the `tenant_isolation` RLS policy on members. Returns true
-//     iff the row count is > 0. The function already filters out
-//     soft-deleted + suspended members, so a `> 0` answer is
-//     authoritative for the idempotency rule.
+//	HasAnyMembership:
+//	  Calls the `list_memberships_by_gcid(uuid)` SECURITY DEFINER
+//	  function (migration 0011) which runs with `row_security = off`
+//	  so the cross-tenant membership directory read is NOT filtered
+//	  by the `tenant_isolation` RLS policy on members. Returns true
+//	  iff the row count is > 0. The function already filters out
+//	  soft-deleted + suspended members, so a `> 0` answer is
+//	  authoritative for the idempotency rule.
 //
-//   Persist:
-//     Single transaction via `RunInTenantTx(b.Tenant.ID, fn)` so
-//     `SET LOCAL chora.tenant_id = '<new>'` is in scope before the
-//     RLS-protected INSERTs on `members` and `add_on_subscriptions`.
-//     The four statements MUST land atomically:
+//	Persist:
+//	  Single transaction via `RunInTenantTx(b.Tenant.ID, fn)` so
+//	  `SET LOCAL chora.tenant_id = '<new>'` is in scope before the
+//	  RLS-protected INSERTs on `members` and `add_on_subscriptions`.
+//	  The four statements MUST land atomically:
 //
-//       1. INSERT INTO tenants            (no RLS)
-//       2. INSERT INTO members            (RLS-protected — relies on SET LOCAL)
-//       3. SELECT add_on_id FROM add_ons WHERE name = 'core'
-//       4. INSERT INTO add_on_subscriptions (RLS-protected — relies on SET LOCAL)
+//	    1. INSERT INTO tenants            (no RLS)
+//	    2. INSERT INTO members            (RLS-protected — relies on SET LOCAL)
+//	    3. SELECT add_on_id FROM add_ons WHERE name = 'core'
+//	    4. INSERT INTO add_on_subscriptions (RLS-protected — relies on SET LOCAL)
 //
-//     Step 3 fails with ErrCoreAddOnNotFound if the `core` add-on row
-//     is missing from the catalogue — that is a deployment-seed issue,
-//     not a caller issue. The transaction rolls back so no orphan
-//     tenant or member rows survive.
+//	  Step 3 fails with ErrCoreAddOnNotFound if the `core` add-on row
+//	  is missing from the catalogue — that is a deployment-seed issue,
+//	  not a caller issue. The transaction rolls back so no orphan
+//	  tenant or member rows survive.
 //
 // Schema references:
 //
 //   - services/chora-tenancy/migrations/0001_initial.sql
-//       tenants, members, add_ons, add_on_subscriptions
+//     tenants, members, add_ons, add_on_subscriptions
 //   - services/chora-tenancy/migrations/0011_list_memberships_by_gcid_security_definer.sql
-//       list_memberships_by_gcid(uuid) SECURITY DEFINER fn
+//     list_memberships_by_gcid(uuid) SECURITY DEFINER fn
 //   - services/chora-tenancy/migrations/0013_app_rw_nobypassrls.sql
-//       app_rw is NOBYPASSRLS — SET LOCAL is mandatory
+//     app_rw is NOBYPASSRLS — SET LOCAL is mandatory
 package pg
 
 import (
@@ -45,7 +45,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 // ErrCoreAddOnNotFound is returned when the `core` add-on row is missing

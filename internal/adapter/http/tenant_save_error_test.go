@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"testing"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/inmem"
-	domain "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/inmem"
+	domain "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
 // saveErrTenantStore satisfies httpapi.TenantStore but fails every Save.

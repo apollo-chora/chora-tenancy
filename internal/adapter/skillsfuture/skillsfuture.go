@@ -37,7 +37,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/env"
+	"github.com/apollo-chora/chora-common/env"
 )
 
 // -----------------------------------------------------------------------------
@@ -196,11 +196,11 @@ func (c *Client) SubmitClaim(ctx context.Context, in SubmitClaimInput) (*ClaimRe
 	}
 
 	body, err := json.Marshal(map[string]any{
-		"tenant_id":   in.TenantID,
-		"gcid":        in.GCID,
-		"nric":        in.NRIC,
-		"course_id":   in.CourseID,
-		"amount_sgd":  in.AmountSGD,
+		"tenant_id":  in.TenantID,
+		"gcid":       in.GCID,
+		"nric":       in.NRIC,
+		"course_id":  in.CourseID,
+		"amount_sgd": in.AmountSGD,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("skillsfuture: marshal claim body: %w", err)
@@ -239,14 +239,14 @@ func (c *Client) SubmitClaim(ctx context.Context, in SubmitClaimInput) (*ClaimRe
 	if c.cfg.Publisher != nil {
 		envel := newEnvelope(in.TenantID, in.GCID, in.Traceparent, in.Tracestate)
 		payload := map[string]any{
-			"tenant_id":   in.TenantID,
-			"gcid":        in.GCID,
-			"claim_id":    res.ClaimID,
-			"course_id":   in.CourseID,
-			"amount_sgd":  in.AmountSGD,
-			"status":      res.Status,
+			"tenant_id":    in.TenantID,
+			"gcid":         in.GCID,
+			"claim_id":     res.ClaimID,
+			"course_id":    in.CourseID,
+			"amount_sgd":   in.AmountSGD,
+			"status":       res.Status,
 			"submitted_at": res.SubmittedAt,
-			"source":      "skillsfuture-sg-sandbox",
+			"source":       "skillsfuture-sg-sandbox",
 		}
 		if err := c.cfg.Publisher.Publish("chora.tenancy.skillsfuture.claim.submitted.v1", envel, payload); err != nil {
 			return &res, fmt.Errorf("skillsfuture: publish claim.submitted: %w", err)

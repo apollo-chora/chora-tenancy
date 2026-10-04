@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiar_egg_sweeper"
-	familiareggpub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pubsub"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/familiar_egg_sweeper"
+	familiareggpub "github.com/apollo-chora/chora-tenancy/internal/adapter/pubsub"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 type stubStore struct {

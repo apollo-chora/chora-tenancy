@@ -62,24 +62,24 @@ import (
 
 	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
-	tnevents "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareggsweeper "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiar_egg_sweeper"
-	familiareggstripe "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiareggstripe"
-	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/inmem"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/manapool"
-	tenancyoutbox "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/payments"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	stripestub "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/stripe"
-	tnconfig "github.com/5007-Capstone/chora/services/chora-tenancy/internal/config"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
-	domain "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	tnevents "github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggsweeper "github.com/apollo-chora/chora-tenancy/internal/adapter/familiar_egg_sweeper"
+	familiareggstripe "github.com/apollo-chora/chora-tenancy/internal/adapter/familiareggstripe"
+	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/inmem"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/manapool"
+	tenancyoutbox "github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/payments"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	stripestub "github.com/apollo-chora/chora-tenancy/internal/adapter/stripe"
+	tnconfig "github.com/apollo-chora/chora-tenancy/internal/config"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
+	domain "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 	// Aliased: the local *pgxpool.Pool variable in main() is named `pool`,
 	// which would shadow the package name.
-	manapooldomain "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	manapooldomain "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 const (
@@ -373,7 +373,7 @@ func main() {
 	log.Printf("tenancy: outbox dispatcher goroutine started")
 
 	// ----------------------------------------------------------------------
-	// Consumer-side inbox — chora-go-common/idempotent.Store factory.
+	// Consumer-side inbox — chora-common/idempotent.Store factory.
 	//
 	// Production wires PostgresStore against the chora_tenancy
 	// idempotency_keys table (migration 0006_idempotency_keys.up.sql).
@@ -1021,7 +1021,7 @@ func main() {
 	var grpcSrv *grpc.Server
 	grpcErrCh := make(chan error, 1)
 	if pool != nil {
-		// Keepalive-tolerant server (chora-go-common/grpcconn): the enforcement
+		// Keepalive-tolerant server (chora-common/grpcconn): the enforcement
 		// policy (MinTime 10s <= the identity client's 30s ping, PermitWithoutStream)
 		// lets chora-identity hold a warm subchannel without earning a
 		// "too_many_pings" GOAWAY — the server side of the cold-start 504 root-fix.

@@ -8,9 +8,9 @@ import (
 	"errors"
 	"testing"
 
-	cgcenv "github.com/5007-Capstone/chora/libs/chora-go-common/envelope"
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	cgcenv "github.com/apollo-chora/chora-common/envelope"
+	"github.com/apollo-chora/chora-common/idempotent"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 )
 
 type fakeAtomCountRepo struct {

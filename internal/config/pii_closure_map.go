@@ -24,11 +24,11 @@ import (
 
 // PIIClosureMap mirrors the canonical PII_Closure_Map.yaml schema.
 type PIIClosureMap struct {
-	Domain                     string                  `yaml:"domain"`
-	Version                    string                  `yaml:"version"`
-	FieldsToTokenize           []TableSpec             `yaml:"fields_to_tokenize"`
-	RetentionDaysByJurisdiction map[string]int          `yaml:"retention_days_by_jurisdiction"`
-	OnCreatorClosure           CreatorClosureSpec      `yaml:"on_creator_closure"`
+	Domain                      string             `yaml:"domain"`
+	Version                     string             `yaml:"version"`
+	FieldsToTokenize            []TableSpec        `yaml:"fields_to_tokenize"`
+	RetentionDaysByJurisdiction map[string]int     `yaml:"retention_days_by_jurisdiction"`
+	OnCreatorClosure            CreatorClosureSpec `yaml:"on_creator_closure"`
 
 	// AGIDApplicable is inferred from the domain: only chora_a2a applies
 	// (per ddd-enforcement invariant #10 — agents have no lifecycle).
@@ -51,8 +51,8 @@ type ColumnSpec struct {
 // CreatorClosureSpec declares behaviour when the closing user is a creator
 // of artefacts owned by this domain (e.g., atom author in chora_creation).
 type CreatorClosureSpec struct {
-	Strategy          string `yaml:"strategy"`
-	ShowAuthorshipAs  string `yaml:"show_authorship_as"`
+	Strategy         string `yaml:"strategy"`
+	ShowAuthorshipAs string `yaml:"show_authorship_as"`
 }
 
 // allowedStrategies enumerates the canonical action verbs across all domains.

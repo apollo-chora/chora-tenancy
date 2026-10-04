@@ -29,7 +29,7 @@ import (
 	"strings"
 	"time"
 
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // ScopeTxQuerier is the read-side transaction runner: RunInScopeTx accepts a

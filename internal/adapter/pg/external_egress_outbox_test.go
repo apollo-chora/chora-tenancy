@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/external_egress"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/external_egress"
 )
 
 func TestBuildExternalEgressOutboxRow_Guards(t *testing.T) {

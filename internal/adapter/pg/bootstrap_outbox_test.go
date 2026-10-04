@@ -13,8 +13,8 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
-	tenancyv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/tenancy/v1"
+	tenancyv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/tenancy/v1"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 func sampleBundle(t *testing.T) *bootstrap.Bundle {

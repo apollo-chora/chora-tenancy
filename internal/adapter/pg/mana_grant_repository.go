@@ -48,11 +48,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/tracing"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events/protomarshal"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	"github.com/apollo-chora/chora-common/tracing"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events/protomarshal"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // ErrGrantAlreadyRecorded means this allocation_id is already on record, so

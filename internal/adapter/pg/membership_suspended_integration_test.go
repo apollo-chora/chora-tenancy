@@ -37,8 +37,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
+	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
 )
 
 // seedOwner creates a tenant with a single owner row, suspended or not, and

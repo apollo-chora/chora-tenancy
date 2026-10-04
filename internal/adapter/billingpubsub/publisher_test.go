@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	cgcenvelope "github.com/5007-Capstone/chora/libs/chora-go-common/envelope"
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/billingpubsub"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/reconciliation"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/webhook"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingpubsub"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
 )
 
 // recordingBus mirrors the OutboxCompatible interface and captures every
@@ -254,8 +254,8 @@ func TestNewReconciliationEmitter_Defaults(t *testing.T) {
 
 func reconciliationReport() reconciliation.Report {
 	return reconciliation.Report{
-		RunID:          "run-1",
-		Day:            time.Date(2026, 7, 1, 0, 0, 0, 0, time.UTC),
+		RunID:         "run-1",
+		Day:           time.Date(2026, 7, 1, 0, 0, 0, 0, time.UTC),
 		ExpectedCents: 100,
 		ObservedCents: 95,
 	}

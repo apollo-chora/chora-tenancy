@@ -24,7 +24,7 @@ import (
 )
 
 // PlatformScope is the blessed RLS session sentinel for operator span-all
-// (matches libs/chora-go-common/rls.ValidateTenantID + the migration-0024
+// (matches chora-common/rls.ValidateTenantID + the migration-0024
 // platform-sentinel-aware policy). When ListQuery.GUCTenantID == PlatformScope
 // the read spans every tenant.
 const PlatformScope = "platform"

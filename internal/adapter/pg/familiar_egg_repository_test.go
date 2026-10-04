@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // catalogTestTenantID is the RLS scope the catalog SQL-emit tests run under.
@@ -23,14 +23,14 @@ const catalogTestTenantID = "01970000-0000-7000-8000-000000000010"
 // stubQueryRunner satisfies pg.QueryRunner, pg.Tx and pg.TxQuerier with
 // recording.
 type stubQueryRunner struct {
-	execCalls       []stubExecCall
-	rowCalls        []stubRowCall
-	queryCalls      []stubExecCall
-	rowResponses    []func(dest ...any) error
-	rowsResponses   []*stubRows
-	execErr         error
-	queryErr        error
-	txTenants       []string
+	execCalls     []stubExecCall
+	rowCalls      []stubRowCall
+	queryCalls    []stubExecCall
+	rowResponses  []func(dest ...any) error
+	rowsResponses []*stubRows
+	execErr       error
+	queryErr      error
+	txTenants     []string
 }
 
 // RunInTenantTx satisfies pg.TxQuerier. This stub does NOT model RLS: it
@@ -275,7 +275,7 @@ func TestCatalogRepository_ListForTenant_QueriesWithTenant(t *testing.T) {
 	q := &stubQueryRunner{
 		rowsResponses: []*stubRows{{
 			rows: []func(dest ...any) error{
-				catalogScanFn("egg.trial.v1", ""),       // platform
+				catalogScanFn("egg.trial.v1", ""),                                         // platform
 				catalogScanFn("egg.skillflow.v1", "01970000-0000-7000-8000-000000000010"), // tenant
 			},
 		}},

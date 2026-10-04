@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiareggstripe"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/familiareggstripe"
 )
 
 func TestStubClient_CreateCheckoutSession_HappyPath(t *testing.T) {

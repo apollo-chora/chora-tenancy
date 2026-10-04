@@ -13,7 +13,7 @@
 //     mana_units_to_debit.
 //
 // All subscribers are idempotent on (event_id) via the shared
-// libs/chora-go-common/idempotent.Store. Replays are no-ops.
+// chora-common/idempotent.Store. Replays are no-ops.
 package events_test
 
 import (
@@ -22,9 +22,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
+	"github.com/apollo-chora/chora-common/idempotent"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 )
 
 // -----------------------------------------------------------------------------
@@ -32,8 +32,8 @@ import (
 // -----------------------------------------------------------------------------
 
 type fakePoolApplier struct {
-	credits []poolDelta
-	debits  []poolDelta
+	credits  []poolDelta
+	debits   []poolDelta
 	failNext error
 }
 
@@ -120,14 +120,14 @@ func TestPaymentsSubscriber_FamiliarEgg_PaymentCaptured_Idempotent(t *testing.T)
 		Inbox:     idempotent.NewMemoryStore(),
 	})
 	in := events.FamiliarEggPaymentCaptured{
-		EventID:               "evt_dup",
-		PurchaseID:            "pur_dup",
-		LearnerGCID:           "gcid_dup",
-		TargetTenantID:        "tenant_dup",
-		EggSKU:                "egg.standard.v1",
-		AmountCentsPaid:       999,
-		Currency:              "SGD",
-		PaidAt:                time.Now().UTC(),
+		EventID:         "evt_dup",
+		PurchaseID:      "pur_dup",
+		LearnerGCID:     "gcid_dup",
+		TargetTenantID:  "tenant_dup",
+		EggSKU:          "egg.standard.v1",
+		AmountCentsPaid: 999,
+		Currency:        "SGD",
+		PaidAt:          time.Now().UTC(),
 	}
 	ctx := context.Background()
 	if err := sub.HandleFamiliarEggPaymentCaptured(ctx, in); err != nil {
@@ -360,15 +360,15 @@ func TestPaymentsSubscriber_ManaTopUp_PaymentCaptured_Idempotent(t *testing.T) {
 		Inbox:     idempotent.NewMemoryStore(),
 	})
 	in := events.TenantManaTopUpPaymentCaptured{
-		EventID:        "evt_m_dup",
-		PurchaseID:     "pur_m_dup",
-		AdminGCID:      "g",
-		TargetTenantID: "tenant_m",
-		SKU:            "s",
+		EventID:         "evt_m_dup",
+		PurchaseID:      "pur_m_dup",
+		AdminGCID:       "g",
+		TargetTenantID:  "tenant_m",
+		SKU:             "s",
 		AmountCentsPaid: 9999,
-		Currency:       "SGD",
-		ManaUnits:      10_000,
-		PaidAt:         time.Now().UTC(),
+		Currency:        "SGD",
+		ManaUnits:       10_000,
+		PaidAt:          time.Now().UTC(),
 	}
 	ctx := context.Background()
 	if err := sub.HandleManaTopUpPaymentCaptured(ctx, in); err != nil {
@@ -391,15 +391,15 @@ func TestPaymentsSubscriber_ManaTopUp_PaymentCaptured_PropagatesPoolError(t *tes
 		Inbox:     idempotent.NewMemoryStore(),
 	})
 	in := events.TenantManaTopUpPaymentCaptured{
-		EventID:        "evt_m_err",
-		PurchaseID:     "p",
-		AdminGCID:      "g",
-		TargetTenantID: "t",
-		SKU:            "s",
+		EventID:         "evt_m_err",
+		PurchaseID:      "p",
+		AdminGCID:       "g",
+		TargetTenantID:  "t",
+		SKU:             "s",
 		AmountCentsPaid: 1,
-		Currency:       "SGD",
-		ManaUnits:      1,
-		PaidAt:         time.Now().UTC(),
+		Currency:        "SGD",
+		ManaUnits:       1,
+		PaidAt:          time.Now().UTC(),
 	}
 	err := sub.HandleManaTopUpPaymentCaptured(context.Background(), in)
 	if err == nil {
@@ -604,16 +604,16 @@ func TestPaymentsSubscriber_TenantAddon_PaymentCaptured_Idempotent(t *testing.T)
 		AddOnActivator: act,
 	})
 	in := events.TenantAddonPaymentCaptured{
-		EventID:        "evt_addon_dup",
-		PurchaseID:     "pur_addon_dup",
-		AdminGCID:      "g",
-		TargetTenantID: "tenant_a",
-		AddonPlanID:    "plan_a",
-		AddonCode:      "knowledge_graph",
-		TierCode:       "pro",
+		EventID:         "evt_addon_dup",
+		PurchaseID:      "pur_addon_dup",
+		AdminGCID:       "g",
+		TargetTenantID:  "tenant_a",
+		AddonPlanID:     "plan_a",
+		AddonCode:       "knowledge_graph",
+		TierCode:        "pro",
 		AmountCentsPaid: 4900,
-		Currency:       "SGD",
-		PaidAt:         time.Now().UTC(),
+		Currency:        "SGD",
+		PaidAt:          time.Now().UTC(),
 	}
 	ctx := context.Background()
 	if err := sub.HandleTenantAddonPaymentCaptured(ctx, in); err != nil {
@@ -659,15 +659,15 @@ func TestPaymentsSubscriber_TenantAddon_PaymentCaptured_PropagatesActivatorError
 		AddOnActivator: act,
 	})
 	err := sub.HandleTenantAddonPaymentCaptured(context.Background(), events.TenantAddonPaymentCaptured{
-		EventID:        "evt_a2",
-		PurchaseID:     "p2",
-		AdminGCID:      "g",
-		TargetTenantID: "t",
-		AddonPlanID:    "plan",
-		AddonCode:      "knowledge_graph",
-		TierCode:       "pro",
+		EventID:         "evt_a2",
+		PurchaseID:      "p2",
+		AdminGCID:       "g",
+		TargetTenantID:  "t",
+		AddonPlanID:     "plan",
+		AddonCode:       "knowledge_graph",
+		TierCode:        "pro",
 		AmountCentsPaid: 4900,
-		Currency:       "SGD",
+		Currency:        "SGD",
 	})
 	if err == nil {
 		t.Fatal("expected propagated activator error")

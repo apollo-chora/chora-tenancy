@@ -4,7 +4,7 @@
 // It owns the 5 aggregates called out in the M11+ Phase D brief:
 //
 //   - Tenant            — primary aggregate; display_name, branding_config,
-//                         parent_tenant_id (franchise), self_hosted, status
+//     parent_tenant_id (franchise), self_hosted, status
 //   - TenantEntitlement — tenant_id + add_on_id + status (composable)
 //   - AddOn             — catalog of marketplace items (no tier hierarchy)
 //   - Invoice           — period billing with line_items per AddOn
@@ -442,11 +442,11 @@ func (r *EntitlementRegistry) ListAllByTenant(tenantID string) []*TenantEntitlem
 // InvoiceLineItem is a single charge on an Invoice. We keep the snapshot
 // data here so an invoice is reproducible without re-reading the entitlement.
 type InvoiceLineItem struct {
-	AddOnID         string
-	EntitlementID   string
-	UnitPriceCents  int64
-	Quantity        int
-	LineTotalCents  int64
+	AddOnID        string
+	EntitlementID  string
+	UnitPriceCents int64
+	Quantity       int
+	LineTotalCents int64
 }
 
 // Invoice is a billing record for a tenant's period.

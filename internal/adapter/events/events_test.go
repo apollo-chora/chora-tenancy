@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 )
 
 const tenantA = "01970000-0000-7000-8000-0000000000aa"

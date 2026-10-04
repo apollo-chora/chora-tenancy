@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	manapool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/manapool"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	manapool "github.com/apollo-chora/chora-tenancy/internal/adapter/manapool"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 // -----------------------------------------------------------------------------
@@ -18,12 +18,12 @@ import (
 // -----------------------------------------------------------------------------
 
 type harness struct {
-	srv      http.Handler
-	pools    *manapool.InmemPoolRepo
-	allocs   *manapool.InmemAllocationRepo
-	stripe   *manapool.StripeStub
-	pub      *manapool.RecorderPublisher
-	counter  *manapool.InmemLearnerCounter
+	srv     http.Handler
+	pools   *manapool.InmemPoolRepo
+	allocs  *manapool.InmemAllocationRepo
+	stripe  *manapool.StripeStub
+	pub     *manapool.RecorderPublisher
+	counter *manapool.InmemLearnerCounter
 }
 
 func newHarness() *harness {

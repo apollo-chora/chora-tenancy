@@ -1,7 +1,7 @@
 // events_extra_coverage_test.go — branch coverage for the events package
 // surface the existing tests leave sparse: the CloudPublisher wrapper +
 // JSON-fallback path, topic validation error families and event-type
-// derivation. Uses an in-memory chora-go-common Recorder stub.
+// derivation. Uses an in-memory chora-common Recorder stub.
 package events_test
 
 import (
@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	cgcoutbox "github.com/5007-Capstone/chora/libs/chora-go-common/outbox"
+	cgcoutbox "github.com/apollo-chora/chora-common/outbox"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 )
 
 // memRecorder is the minimal cgcoutbox.Recorder for CloudPublisher tests.

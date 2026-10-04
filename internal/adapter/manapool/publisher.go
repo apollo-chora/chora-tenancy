@@ -2,22 +2,23 @@
 //
 // 7 NEW topics introduced by BE-USR-3:
 //
-//   1. chora.tenancy.tenant_mana_pool.created.v1
-//   2. chora.tenancy.tenant_mana_pool.topped_up.v1
-//   3. chora.tenancy.tenant_mana_pool.depleted.v1
-//   4. chora.tenancy.tenant_mana_allocation.granted.v1
-//   5. chora.tenancy.tenant_mana_allocation.claimed.v1
-//   6. chora.tenancy.tenant_mana_allocation.revoked.v1
-//   7. chora.tenancy.tenant_mana_allocation.expired.v1
+//  1. chora.tenancy.tenant_mana_pool.created.v1
+//  2. chora.tenancy.tenant_mana_pool.topped_up.v1
+//  3. chora.tenancy.tenant_mana_pool.depleted.v1
+//  4. chora.tenancy.tenant_mana_allocation.granted.v1
+//  5. chora.tenancy.tenant_mana_allocation.claimed.v1
+//  6. chora.tenancy.tenant_mana_allocation.revoked.v1
+//  7. chora.tenancy.tenant_mana_allocation.expired.v1
 //
 // The Publisher port is implemented in production by a Cloud Pub/Sub
 // adapter (M12+). For the BE-USR-3 skeleton we ship a recorder that
 // captures published events in-process for test assertions.
 //
 // Mandatory envelope fields per CLAUDE.md §6:
-//   event_id (UUIDv7), idempotency_key, tenant_id, gcid, occurred_at,
-//   published_at, traceparent, tracestate, source_project, source_service,
-//   schema_version
+//
+//	event_id (UUIDv7), idempotency_key, tenant_id, gcid, occurred_at,
+//	published_at, traceparent, tracestate, source_project, source_service,
+//	schema_version
 package manapool
 
 import (
@@ -27,8 +28,8 @@ import (
 	"sync"
 	"time"
 
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 const schemaVersion = "v1"

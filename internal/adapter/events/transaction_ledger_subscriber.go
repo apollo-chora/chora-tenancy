@@ -29,14 +29,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
-	"github.com/5007-Capstone/chora/libs/chora-go-common/tracing"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	"github.com/apollo-chora/chora-common/idempotent"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/tracing"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 
-	identityv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/identity/v1"
-	observabilityv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/observability/v1"
-	paymentsv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/payments/v1"
+	identityv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/identity/v1"
+	observabilityv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/observability/v1"
+	paymentsv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/payments/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

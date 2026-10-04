@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 // Repository is the persistence port for the bootstrap orchestration.

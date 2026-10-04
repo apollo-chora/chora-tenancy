@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/webhook"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
 )
 
 // makeStripeSignatureHeader produces a header in the same form Stripe sends.

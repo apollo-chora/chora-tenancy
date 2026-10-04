@@ -3,7 +3,7 @@
 package inmem
 
 import (
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 // SubscriptionStore wraps an in-memory SubscriptionRegistry for hexagonal

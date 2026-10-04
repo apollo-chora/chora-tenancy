@@ -11,7 +11,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 const sampleParentID = "00000000-0000-7000-8000-000000000001" // chora-master

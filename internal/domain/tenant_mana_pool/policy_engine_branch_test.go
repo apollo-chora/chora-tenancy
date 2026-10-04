@@ -8,7 +8,7 @@ import (
 	"errors"
 	"testing"
 
-	pool "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 func TestEngine_OnLearnerEnrolled_Branches(t *testing.T) {

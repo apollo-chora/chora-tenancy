@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 func seedWithSchedule(t *testing.T, scheduledTier string) *addon.SubscriptionRegistry {

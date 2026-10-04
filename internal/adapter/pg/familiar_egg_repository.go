@@ -28,7 +28,7 @@ import (
 	"strings"
 	"time"
 
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 // ErrDuplicateStripeSession is returned when Insert collides on the
@@ -243,12 +243,12 @@ func (s *rowsScanner) Scan(dest ...any) error { return s.rows.Scan(dest...) }
 
 func scanPurchase(row Row) (*familiareag.Purchase, error) {
 	var (
-		p                familiareag.Purchase
-		paidAt           sql.NullTime
-		failedAt         sql.NullTime
-		provisionedAt    sql.NullTime
-		refundedAt       sql.NullTime
-		expiredAt        sql.NullTime
+		p             familiareag.Purchase
+		paidAt        sql.NullTime
+		failedAt      sql.NullTime
+		provisionedAt sql.NullTime
+		refundedAt    sql.NullTime
+		expiredAt     sql.NullTime
 	)
 	err := row.Scan(
 		&p.PurchaseID, &p.TenantID, &p.PurchaserGCID,
@@ -417,7 +417,7 @@ func (r *CatalogRepository) ListForTenant(ctx context.Context, tenantID string, 
 // session.
 //
 // e.TenantID is REQUIRED. The tenant_admin_mutation policy is
-// `tenant_id = NULLIF(current_setting('chora.tenant_id', true), '')::uuid`
+// `tenant_id = NULLIF(current_setting('chora.tenant_id', true), ”)::uuid`
 // and declares no explicit WITH CHECK, so Postgres applies that same
 // expression as the WITH CHECK on INSERT: a platform-global row (tenant_id
 // IS NULL) can never satisfy it under a NOBYPASSRLS app role. Platform SKUs

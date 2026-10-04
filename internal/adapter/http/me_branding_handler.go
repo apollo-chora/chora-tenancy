@@ -20,9 +20,10 @@
 // main.go:124-129).
 //
 // Domain → HTTP status mapping:
-//   tenant.ErrInvalidArgument  → 400 Bad Request (bad hex / bad logo URL)
-//   tenant lookup miss          → 404 Not Found
-//   missing tenant header       → 401 Unauthenticated
+//
+//	tenant.ErrInvalidArgument  → 400 Bad Request (bad hex / bad logo URL)
+//	tenant lookup miss          → 404 Not Found
+//	missing tenant header       → 401 Unauthenticated
 package httpapi
 
 import (
@@ -30,7 +31,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 // MeBrandingHandler serves PATCH /api/v1/tenants/me/branding.

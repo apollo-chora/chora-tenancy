@@ -13,6 +13,7 @@ import (
 //   - the catalog LIST filters on the availability window, so a SKU outside its
 //     dates is invisible to the admin who needs to edit it;
 //   - /api/familiar-eggs/{sku} only serves /odds.
+//
 // Without this route the editor would have to reconstruct an entry it never
 // read, and every field it did not know about would be wiped on save.
 func adminCreate(t *testing.T, mux http.Handler, body string) {

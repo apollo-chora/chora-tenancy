@@ -113,7 +113,7 @@ type TxQuerier interface {
 }
 
 // platformScope is the blessed cross-tenant operator sentinel (mirrors
-// libs/chora-go-common/rls.ValidateTenantID + the migration-0024
+// chora-common/rls.ValidateTenantID + the migration-0024
 // platform-sentinel-aware transaction_ledger policy). Only RunInScopeTx
 // accepts it — the write path (RunInTenantTx) stays UUID-only.
 const platformScope = "platform"
@@ -186,7 +186,7 @@ func (q *PgxPoolQuerier) runInSessionTx(ctx context.Context, sessionTenant strin
 
 // validateTenantID rejects values unsafe to interpolate into a SET LOCAL
 // statement: anything other than hex digits + dash (UUID shape). Mirrors
-// libs/chora-go-common/rls.ValidateTenantID (minus the platform sentinel)
+// chora-common/rls.ValidateTenantID (minus the platform sentinel)
 // without pulling that package into the adapter import graph for one helper.
 func validateTenantID(id string) error {
 	if id == "" {

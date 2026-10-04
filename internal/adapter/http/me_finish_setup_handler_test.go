@@ -22,17 +22,17 @@ import (
 	"testing"
 	"time"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
 )
 
 // fakeFinishTenantRepo is a minimal `tenant.Repository` fake. Only Get +
 // Save are exercised by the /me/finish-setup handler.
 type fakeFinishTenantRepo struct {
-	mu       sync.Mutex
-	tenants  map[string]*tenant.Tenant
-	saveErr  error
-	getErr   error
+	mu        sync.Mutex
+	tenants   map[string]*tenant.Tenant
+	saveErr   error
+	getErr    error
 	saveCalls int
 }
 

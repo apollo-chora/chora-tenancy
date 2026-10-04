@@ -14,11 +14,11 @@
 //
 // Decode strategy
 // ---------------
-// 1. If the topic is registered for binary decoding (see binaryDecoders),
-//    attempt proto.Unmarshal first. On success, project the proto message
-//    into a snake_case map[string]any compatible with the legacy JSON shape.
-// 2. On binary failure (or unregistered topic), fall back to json.Unmarshal.
-// 3. On both-fail, return a wrapped error.
+//  1. If the topic is registered for binary decoding (see binaryDecoders),
+//     attempt proto.Unmarshal first. On success, project the proto message
+//     into a snake_case map[string]any compatible with the legacy JSON shape.
+//  2. On binary failure (or unregistered topic), fall back to json.Unmarshal.
+//  3. On both-fail, return a wrapped error.
 package protodecode
 
 import (
@@ -61,7 +61,7 @@ func DecodePayloadMap(topic string, payload []byte) (map[string]any, error) {
 // Field precedence (high → low):
 //  1. Binary proto Envelope (when payload is binary-decodable for this topic)
 //  2. Pub/Sub msg.Attributes (publisher's canonical envelope projection per
-//     libs/chora-go-common/pubsub.envelopeAttributes)
+//     chora-common/pubsub.envelopeAttributes)
 //  3. JSON payload body
 //
 // nil attrs ⇒ legacy DecodePayloadMap behaviour. Empty payload ⇒

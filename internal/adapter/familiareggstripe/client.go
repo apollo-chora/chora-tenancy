@@ -34,24 +34,24 @@ import (
 
 // Sentinel errors.
 var (
-	ErrNoAPIBase     = errors.New("familiareggstripe: STRIPE_API_BASE required (no inline config)")
-	ErrNoSecretKey   = errors.New("familiareggstripe: STRIPE_API_KEY required (Secret Manager)")
-	ErrInvalidEvent  = errors.New("familiareggstripe: invalid Stripe event body")
+	ErrNoAPIBase    = errors.New("familiareggstripe: STRIPE_API_BASE required (no inline config)")
+	ErrNoSecretKey  = errors.New("familiareggstripe: STRIPE_API_KEY required (Secret Manager)")
+	ErrInvalidEvent = errors.New("familiareggstripe: invalid Stripe event body")
 )
 
 // CheckoutSessionInput captures the fields the chora-tenancy /checkout
 // endpoint passes to Stripe Checkout. Mirrors the relevant POST
 // /v1/checkout/sessions fields.
 type CheckoutSessionInput struct {
-	TenantID            string
-	PurchaserGCID       string
-	EggSKU              string
-	PurchaseID          string
-	AmountCents         int64
-	Currency            string // ISO 4217
-	ProductDisplayName  string
-	SuccessURL          string
-	CancelURL           string
+	TenantID           string
+	PurchaserGCID      string
+	EggSKU             string
+	PurchaseID         string
+	AmountCents        int64
+	Currency           string // ISO 4217
+	ProductDisplayName string
+	SuccessURL         string
+	CancelURL          string
 	// IdempotencyKey is the Stripe `Idempotency-Key` header value. Production
 	// callers should set this to chora.tenancy.familiar_egg.{purchase_id}
 	// so retries are safe.
@@ -184,7 +184,9 @@ func (s *StubClient) CreateCheckoutSession(_ context.Context, in CheckoutSession
 }
 
 // Calls returns the recorded inputs.
-func (s *StubClient) Calls() []CheckoutSessionInput { return append([]CheckoutSessionInput(nil), s.calls...) }
+func (s *StubClient) Calls() []CheckoutSessionInput {
+	return append([]CheckoutSessionInput(nil), s.calls...)
+}
 
 // -----------------------------------------------------------------------------
 // Webhook event parsing

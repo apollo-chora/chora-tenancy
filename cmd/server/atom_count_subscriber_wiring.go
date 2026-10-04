@@ -14,7 +14,7 @@ import (
 	"sync"
 
 	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
-	tnevents "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
+	tnevents "github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 )
 
 // startAtomCountSubscribers spawns one goroutine per atom lifecycle topic +

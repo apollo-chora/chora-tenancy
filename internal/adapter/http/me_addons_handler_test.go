@@ -21,8 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 // doAddonsPost is a one-shot helper for POST /api/v1/tenants/me/addons.

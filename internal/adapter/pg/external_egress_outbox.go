@@ -19,14 +19,14 @@ import (
 	"strconv"
 	"time"
 
-	commonv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/common/v1"
-	tenancyv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/tenancy/v1"
+	commonv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/common/v1"
+	tenancyv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/tenancy/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/tracing"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/external_egress"
+	"github.com/apollo-chora/chora-common/tracing"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/external_egress"
 )
 
 // Canonical constants. Keep aligned with:

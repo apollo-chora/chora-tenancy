@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 func TestExportFilters_RoundTrip_CarriesFranchiseeAndLearnerSets(t *testing.T) {
@@ -22,12 +22,12 @@ func TestExportFilters_RoundTrip_CarriesFranchiseeAndLearnerSets(t *testing.T) {
 	from := time.Date(2026, 4, 1, 0, 0, 0, 0, time.UTC)
 	to := time.Date(2026, 6, 29, 0, 0, 0, 0, time.UTC)
 	in := tl.ReadFilters{
-		Kind:                tl.KindPurchase,
-		Status:              tl.StatusCaptured,
-		From:                from,
-		To:                  to,
-		Sort:                tl.SortSpec{Field: tl.SortByAmount, Desc: true},
-		LearnerGCIDs:        []string{"11111111-1111-7111-8111-111111111111"},
+		Kind:             tl.KindPurchase,
+		Status:           tl.StatusCaptured,
+		From:             from,
+		To:               to,
+		Sort:             tl.SortSpec{Field: tl.SortByAmount, Desc: true},
+		LearnerGCIDs:     []string{"11111111-1111-7111-8111-111111111111"},
 		ManagedTenantIDs: []string{"0197aaaa-bbbb-7ccc-8ddd-eeeeffff0000", "0197bbbb-cccc-7ddd-8eee-ffff11112222"},
 	}
 

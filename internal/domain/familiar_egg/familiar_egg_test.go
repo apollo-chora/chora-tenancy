@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	familiareag "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/familiar_egg"
+	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
 func TestBreedDistribution_ValidSumIsExactly100(t *testing.T) {

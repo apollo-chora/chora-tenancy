@@ -23,7 +23,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
 )
 
 // ---------------------------------------------------------------------------
@@ -284,10 +284,10 @@ func TestV1_PostGoLive_EmitsTenantGoliveEvent_TaggedAccountability(t *testing.T)
 // Add-on lifecycle endpoints — 6 endpoints per ux_tenant_addon_lifecycle.md
 // ---------------------------------------------------------------------------
 
-// 1. GET /v1/admin/tenants/{id}/addons → list active + available items.
-//    The audit (`audit-platform-fillgaps.md` §2.1) confirmed `addons` exists
-//    via the `/api/v1/admin/tenants/{id}/addons` path; this test guards
-//    the response shape.
+//  1. GET /v1/admin/tenants/{id}/addons → list active + available items.
+//     The audit (`audit-platform-fillgaps.md` §2.1) confirmed `addons` exists
+//     via the `/api/v1/admin/tenants/{id}/addons` path; this test guards
+//     the response shape.
 func TestV1_ListAddons_ShapeMatchesUXSpec(t *testing.T) {
 	t.Parallel()
 	srv, deps := newV1Server(t)
@@ -310,8 +310,8 @@ func TestV1_ListAddons_ShapeMatchesUXSpec(t *testing.T) {
 	}
 }
 
-// 2. POST /v1/admin/tenants/{id}/addons/{addonPlanId}/activate — idempotent
-//    activation. Fails with 422 when add-on unknown.
+//  2. POST /v1/admin/tenants/{id}/addons/{addonPlanId}/activate — idempotent
+//     activation. Fails with 422 when add-on unknown.
 func TestV1_PostActivateAddon_Idempotent(t *testing.T) {
 	t.Parallel()
 	srv, _ := newV1Server(t)
@@ -338,8 +338,8 @@ func TestV1_PostActivateAddon_404OnUnknown(t *testing.T) {
 	}
 }
 
-// 3. POST /v1/admin/tenants/{id}/addons/{addonPlanId}/deactivate
-//    Compliance lock prevents deactivation of governance_dashboard.
+//  3. POST /v1/admin/tenants/{id}/addons/{addonPlanId}/deactivate
+//     Compliance lock prevents deactivation of governance_dashboard.
 func TestV1_PostDeactivateAddon_RejectsComplianceLocked(t *testing.T) {
 	t.Parallel()
 	srv, deps := newV1Server(t)
@@ -356,8 +356,8 @@ func TestV1_PostDeactivateAddon_RejectsComplianceLocked(t *testing.T) {
 	}
 }
 
-// 4. POST /v1/admin/tenants/{id}/addons/{addonPlanId}/change-tier — proration
-//    via Stripe Subscription Schedule.
+//  4. POST /v1/admin/tenants/{id}/addons/{addonPlanId}/change-tier — proration
+//     via Stripe Subscription Schedule.
 func TestV1_PostChangeTier_EmitsUpgradeEvent(t *testing.T) {
 	t.Parallel()
 	srv, deps := newV1Server(t)

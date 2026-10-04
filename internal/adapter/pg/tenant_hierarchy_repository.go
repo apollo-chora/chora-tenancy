@@ -27,7 +27,7 @@ import (
 	"errors"
 	"fmt"
 
-	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
+	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
 )
 
 // TenantHierarchyRepo reads the franchise hierarchy scope-aware under RLS.

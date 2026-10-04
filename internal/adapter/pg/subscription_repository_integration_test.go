@@ -38,8 +38,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 // subRepoFixture seeds a tenant and returns the ids the tests write against.

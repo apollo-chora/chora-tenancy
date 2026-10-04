@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/config"
+	"github.com/apollo-chora/chora-tenancy/internal/config"
 )
 
 func TestLoadPIIClosureMap_FromBytes_ParsesYAML(t *testing.T) {

@@ -24,8 +24,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
-	paymentsv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/services/payments/v1"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/payments"
+	paymentsv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/services/payments/v1"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/payments"
 )
 
 const bufSize = 1024 * 1024
@@ -34,11 +34,11 @@ const bufSize = 1024 * 1024
 type fakeServer struct {
 	paymentsv1.UnimplementedPaymentServiceServer
 
-	gotEggReq    *paymentsv1.CreateCompanionEggCheckoutSessionRequest
-	gotManaReq   *paymentsv1.CreateManaTopUpSessionRequest
-	eggResp      *paymentsv1.CreateCompanionEggCheckoutSessionResponse
-	manaResp     *paymentsv1.CreateManaTopUpSessionResponse
-	eggReturnErr error
+	gotEggReq     *paymentsv1.CreateCompanionEggCheckoutSessionRequest
+	gotManaReq    *paymentsv1.CreateManaTopUpSessionRequest
+	eggResp       *paymentsv1.CreateCompanionEggCheckoutSessionResponse
+	manaResp      *paymentsv1.CreateManaTopUpSessionResponse
+	eggReturnErr  error
 	manaReturnErr error
 }
 

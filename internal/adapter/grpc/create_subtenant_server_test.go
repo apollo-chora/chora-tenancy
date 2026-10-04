@@ -12,9 +12,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
-	tenancyv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/services/tenancy/v1"
+	tenancyv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/services/tenancy/v1"
+	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 // stubLister satisfies tenancygrpc.MembershipLister so the server can be built;

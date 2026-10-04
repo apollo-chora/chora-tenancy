@@ -19,7 +19,7 @@ import (
 	"context"
 	"fmt"
 
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 // CatalogueReader reads every row of the global `add_ons` catalogue.

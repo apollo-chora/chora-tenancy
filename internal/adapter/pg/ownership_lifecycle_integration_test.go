@@ -23,8 +23,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/ownership"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/ownership"
 )
 
 // --- decline ----------------------------------------------------------------

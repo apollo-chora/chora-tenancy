@@ -83,8 +83,8 @@ func TestListAddons_AllowsAdminRoles(t *testing.T) {
 		"admin",
 		"owner",
 		"super_admin",
-		"TENANT_ADMIN",              // uppercase contract form (ADR-141)
-		"learner,tenant_admin",      // admin among other roles
+		"TENANT_ADMIN",         // uppercase contract form (ADR-141)
+		"learner,tenant_admin", // admin among other roles
 	}
 	for _, role := range roles {
 		role := role

@@ -14,15 +14,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/config"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/config"
 )
 
 const (
-	testTenantID  = "01970000-0000-7000-8000-0000000000aa"
-	testGCID      = "01970000-0000-7000-8000-0000000000bb"
-	testSagaID    = "01970000-0000-7000-8000-0000000000cc"
-	testTrace     = "00-1234567890abcdef1234567890abcdef-1234567890abcdef-01"
+	testTenantID   = "01970000-0000-7000-8000-0000000000aa"
+	testGCID       = "01970000-0000-7000-8000-0000000000bb"
+	testSagaID     = "01970000-0000-7000-8000-0000000000cc"
+	testTrace      = "00-1234567890abcdef1234567890abcdef-1234567890abcdef-01"
 	testTracestate = "vendor=test"
 )
 

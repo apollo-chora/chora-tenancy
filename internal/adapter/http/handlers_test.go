@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/inmem"
-	domain "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/inmem"
+	domain "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
 const tenantHeader = "01970000-0000-7000-8000-000000000001"

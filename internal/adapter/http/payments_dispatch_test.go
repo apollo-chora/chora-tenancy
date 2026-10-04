@@ -10,17 +10,17 @@ import (
 	"strings"
 	"testing"
 
-	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
+	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
 )
 
 // fakePaymentsHTTP records calls + returns canned responses/errors.
 type fakePaymentsHTTP struct {
-	changeIn  httpapi.TenancyPaymentsChangeTierIn
-	previewIn httpapi.TenancyPaymentsPreviewIn
-	changeOut httpapi.TenancyPaymentsChangeTierOut
-	previewOut httpapi.TenancyPaymentsPreviewOut
-	changeErr  error
-	previewErr error
+	changeIn     httpapi.TenancyPaymentsChangeTierIn
+	previewIn    httpapi.TenancyPaymentsPreviewIn
+	changeOut    httpapi.TenancyPaymentsChangeTierOut
+	previewOut   httpapi.TenancyPaymentsPreviewOut
+	changeErr    error
+	previewErr   error
 	changeCalls  int
 	previewCalls int
 }

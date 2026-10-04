@@ -32,8 +32,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/config"
+	"github.com/apollo-chora/chora-common/idempotent"
+	"github.com/apollo-chora/chora-tenancy/internal/config"
 )
 
 // Topic constants for the federated closure saga, chora-tenancy domain.
@@ -42,11 +42,11 @@ const (
 	TopicPseudonymiseCompleted = "chora.tenancy.account.pseudonymised.v1"
 	TopicPseudonymiseFailed    = "chora.tenancy.pii.pseudonymise.failed.v1"
 )
+
 // InboxTTL is the dedupe-key retention window for closure_subscriber's
 // inbox. 24h covers Pub/Sub max redelivery window (7d default) reduced
 // for the closure saga's typical end-to-end latency.
 const InboxTTL = 24 * time.Hour
-
 
 // PseudonymiseRequestedPayload mirrors the per-domain fan-out payload from
 // the closure orchestrator's PseudonymiseRequested event.
@@ -100,7 +100,7 @@ type ClosureSubscriber struct {
 	inbox idempotent.Store
 	ttl   time.Duration
 
-	mu       sync.Mutex
+	mu sync.Mutex
 }
 
 // NewClosureSubscriber wires the local repo + publisher + per-domain PII map.
@@ -109,9 +109,9 @@ func NewClosureSubscriber(repo ClosureRepository, pub ClosurePublisher, pii *con
 		inbox = idempotent.NewMemoryStore()
 	}
 	return &ClosureSubscriber{
-		repo:     repo,
-		pub:      pub,
-		pii:      pii,
+		repo:  repo,
+		pub:   pub,
+		pii:   pii,
 		inbox: inbox,
 		ttl:   InboxTTL,
 	}
@@ -133,19 +133,19 @@ func (s *ClosureSubscriber) Handle(ctx context.Context, env Header, payload Pseu
 	key := payload.SagaID + ":" + payload.Gcid
 	return s.inbox.Process(ctx, key, s.ttl, func() error {
 
-	// AGID handling: if subject is AGID and domain does not apply, ack a
-	// "skipped" status and return — saga proceeds without us.
-	if strings.EqualFold(payload.SubjectKind, "agid") && !s.pii.AGIDApplicable {
-		return s.publishCompleted(env, payload, 0, "skipped_agid_closure")
-	}
+		// AGID handling: if subject is AGID and domain does not apply, ack a
+		// "skipped" status and return — saga proceeds without us.
+		if strings.EqualFold(payload.SubjectKind, "agid") && !s.pii.AGIDApplicable {
+			return s.publishCompleted(env, payload, 0, "skipped_agid_closure")
+		}
 
-	// Apply the per-table tokenisation declared in PII_Closure_Map.yaml.
-	count, err := s.repo.Pseudonymise(ctx, payload.TenantID, payload.Gcid, s.pii.FieldsToTokenize)
-	if err != nil {
-		_ = s.publishFailed(env, payload, err.Error())
-		return fmt.Errorf("events: closure pseudonymise failed: %w", err)
-	}
-	return s.publishCompleted(env, payload, count, "ok")
+		// Apply the per-table tokenisation declared in PII_Closure_Map.yaml.
+		count, err := s.repo.Pseudonymise(ctx, payload.TenantID, payload.Gcid, s.pii.FieldsToTokenize)
+		if err != nil {
+			_ = s.publishFailed(env, payload, err.Error())
+			return fmt.Errorf("events: closure pseudonymise failed: %w", err)
+		}
+		return s.publishCompleted(env, payload, count, "ok")
 	})
 }
 
@@ -156,15 +156,15 @@ func (s *ClosureSubscriber) publishCompleted(in Header, payload PseudonymiseRequ
 		Traceparent: in.Traceparent,
 	}
 	rec, err := s.pub.PublishWithError(TopicPseudonymiseCompleted, header, map[string]interface{}{
-		"saga_id":               payload.SagaID,
-		"gcid":                  payload.Gcid,
-		"tenant_id":             payload.TenantID,
-		"domain":                "tenancy",
-		"rows_touched":          rowsTouched,
-		"status":                status,
-		"completed_at":          time.Now().UTC().Format(time.RFC3339Nano),
-		"chora_imda_dimension":  "accountability",
-		"imda_lifecycle_stage":  "runtime",
+		"saga_id":              payload.SagaID,
+		"gcid":                 payload.Gcid,
+		"tenant_id":            payload.TenantID,
+		"domain":               "tenancy",
+		"rows_touched":         rowsTouched,
+		"status":               status,
+		"completed_at":         time.Now().UTC().Format(time.RFC3339Nano),
+		"chora_imda_dimension": "accountability",
+		"imda_lifecycle_stage": "runtime",
 	})
 	_ = rec
 	return err

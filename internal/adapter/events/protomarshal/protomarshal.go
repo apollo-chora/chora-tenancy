@@ -46,7 +46,7 @@ import (
 
 // Envelope is the producer-side flat shape of chora.common.v1.EventEnvelope
 // (== the inlined Envelope in every chora-contracts events-flat schema). It
-// mirrors libs/chora-go-common/envelope.Envelope; defined locally to keep
+// mirrors chora-common/envelope.Envelope; defined locally to keep
 // this package import-cycle-free with the outbox publisher.
 type Envelope struct {
 	EventID        string

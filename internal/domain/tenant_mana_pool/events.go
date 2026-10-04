@@ -14,13 +14,13 @@ import "time"
 
 // PoolCreated mirrors chora.tenancy.v1.TenantManaPoolCreated.
 type PoolCreated struct {
-	PoolID                 string
-	TenantID               string
-	InitialBalanceUnits    int64
-	MonthlyTopupUnits      int64
-	AutoAllocationPolicy   PolicyKind
-	CreatedByGCID          string
-	CreatedAt              time.Time
+	PoolID               string
+	TenantID             string
+	InitialBalanceUnits  int64
+	MonthlyTopupUnits    int64
+	AutoAllocationPolicy PolicyKind
+	CreatedByGCID        string
+	CreatedAt            time.Time
 }
 
 // PoolToppedUp mirrors chora.tenancy.v1.TenantManaPoolToppedUp.

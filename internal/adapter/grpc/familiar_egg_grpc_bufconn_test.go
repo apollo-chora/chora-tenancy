@@ -21,9 +21,9 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
-	tenancyv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/services/tenancy/v1"
+	tenancyv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/services/tenancy/v1"
 
-	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
+	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
 )
 
 // bufconnBufferSize is large enough for the small PreviewEggOdds payload.

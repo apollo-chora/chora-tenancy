@@ -9,7 +9,7 @@
 // downgraded.v1, addon.deactivation_requested.v1, addon.deactivated.v1,
 // addon.usage_recorded.v1) whenever the tenancy aggregate or add-on
 // subscription state changes. The pre-D6.2 path went through the
-// in-process events.Recorder OR the legacy chora-go-common/outbox.Recorder
+// in-process events.Recorder OR the legacy chora-common/outbox.Recorder
 // — neither of which has a top-level `tenant_id` indexed column (required
 // for D6.3 multi-tenant chaos isolation) or RLS.
 //

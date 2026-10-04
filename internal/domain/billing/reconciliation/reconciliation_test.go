@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/reconciliation"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
 )
 
 func TestReconcile_NoDrift(t *testing.T) {

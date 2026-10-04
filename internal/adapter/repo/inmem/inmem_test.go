@@ -6,8 +6,8 @@ package inmem_test
 import (
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/repo/inmem"
-	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/repo/inmem"
+	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
 
 func TestSubscriptionStore_PassthroughOfRegistry(t *testing.T) {

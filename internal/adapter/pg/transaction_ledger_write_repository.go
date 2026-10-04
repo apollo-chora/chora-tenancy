@@ -16,7 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // nilUUID is the COALESCE sentinel matching uq_transaction_ledger_natural_key.

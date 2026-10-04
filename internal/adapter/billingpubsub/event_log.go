@@ -7,13 +7,13 @@ import (
 	"sync"
 	"time"
 
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events/protodecode"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/reconciliation"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events/protodecode"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
 )
 
-// EventLogReplayFeeder is an EventLogFeeder backed by a chora-go-common bus
+// EventLogReplayFeeder is an EventLogFeeder backed by a chora-common bus
 // subscription on the two payment.captured topics:
 //
 //	chora.tenancy.payment.captured.v1
@@ -111,7 +111,7 @@ func (f *EventLogReplayFeeder) handle(_ context.Context, msg *cgcpubsub.Message)
 // attrsFromBusEnvelope projects a cgcpubsub.Message's parsed envelope back
 // into the Pub/Sub-attribute shape expected by protodecode. The bus
 // reconstructs Envelope from msg.Attributes on receive (per
-// libs/chora-go-common/pubsub.envelopeFromAttributes); this is the inverse.
+// chora-common/pubsub.envelopeFromAttributes); this is the inverse.
 func attrsFromBusEnvelope(msg *cgcpubsub.Message) map[string]string {
 	if msg == nil {
 		return nil

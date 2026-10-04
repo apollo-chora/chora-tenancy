@@ -15,11 +15,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	familiareggsweeper "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiar_egg_sweeper"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/manapool"
-	tenancyoutbox "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
-	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	familiareggsweeper "github.com/apollo-chora/chora-tenancy/internal/adapter/familiar_egg_sweeper"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/manapool"
+	tenancyoutbox "github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
+	allocation "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_allocation"
 )
 
 // allocationGrantedOutboxAdapter satisfies manapool.AllocationGrantedPublisher

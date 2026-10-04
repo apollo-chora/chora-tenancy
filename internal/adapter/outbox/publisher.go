@@ -30,8 +30,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events/protomarshal"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events/protomarshal"
 )
 
 // defaultSchemaVersion is the major version of the on-wire payload schema.

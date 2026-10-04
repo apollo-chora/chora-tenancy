@@ -29,7 +29,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/bootstrap"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
 )
 
 // entitlementCodes projects the bundle's entitlements to their codes, in order.

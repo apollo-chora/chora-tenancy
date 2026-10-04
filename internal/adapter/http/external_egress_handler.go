@@ -25,7 +25,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/external_egress"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/external_egress"
 )
 
 // externalEgressDTO is the wire shape for both GET and PATCH responses.

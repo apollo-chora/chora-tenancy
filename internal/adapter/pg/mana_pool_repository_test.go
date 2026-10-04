@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/pg"
-	poolpkg "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_pool"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	poolpkg "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
 const (

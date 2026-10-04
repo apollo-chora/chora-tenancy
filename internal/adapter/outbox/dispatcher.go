@@ -22,11 +22,11 @@ import (
 	"log"
 	"time"
 
-	cgcenvelope "github.com/5007-Capstone/chora/libs/chora-go-common/envelope"
+	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
 )
 
 // Bus is the Pub/Sub publisher contract the Dispatcher uses. Matches
-// `libs/chora-go-common/pubsub.OutboxCompatible` so the InMemoryBus + the
+// `chora-common/pubsub.OutboxCompatible` so the InMemoryBus + the
 // CloudPubSub adapter slot in directly.
 type Bus interface {
 	Publish(ctx context.Context, topic string, env cgcenvelope.Envelope, payload []byte) error

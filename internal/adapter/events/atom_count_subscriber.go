@@ -18,10 +18,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
-	"github.com/5007-Capstone/chora/libs/chora-go-common/tracing"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/atomcount"
+	"github.com/apollo-chora/chora-common/idempotent"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/tracing"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/atomcount"
 )
 
 // Atom lifecycle topics the projection folds into the per-tenant counter.

@@ -18,8 +18,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
 )
 
 // TestPublisher_Publish_ConvenienceWrapper exercises the error-dropping
@@ -153,19 +153,19 @@ func TestDispatcher_DrainOnce_BadEnvelopeTimesFallBack(t *testing.T) {
 	store := outbox.NewInMemoryStore()
 	now := time.Now().UTC()
 	r := outbox.Row{
-		ID:             "rBadTime",
-		TenantID:       "01970000-0000-7000-8000-0000000000bb",
-		AggregateType:  "tenant",
-		AggregateID:    "tenant-1",
-		EventType:      "tenancy.tenant.created",
-		Topic:          "chora.tenancy.tenant.created.v1",
-		Payload:        []byte(`{}`),
+		ID:            "rBadTime",
+		TenantID:      "01970000-0000-7000-8000-0000000000bb",
+		AggregateType: "tenant",
+		AggregateID:   "tenant-1",
+		EventType:     "tenancy.tenant.created",
+		Topic:         "chora.tenancy.tenant.created.v1",
+		Payload:       []byte(`{}`),
 		Envelope: map[string]string{
-			"event_id":        "rBadTime",
-			"occurred_at":     "not-a-time",
-			"published_at":    "still-not",
-			"source_service":  "chora-tenancy",
-			"schema_version":  "1",
+			"event_id":       "rBadTime",
+			"occurred_at":    "not-a-time",
+			"published_at":   "still-not",
+			"source_service": "chora-tenancy",
+			"schema_version": "1",
 		},
 		IdempotencyKey: "idem-rBadTime",
 		OccurredAt:     now,

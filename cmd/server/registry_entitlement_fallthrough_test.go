@@ -20,7 +20,7 @@ package main
 import (
 	"testing"
 
-	tenancy "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
+	tenancy "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
 // TestRegistryEntitlementStore_ListActive_FallsThroughWhenRegistryNeverSawTenant

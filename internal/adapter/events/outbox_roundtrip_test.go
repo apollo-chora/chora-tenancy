@@ -3,23 +3,23 @@
 //
 // What this asserts:
 //
-//   1. Every Phyllis-MVP / S2.2 add-on lifecycle event topic validates
-//      against the local Recorder (= Schema Registry shape gate in tests).
+//  1. Every Phyllis-MVP / S2.2 add-on lifecycle event topic validates
+//     against the local Recorder (= Schema Registry shape gate in tests).
 //
-//   2. tenant.golive carries chora_imda_dimension=accountability per
-//      ADR-141 (D1) — surfaced via the payload field the publisher copies.
+//  2. tenant.golive carries chora_imda_dimension=accountability per
+//     ADR-141 (D1) — surfaced via the payload field the publisher copies.
 //
-//   3. Mid-publish crash safety: the in-process recorder reproduces the
-//      outbox round-trip discipline (atomic record-then-publish — every
-//      Recorded() call returns the full set of accepted events with no
-//      partials). Production wiring uses libs/chora-go-common/outbox.
+//  3. Mid-publish crash safety: the in-process recorder reproduces the
+//     outbox round-trip discipline (atomic record-then-publish — every
+//     Recorded() call returns the full set of accepted events with no
+//     partials). Production wiring uses chora-common/outbox.
 package events_test
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 )
 
 // canonicalTopics enumerates the 6 add-on lifecycle topics + 2 tenant
@@ -97,10 +97,10 @@ func TestOutboxRoundtrip_RejectsBadTopicShape(t *testing.T) {
 	rec := events.NewRecorder()
 	hdr := events.Header{TenantID: "t-1"}
 	for _, bad := range []string{
-		"not.a.topic",                            // wrong domain prefix
-		"chora.unknown.aggregate.event.v1",       // unknown domain
-		"chora.tenancy.addon.activated",          // missing version
-		"chora.tenancy.addon.activated.v",        // empty version digit
+		"not.a.topic",                      // wrong domain prefix
+		"chora.unknown.aggregate.event.v1", // unknown domain
+		"chora.tenancy.addon.activated",    // missing version
+		"chora.tenancy.addon.activated.v",  // empty version digit
 	} {
 		if _, err := rec.PublishWithError(bad, hdr, map[string]interface{}{}); err == nil {
 			t.Fatalf("expected error for topic %q", bad)

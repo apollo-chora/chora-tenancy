@@ -6,9 +6,9 @@ import (
 	"context"
 	"testing"
 
-	cgcoutbox "github.com/5007-Capstone/chora/libs/chora-go-common/outbox"
+	cgcoutbox "github.com/apollo-chora/chora-common/outbox"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 )
 
 type stubRecorder struct {
@@ -22,7 +22,7 @@ func (s *stubRecorder) Record(_ context.Context, _ cgcoutbox.Tx, row *cgcoutbox.
 func (s *stubRecorder) Claim(_ context.Context, _ int) ([]*cgcoutbox.Row, error) {
 	return nil, nil
 }
-func (s *stubRecorder) MarkPublished(_ context.Context, _ []string) error  { return nil }
+func (s *stubRecorder) MarkPublished(_ context.Context, _ []string) error { return nil }
 func (s *stubRecorder) MarkFailed(_ context.Context, _ string, _ string, _ bool) error {
 	return nil
 }

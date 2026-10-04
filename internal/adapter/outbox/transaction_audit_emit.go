@@ -28,12 +28,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	governancev1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/governance/v1"
+	governancev1 "github.com/apollo-chora/chora-contracts/gen/go/chora/governance/v1"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/tracing"
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	"github.com/apollo-chora/chora-common/tracing"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/env"
+	"github.com/apollo-chora/chora-common/env"
 )
 
 // crossTenantViewedTopic is the canonical ADR-165 governance audit topic the
