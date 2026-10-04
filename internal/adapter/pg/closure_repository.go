@@ -65,9 +65,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/uuid"
-
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/config"
+	"github.com/apollo-chora/chora-tenancy/internal/config"
 )
 
 // ErrClosureExecutorUnbuilt is returned by Pseudonymise until a real per-table
@@ -121,56 +119,6 @@ func (r *ClosureRepository) Pseudonymise(ctx context.Context, tenantID, gcid str
 	// Disarmed until a real executor exists: see ErrClosureExecutorUnbuilt.
 	// Placed FIRST so no ack row is written and no success is published.
 	return 0, ErrClosureExecutorUnbuilt
-
-	if strings.TrimSpace(tenantID) == "" {
-		return 0, errors.New("pg.ClosureRepository.Pseudonymise: tenant_id required")
-	}
-	if strings.TrimSpace(gcid) == "" {
-		return 0, errors.New("pg.ClosureRepository.Pseudonymise: gcid required")
-	}
-
-	id, err := uuid.NewV7()
-	if err != nil {
-		return 0, fmt.Errorf("pg.ClosureRepository.Pseudonymise: uuidv7: %w", err)
-	}
-
-	// Declared-intent row count from the PII map — see package doc: this
-	// adapter does not itself touch tenant_memberships/stripe_customer_mappings/etc.
-	rows := 0
-	for _, t := range spec {
-		rows += len(t.Columns)
-	}
-
-	const q = `
-        INSERT INTO closure_pseudonymisation_state (id, tenant_id, gcid, rows_touched)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (tenant_id, gcid) DO NOTHING
-        RETURNING id
-    `
-	conflictFired := false
-	err = r.tx.RunInTenantTx(ctx, tenantID, func(ctx context.Context, tx Tx) error {
-		row := tx.QueryRow(ctx, q, id.String(), tenantID, gcid, rows)
-		var insertedID string
-		if err := row.Scan(&insertedID); err != nil {
-			if errors.Is(err, ErrNoRows) {
-				// ON CONFLICT DO NOTHING fired: another call already
-				// durably acked this (tenant, gcid) pair. Idempotent
-				// no-op — fail loud only on a GENUINE backing-store
-				// error (below).
-				conflictFired = true
-				return nil
-			}
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return 0, fmt.Errorf("pg.ClosureRepository.Pseudonymise: %w", err)
-	}
-	if conflictFired {
-		return 0, nil
-	}
-	return rows, nil
 }
 
 // IsPseudonymised reports whether (tenantID, gcid) has already been
