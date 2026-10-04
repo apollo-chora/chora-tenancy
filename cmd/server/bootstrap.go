@@ -28,8 +28,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	cgcdb "github.com/5007-Capstone/chora/libs/chora-go-common/db"
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	cgcdb "github.com/apollo-chora/chora-common/db"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
 	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
 	tenancyoutbox "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
