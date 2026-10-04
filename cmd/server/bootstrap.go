@@ -24,14 +24,12 @@ import (
 	"database/sql"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	cgcdb "github.com/5007-Capstone/chora/libs/chora-go-common/db"
 	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
-	cgcsecrets "github.com/5007-Capstone/chora/libs/chora-go-common/secrets"
 
 	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
 	tenancyoutbox "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/outbox"
@@ -39,155 +37,57 @@ import (
 
 func bootstrapDBPool(ctx context.Context) (*pgxpool.Pool, func()) {
 	dsn := os.Getenv("CHORA_DB_DSN")
-	secretID := os.Getenv("CHORA_DB_DSN_SECRET_ID")
-	if dsn == "" && secretID == "" {
-		log.Printf("tenancy: CHORA_DB_DSN / CHORA_DB_DSN_SECRET_ID unset — using in-memory repositories")
+	if dsn == "" {
+		log.Printf("tenancy: CHORA_DB_DSN unset — using in-memory repositories")
 		return nil, nil
 	}
-	project := os.Getenv("CHORA_DB_PROJECT")
-	if project == "" {
-		project = "chora-489812"
-	}
-	var fetcher cgcdb.SecretFetcher
-	var sclient *cgcsecrets.Client
-	if secretID != "" && dsn == "" {
-		c, err := cgcsecrets.NewClient(ctx, project)
-		if err != nil {
-			log.Fatalf("tenancy: secret manager init failed (env set, fail-loud): %v", err)
-		}
-		sclient = c
-		fetcher = c
-	}
-	rewriteFrom, _ := strconv.Atoi(os.Getenv("CHORA_DB_REWRITE_FROM_PORT"))
-	rewriteTo, _ := strconv.Atoi(os.Getenv("CHORA_DB_REWRITE_TO_PORT"))
 
-	// Gate-7 fix: env-driven bootstrap context (default 30s). Under
-	// concurrent 11-pod cold-start on GKE, Workload Identity → metadata-
-	// server → sqladmin → cloudsql-proxy → Cloud SQL listener saturates
-	// the metadata-server and Secret Manager fetch alone can exceed 30s.
-	// Set CHORA_BOOTSTRAP_TIMEOUT_SECONDS=90 in the deployment env.
-	bootstrapSecs, _ := strconv.Atoi(os.Getenv("CHORA_BOOTSTRAP_TIMEOUT_SECONDS"))
-	if bootstrapSecs <= 0 {
-		bootstrapSecs = 30
-	}
-	bootstrapCtx, cancel := context.WithTimeout(ctx, time.Duration(bootstrapSecs)*time.Second)
+	bootstrapCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	pool, err := cgcdb.Bootstrap(bootstrapCtx, cgcdb.BootstrapOptions{
-		DSN:             dsn,
-		SecretID:        secretID,
-		SecretFetcher:   fetcher,
-		RewriteFromPort: rewriteFrom,
-		RewriteToPort:   rewriteTo,
-		AppName:         serviceName + "@" + serviceVersion,
-		RuntimeParams:   tenancyDBRuntimeParams(),
+		DSN:           dsn,
+		AppName:       serviceName + "@" + serviceVersion,
+		RuntimeParams: tenancyDBRuntimeParams(),
 	})
 	if err != nil {
-		if sclient != nil {
-			_ = sclient.Close()
-		}
-		log.Fatalf("tenancy: pgx pool bootstrap failed (env set, fail-loud — kubelet will CrashLoopBackOff): %v", err)
+		log.Fatalf("tenancy: pgx pool bootstrap failed: %v", err)
 	}
-	shutdown := func() {
-		pool.Close()
-		if sclient != nil {
-			_ = sclient.Close()
-		}
-	}
-	return pool, shutdown
+	return pool, pool.Close
 }
 
 func bootstrapPubSubClient(ctx context.Context) (cgcpubsub.CloudPubSubClient, func()) {
-	project := os.Getenv("CHORA_PUBSUB_PROJECT")
+	project := os.Getenv("PUBSUB_PROJECT_ID")
 	if project == "" {
 		return nil, nil
 	}
 	cli, err := cgcpubsub.NewGCPClient(ctx, project)
 	if err != nil {
-		log.Printf("tenancy: pubsub client init failed: %v — falling back to in-memory recorder", err)
+		log.Printf("tenancy: Pub/Sub client init failed: %v — falling back to in-memory recorder", err)
 		return nil, nil
 	}
-	return cli, func() {
-		_ = cli.Close()
-	}
+	return cli, func() { _ = cli.Close() }
 }
 
-// bootstrapOutboxDB opens a *sql.DB connection to chora_tenancy backing
-// the producer-side outbox. Returns (nil, nil) when CHORA_OUTBOX_DSN is
-// unset — main() then falls back to the in-memory store.
-//
-// Per `feedback_no_inline_config` the DSN itself is sourced from
-// Workload Identity Federation + Secret Manager. The two-step accept
-// (try pgx driver name, then postgres driver name) keeps the binary
-// driver-agnostic — whichever driver is registered at compile time
-// wins.
 func bootstrapOutboxDB(ctx context.Context) (*sql.DB, func()) {
 	dsn := os.Getenv("CHORA_OUTBOX_DSN")
-	secretID := os.Getenv("CHORA_OUTBOX_DSN_SECRET_ID")
-	if dsn == "" && secretID == "" {
-		return nil, nil
-	}
-
-	var sclient *cgcsecrets.Client
 	if dsn == "" {
-		project := os.Getenv("CHORA_DB_PROJECT")
-		if project == "" {
-			project = "chora-489812"
-		}
-		c, err := cgcsecrets.NewClient(ctx, project)
-		if err != nil {
-			log.Fatalf("tenancy: outbox secret manager init failed (env set, fail-loud): %v", err)
-		}
-		sclient = c
-		bootstrapSecs, _ := strconv.Atoi(os.Getenv("CHORA_BOOTSTRAP_TIMEOUT_SECONDS"))
-		if bootstrapSecs <= 0 {
-			bootstrapSecs = 30
-		}
-		resolveCtx, cancel := context.WithTimeout(ctx, time.Duration(bootstrapSecs)*time.Second)
-		defer cancel()
-		resolved, err := c.GetSecret(resolveCtx, secretID)
-		if err != nil {
-			_ = c.Close()
-			log.Fatalf("tenancy: outbox secret fetch %q failed (env set, fail-loud): %v", secretID, err)
-		}
-		dsn = resolved
+		dsn = os.Getenv("CHORA_DB_DSN")
 	}
-
-	if rewriteFrom, _ := strconv.Atoi(os.Getenv("CHORA_DB_REWRITE_FROM_PORT")); rewriteFrom != 0 {
-		if rewriteTo, _ := strconv.Atoi(os.Getenv("CHORA_DB_REWRITE_TO_PORT")); rewriteTo != 0 {
-			rewritten, err := cgcdb.RewriteDSNPort(dsn, rewriteFrom, rewriteTo)
-			if err != nil {
-				if sclient != nil {
-					_ = sclient.Close()
-				}
-				log.Fatalf("tenancy: outbox DSN port rewrite failed (env set, fail-loud): %v", err)
-			}
-			dsn = rewritten
-		}
+	if dsn == "" {
+		return nil, nil
 	}
 
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		db, err = sql.Open("postgres", dsn)
+		return nil, nil
 	}
-	if err != nil {
-		if sclient != nil {
-			_ = sclient.Close()
-		}
-		log.Fatalf("tenancy: outbox sql.Open failed (env set, fail-loud): %v", err)
-	}
-	if pingErr := db.PingContext(ctx); pingErr != nil {
+	pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	if err := db.PingContext(pingCtx); err != nil {
 		_ = db.Close()
-		if sclient != nil {
-			_ = sclient.Close()
-		}
-		log.Fatalf("tenancy: outbox db.Ping failed (env set, fail-loud): %v", pingErr)
+		log.Fatalf("tenancy: outbox database ping failed: %v", err)
 	}
-	return db, func() {
-		_ = db.Close()
-		if sclient != nil {
-			_ = sclient.Close()
-		}
-	}
+	return db, func() { _ = db.Close() }
 }
 
 // workerID derives the dispatcher worker_id from CHORA_OUTBOX_WORKER_ID
