@@ -36,6 +36,10 @@ github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/cloudmock v0
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/cloudmock v0.57.0/go.mod h1:dzcEjy1WJ0Q4u9twNR3LcLhNoYMRCrMCMafpxa0TjPQ=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.57.0 h1:RoO5+d7uCmDqovLrHCr2/BuViUXvdcrNxyNM1pN9dDQ=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.57.0/go.mod h1:YqwkQPrWSC7+byyc1VlKbWLBF5JsW5IoL6xUkemYSXk=
+github.com/apollo-chora/chora-common v0.0.0-20261004212837-c7ba3cf6edff h1:FCRnqtkubAhSgvH6mB5R3ePwabCK77hR7gdI2h+Rmsw=
+github.com/apollo-chora/chora-common v0.0.0-20261004212837-c7ba3cf6edff/go.mod h1:+zsCocuHQ6ozjOJrhvAPukmTui0J+J7KUtUL0Jb148g=
+github.com/apollo-chora/chora-contracts/gen/go v0.0.0-20261004213314-68f152f9f455 h1:xIkaCf28xUaGwgwoOe+qX3s6xV8tHt9OiX2BdSYUkw8=
+github.com/apollo-chora/chora-contracts/gen/go v0.0.0-20261004213314-68f152f9f455/go.mod h1:lP49emmpeh7Uw4NQ4sEavelSbScuJ2q49bScmnuemWY=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
