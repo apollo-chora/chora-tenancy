@@ -50,17 +50,17 @@ import (
 	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 
-	tenancyv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/services/tenancy/v1"
+	tenancyv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/services/tenancy/v1"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/durabilityguard"
-	grpcconn "github.com/5007-Capstone/chora/libs/chora-go-common/grpcconn"
-	"github.com/5007-Capstone/chora/libs/chora-go-common/idempotent"
-	cgcobservability "github.com/5007-Capstone/chora/libs/chora-go-common/observability"
+	"github.com/apollo-chora/chora-common/durabilityguard"
+	grpcconn "github.com/apollo-chora/chora-common/grpcconn"
+	"github.com/apollo-chora/chora-common/idempotent"
+	cgcobservability "github.com/apollo-chora/chora-common/observability"
 	// pgx stdlib driver — registered for sql.Open("pgx", dsn) used by
 	// the per-domain outbox PostgresStore in bootstrap.go.
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
 	tnevents "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
 	familiareggsweeper "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiar_egg_sweeper"
