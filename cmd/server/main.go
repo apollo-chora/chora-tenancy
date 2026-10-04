@@ -9,12 +9,12 @@
 //
 // Production wiring (Phyllis Wave-B + M12.3 W2b):
 //
-//   - When CHORA_DB_DSN_SECRET_ID (or CHORA_DB_DSN) is set, a pgxpool.Pool
+//   - When CHORA_DB_DSN is set, a pgxpool.Pool
 //     is bootstrapped against chora_tenancy. The pgx-backed
 //     tenant.Repository is wired in alongside the legacy in-memory repos
 //     (the legacy ones still drive the v1 server and parts of v2 that
 //     have not been ported). When unset, falls back to in-memory.
-//   - When CHORA_PUBSUB_PROJECT is set, the Cloud Pub/Sub client is
+//   - When PUBSUB_PROJECT_ID is set, the Cloud Pub/Sub client is
 //     bootstrapped + wired as the Bus for the D6.2 outbox dispatcher.
 //     When unset, an in-memory bus is used so the service stays runnable
 //     in dev.
@@ -46,7 +46,6 @@ import (
 	"syscall"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
@@ -65,10 +64,8 @@ import (
 	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
 
 	tnevents "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/exportworker"
 	familiareggsweeper "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiar_egg_sweeper"
 	familiareggstripe "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/familiareggstripe"
-	tenancygcs "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/gcs"
 	tenancygrpc "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/grpc"
 	httpapi "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/http"
 	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/inmem"
@@ -231,7 +228,7 @@ func main() {
 		legacyTenants = inmem.NewTenantRepo()
 		legacyAddOnCatalog = domain.NewAddOnCatalog()
 		legacyEntitlements = domain.NewEntitlementRegistry()
-		log.Printf("tenancy: in-memory legacy /api/* stores wired (CHORA_DB_DSN_SECRET_ID/CHORA_DB_DSN unset; NOT durable)")
+		log.Printf("tenancy: in-memory legacy /api/* stores wired (CHORA_DB_DSN unset; NOT durable)")
 	}
 
 	// ----------------------------------------------------------------------
@@ -245,7 +242,7 @@ func main() {
 	var bus tenancyoutbox.Bus = cgcpubsub.NewInMemoryBus()
 	if pubsubClient != nil {
 		bus = cgcpubsub.NewCloudPublisher(pubsubClient)
-		log.Printf("tenancy: Cloud Pub/Sub client wired (project=%s)", os.Getenv("CHORA_PUBSUB_PROJECT"))
+		log.Printf("tenancy: Pub/Sub client wired (project=%s)", os.Getenv("PUBSUB_PROJECT_ID"))
 	}
 
 	// ----------------------------------------------------------------------
@@ -283,7 +280,7 @@ func main() {
 		closureAckPub := tnevents.NewCloudClosurePublisher(
 			cgcpubsub.NewClosureAckPublisher(
 				cgcpubsub.NewCloudPublisher(pubsubClient),
-				os.Getenv("CHORA_PUBSUB_PROJECT"),
+				os.Getenv("PUBSUB_PROJECT_ID"),
 				"chora-tenancy",
 			),
 		)
@@ -825,7 +822,7 @@ func main() {
 		eggCatalog = httpapi.NewInMemoryCatalogStore()
 		eggWebhookIdem = httpapi.NewInMemoryWebhookIdemStore()
 		sweeperStore = nil // sweeper is disabled in dev by default
-		log.Printf("tenancy: familiar-egg in-memory stores wired (CHORA_DB_DSN_SECRET_ID/CHORA_DB_DSN unset; NOT durable)")
+		log.Printf("tenancy: familiar-egg in-memory stores wired (CHORA_DB_DSN unset; NOT durable)")
 	}
 	// ADR-164: the familiar-egg checkout handler delegates the Stripe Checkout
 	// session + familiar_egg_purchases persistence to chora-payments via gRPC
@@ -1075,29 +1072,9 @@ func main() {
 		txHistoryServer := tenancygrpc.NewTransactionHistoryServer(txReadRepo, txAuditEmitter).
 			WithFranchisees(txReadRepo)
 
-		// B5/CHO-1941 async export — gated on the GCS export bucket. When set,
-		// wire GCS storage + the export-job repo + start the poll-based build
-		// worker (RunLoop bound to the shutdown ctx); otherwise the export RPCs
-		// return Unavailable (no silent half-feature). Signing uses the default
-		// ADC path: the worker is OFF the request path, so the chora-creation
-		// G3 sign-hang risk cannot 504 a user request.
-		if exportBucket := strings.TrimSpace(os.Getenv("CHORA_TENANCY_EXPORT_BUCKET")); exportBucket != "" {
-			storageClient, scErr := storage.NewClient(ctx)
-			if scErr != nil {
-				log.Fatalf("tenancy: export storage client: %v", scErr)
-			}
-			exportStore, esErr := tenancygcs.NewExportStorage(storageClient, exportBucket)
-			if esErr != nil {
-				log.Fatalf("tenancy: export storage: %v", esErr)
-			}
-			exportRepo := pg.NewTransactionExportRepo(pg.NewPgxPoolQuerier(pool))
-			txHistoryServer = txHistoryServer.WithExports(exportRepo)
-			worker := exportworker.New(exportRepo, txReadRepo, exportStore, exportworker.Config{}, log.Default())
-			go worker.RunLoop(ctx)
-			log.Printf("tenancy: transaction export worker running (bucket=%s)", exportBucket)
-		} else {
-			log.Printf("tenancy: transaction export DISABLED (CHORA_TENANCY_EXPORT_BUCKET unset) — Create/GetTransactionExport return Unavailable")
-		}
+		// Transaction exports previously depended directly on GCS. They remain
+		// disabled until a local/portable object-storage adapter is configured.
+		log.Printf("tenancy: transaction export DISABLED (no local object-storage adapter configured)")
 
 		tenancyv1.RegisterTransactionHistoryServiceServer(grpcSrv, txHistoryServer)
 
@@ -1259,10 +1236,10 @@ func validateFamiliarEggProdEnv(stripeCreds stripeCredentials) error {
 
 	var missing []string
 	if strings.TrimSpace(stripeCreds.APIKey) == "" {
-		missing = append(missing, "STRIPE_API_KEY (or STRIPE_API_KEY_SECRET_ID)")
+		missing = append(missing, "STRIPE_API_KEY")
 	}
 	if strings.TrimSpace(stripeCreds.WebhookSecret) == "" {
-		missing = append(missing, "STRIPE_WEBHOOK_SECRET (or STRIPE_WEBHOOK_SECRET_SECRET_ID)")
+		missing = append(missing, "STRIPE_WEBHOOK_SECRET")
 	}
 	for _, key := range requiredFamiliarEggProdURLEnv {
 		if strings.TrimSpace(os.Getenv(key)) == "" {
