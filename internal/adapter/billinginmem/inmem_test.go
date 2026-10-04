@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/billinginmem"
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/billing/reconciliation"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/billinginmem"
+	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
 )
 
 func TestInMemoryStripeFeeder_RoundTrip(t *testing.T) {
