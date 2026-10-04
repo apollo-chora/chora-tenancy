@@ -78,14 +78,14 @@ import (
 	"os"
 	"time"
 
-	envelopepkg "github.com/5007-Capstone/chora/libs/chora-go-common/envelope"
-	pubsublib "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
-	commonv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/common/v1"
-	paymentsv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/payments/v1"
+	envelopepkg "github.com/apollo-chora/chora-common/envelope"
+	pubsublib "github.com/apollo-chora/chora-common/pubsub"
+	commonv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/common/v1"
+	paymentsv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/payments/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/env"
+	"github.com/apollo-chora/chora-common/env"
 )
 
 const (
