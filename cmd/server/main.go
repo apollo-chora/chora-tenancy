@@ -14,7 +14,7 @@
 //     tenant.Repository is wired in alongside the legacy in-memory repos
 //     (the legacy ones still drive the v1 server and parts of v2 that
 //     have not been ported). When unset, falls back to in-memory.
-//   - When PUBSUB_PROJECT_ID is set, the Cloud Pub/Sub client is
+//   - When PUBSUB_PROJECT_ID is set, the Pub/Sub client is
 //     bootstrapped + wired as the Bus for the D6.2 outbox dispatcher.
 //     When unset, an in-memory bus is used so the service stays runnable
 //     in dev.
@@ -27,8 +27,7 @@
 //     idempotent.Store.Process(...). When CHORA_OUTBOX_DSN is set, the
 //     PostgresStore-backed inbox is wired against the chora_tenancy
 //     idempotency_keys table; otherwise an in-memory store is used.
-//   - OTLP traces direct to Cloud Trace via the chora-go-common
-//     observability.InitOTLP helper.
+//   - OTLP remains optional and is configured through standard OTLP environment variables.
 package main
 
 import (
@@ -98,7 +97,7 @@ func main() {
 	defer stop()
 
 	// ----------------------------------------------------------------------
-	// OTLP wiring per Tier 3 D13 — direct to Cloud Trace in prod.
+	// Optional OTLP wiring.
 	//
 	// Per C(a).S1 path (b) — tracker #151 — OTLP init runs in its own
 	// goroutine with its own (env-tunable, default 15s) deadline + fail-
@@ -765,9 +764,7 @@ func main() {
 	// unset. In dev (CHORA_ENV != "prod") the gate logs a warning and we
 	// fall back to the stub client.
 	// ----------------------------------------------------------------------
-	// Resolve Stripe credentials via the canonical _SECRET_ID → GSM pattern
-	// (mirrors CHORA_DB_DSN_SECRET_ID). Falls back to raw STRIPE_API_KEY /
-	// STRIPE_WEBHOOK_SECRET env values in dev when no _SECRET_ID is set.
+	// Resolve Stripe credentials directly from environment variables loaded by Docker Compose.
 	stripeSecretClient, stripeSecretShutdown, err := bootstrapStripeSecretClient(ctx)
 	if err != nil {
 		log.Fatalf("tenancy: stripe secret client bootstrap failed: %v", err)
@@ -803,8 +800,7 @@ func main() {
 		log.Printf("tenancy: STRIPE_API_KEY unset — familiar-egg using stub Stripe client (dev only)")
 	}
 
-	// Wire pg-backed stores when CHORA_DB_DSN_SECRET_ID / CHORA_DB_DSN is
-	// set (pool != nil); otherwise dev-mode in-memory fallback.
+	// Wire pg-backed stores when CHORA_DB_DSN is set (pool != nil); otherwise use the in-memory fallback.
 	var eggPurchases httpapi.PurchaseStore
 	var eggCatalog httpapi.CatalogStore
 	var eggWebhookIdem httpapi.WebhookIdemStore
@@ -1207,8 +1203,7 @@ func envOrDefault(key, def string) string {
 // requiredFamiliarEggProdURLEnv enumerates the URL env vars that MUST be
 // set when CHORA_ENV=prod. The Stripe credential pair (API key + webhook
 // secret) is validated separately against the resolved values returned by
-// resolveStripeCredentials — either source (GSM via *_SECRET_ID or raw
-// env) satisfies the prod gate.
+// resolveStripeCredentials reads the raw environment values.
 var requiredFamiliarEggProdURLEnv = []string{
 	"STRIPE_SUCCESS_URL",
 	"STRIPE_CANCEL_URL",
@@ -1219,17 +1214,14 @@ var requiredFamiliarEggProdURLEnv = []string{
 //
 // When CHORA_ENV == "prod":
 //   - stripeCreds.APIKey + stripeCreds.WebhookSecret MUST be non-empty
-//     (resolved from EITHER STRIPE_API_KEY_SECRET_ID via Secret Manager
-//     OR raw STRIPE_API_KEY — same for the webhook secret)
+//     (read directly from STRIPE_API_KEY / STRIPE_WEBHOOK_SECRET)
 //   - STRIPE_SUCCESS_URL + STRIPE_CANCEL_URL MUST be non-empty
 //
 // In any other CHORA_ENV (dev, staging, empty): a warning is logged for
 // each missing value, but startup is permitted (the Stripe stub client +
 // in-memory stores keep the binary runnable for local development).
 //
-// Per `feedback_no_inline_config` — production wires _SECRET_ID env to
-// the canonical Secret Manager secret name. Raw env values remain
-// acceptable only in dev.
+// Credentials are supplied through the process environment (normally .env via Compose).
 func validateFamiliarEggProdEnv(stripeCreds stripeCredentials) error {
 	choraEnv := strings.ToLower(strings.TrimSpace(os.Getenv("CHORA_ENV")))
 	isProd := choraEnv == "prod" || choraEnv == "production"
