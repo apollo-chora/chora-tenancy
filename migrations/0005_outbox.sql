@@ -153,7 +153,7 @@ CREATE POLICY outbox_events_tenant_isolation ON outbox_events
     );
 
 -- idempotency_keys — multi-pod webhook + cross-domain command dedupe.
--- Schema matches chora-go-common/idempotent.PostgresStore (Mark/Seen/Process)
+-- Schema matches chora-common/idempotent.PostgresStore (Mark/Seen/Process)
 -- so chora-billing-webhook can wire the production store directly.
 -- (Retained for legacy harnesses; the canonical version lives in
 -- 0006_idempotency_keys.up.sql with the stored procedure.)

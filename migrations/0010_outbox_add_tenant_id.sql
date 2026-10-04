@@ -16,7 +16,7 @@
 -- canonical CREATE TABLE (line 36). However, in the production DB the
 -- outbox_events table was created by an earlier code path (the chora-go-
 -- common/outbox PostgresRecorder template at
--- libs/chora-go-common/outbox/sql_fixtures/outbox_events.up.sql shipped a
+-- libs/chora-common/outbox/sql_fixtures/outbox_events.up.sql shipped a
 -- CREATE TABLE WITHOUT tenant_id). The 0005 CREATE-IF-NOT-EXISTS then
 -- short-circuited and the DO block ALTERs never executed because the
 -- runner's per-file dedup table (chora_runner_schema_migrations) recorded

@@ -19,7 +19,7 @@ Stripe is optional. When no Stripe API key is configured, the service uses its d
 - Docker with Docker Compose
 - The Chora monorepo layout used by the Dockerfile build context:
   - `services/chora-tenancy`
-  - `libs/chora-go-common`
+  - `libs/chora-common`
   - `chora-contracts/gen/go`
 
 ## Configuration
@@ -130,7 +130,7 @@ Run Go tests from the monorepo/workspace environment:
 go test ./...
 ```
 
-The service depends on the shared `chora-go-common` module and generated Chora contracts, so the repository's expected monorepo paths must be available for local Go builds and Docker builds.
+The service depends on the shared `chora-common` module and generated Chora contracts, so the repository's expected monorepo paths must be available for local Go builds and Docker builds.
 
 ## Deployment philosophy
 

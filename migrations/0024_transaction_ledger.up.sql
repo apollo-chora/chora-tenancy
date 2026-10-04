@@ -20,7 +20,7 @@
 --
 -- RLS: tenant-isolated, FORCE'd. The policy is PLATFORM-SENTINEL-AWARE — when
 -- the session GUC `chora.tenant_id` = 'platform' (the cross-tenant operator
--- context blessed by libs/chora-go-common/rls.ValidateTenantID + envelope.proto)
+-- context blessed by libs/chora-common/rls.ValidateTenantID + envelope.proto)
 -- the policy returns ALL tenants' rows. This is what makes operator span-all
 -- (ADR-165, B3) actually work under FORCE RLS + a NOBYPASSRLS app role,
 -- avoiding the empty-result class of bug (CHO-1931) that the old payments
