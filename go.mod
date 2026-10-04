@@ -3,10 +3,10 @@ module github.com/apollo-chora/chora-tenancy
 go 1.26.1
 
 require (
-	github.com/apollo-chora/chora-common v0.0.0
+	github.com/apollo-chora/chora-common v0.0.0-20261004180450-d04a23be3da8
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2
-	github.com/apollo-chora/chora-contracts/gen/go v0.0.0-00010101000000-000000000000
+	github.com/apollo-chora/chora-contracts/gen/go v0.0.0-20261004180446-ac3aeecd146f
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260615183401-62b3387ff324
