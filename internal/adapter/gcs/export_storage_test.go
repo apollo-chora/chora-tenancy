@@ -8,8 +8,8 @@ import (
 
 	"cloud.google.com/go/storage"
 
-	tenancygcs "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/gcs"
-	tl "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/transactionledger"
+	tenancygcs "github.com/apollo-chora/chora-tenancy/internal/adapter/gcs"
+	tl "github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 )
 
 // Upload + SignedURL hit live GCS + IAM signing and are deploy-verified (mirrors
