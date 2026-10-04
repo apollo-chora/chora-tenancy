@@ -30,7 +30,7 @@ import (
 	addon "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/add_on"
 	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenancy"
 	allocation "github.com/5007-Capstone/chora/services/chora-tenancy/internal/domain/tenant_mana_allocation"
-	paymentsv1 "github.com/locoroco-git/Chora-LMS/chora-contracts/gen/go/chora/services/payments/v1"
+	paymentsv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/services/payments/v1"
 )
 
 func newTestRegistry(t *testing.T) *addon.SubscriptionRegistry {
