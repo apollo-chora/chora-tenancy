@@ -13,7 +13,7 @@ import (
 
 	"cloud.google.com/go/storage"
 
-	gcsadapter "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/gcs"
+	gcsadapter "github.com/apollo-chora/chora-tenancy/internal/adapter/gcs"
 )
 
 func TestSignedURL_MissingGoogleAccessID_Errors(t *testing.T) {
