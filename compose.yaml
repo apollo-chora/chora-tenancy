@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    restart: unless-stopped
+    env_file: .env
+    command:
+      - gcloud
+      - beta
+      - emulators
+      - pubsub
+      - start
+      - --host-port=0.0.0.0:8085
+      - --project=${PUBSUB_PROJECT_ID}
+    ports:
+      - "${PUBSUB_PORT:-8085}:8085"
+
+  tenancy:
+    build:
+      context: ../..
+      dockerfile: services/chora-tenancy/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pubsub:
+        condition: service_started
+    ports:
+      - "${PORT:-8080}:8080"
+      - "${CHORA_GRPC_PORT:-9090}:9090"
+
+volumes:
+  postgres-data:
