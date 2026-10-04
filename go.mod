@@ -1,9 +1,8 @@
-module github.com/5007-Capstone/chora/services/chora-tenancy
+module github.com/apollo-chora/chora-tenancy
 
 go 1.26.1
 
 require (
-	cloud.google.com/go/storage v1.63.0
 	github.com/apollo-chora/chora-common v0.0.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2
@@ -15,11 +14,6 @@ require (
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 )
-
-// Workspace-resolved at build time via go.work; the replace below makes
-// go.mod resolution work outside workspace mode (e.g. CI tools that
-// inspect a single module).
-
 
 require (
 	cel.dev/expr v0.25.1 // indirect
