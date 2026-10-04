@@ -1,0 +1,65 @@
+# PII_Closure_Map for chora-tenancy domain (with Billing combined).
+#
+# Source-of-truth: .claude/skills/account-closure-saga/SKILL.md
+# Owning team: Team 3 (Platform). Owning DB: chora_tenancy.
+#
+# Tenancy is per-tenant; the user-closure saga only touches user-bound
+# tenancy artefacts (membership, billing customer mappings). Tenant-level
+# data persists for the OTHER members of the tenant.
+
+domain: chora_tenancy
+version: "1.0"
+
+fields_to_tokenize:
+  - table: tenant_memberships
+    columns:
+      # GCID + tenant_id are FK-bearing — preserve.
+      - column: invited_by_display_name
+        strategy: tombstone_string
+        value: "Former member"
+      - column: invitation_email_snapshot
+        strategy: tombstone_email
+        value: "user-{hash}@redacted.invalid"
+
+  - table: stripe_customer_mappings
+    columns:
+      # Stripe customer ID is preserved per Stripe's data residency rules
+      # (no equivalent of crypto-shred on Stripe side). Tokenise human
+      # identifiers only.
+      - column: billing_email
+        strategy: tombstone_email
+        value: "user-{hash}@redacted.invalid"
+      - column: stripe_customer_id
+        strategy: preserve
+        value: ""
+
+  - table: tenant_invitations
+    columns:
+      - column: invitee_email
+        strategy: tombstone_email
+        value: "user-{hash}@redacted.invalid"
+      - column: invitee_display_name
+        strategy: tombstone_string
+        value: "Former member"
+
+  - table: addon_usage_events
+    columns:
+      # Aggregate analytics survive (per skill anti-pattern: aggregate
+      # analytics intact). Per-event acting GCID is preserved as opaque ID.
+      - column: actor_display_name
+        strategy: tombstone_string
+        value: "Former member"
+
+retention_days_by_jurisdiction:
+  EU: 2557
+  SG: 2557
+  US: 1826
+  ZA: 1826
+  BR: 1826
+  default: 2557
+
+on_creator_closure:
+  # Closing a tenant admin: their grants persist (tenant continues) but
+  # their authorship of grants is tombstoned.
+  strategy: tokenise_authorship_keep_atom
+  show_authorship_as: "Former member"

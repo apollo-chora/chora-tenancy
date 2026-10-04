@@ -1,0 +1,103 @@
+-- =============================================================================
+-- chora-tenancy : 0016_extract_purchases_to_payments.up.sql
+--
+-- Domain        : Tenancy + Billing (supporting)
+-- Database      : chora_tenancy
+-- Author        : ADR-164 Wave 1 Stage D (BE-svc / chora-tenancy track)
+-- Date          : 2026-05-24
+-- Architecture  : docs/architecture/adrs/adr-164-chora-payments-service.md
+--
+-- ADR-164 Wave 1 Stage D — chora-tenancy → chora-payments extract:
+--
+--   chora_tenancy.familiar_egg_purchases     → chora_payments.familiar_egg_purchases
+--   chora_tenancy.tenant_mana_pool_topups    → chora_payments.tenant_mana_topups
+--
+-- The Cloud SQL `migrations-runner` (chora-infra/scripts/migrations-runner/
+-- runner.sh) applies migrations one-database-at-a-time via psql with the per-
+-- DB `migrate` role DSN. The `dblink` extension is NOT pre-loaded; the
+-- canonical cross-DB read used by Wave 1 Stage D is the dedicated Go
+-- one-off binary at:
+--
+--   services/chora-tenancy/cmd/extract-purchases-to-payments/main.go
+--
+-- That binary connects to BOTH chora_tenancy AND chora_payments via the
+-- standard pgxpool wiring (env-driven DSNs — see canonical
+-- CHORA_DB_DSN + CHORA_PAYMENTS_DB_DSN secret name pattern in chora-infra/
+-- scripts/bootstrap-cloudsql-users.sh) and idempotently INSERTs the
+-- chora_tenancy rows into chora_payments with column-mapped UPSERT
+-- semantics. Re-running the binary is a no-op once rows are in place
+-- (ON CONFLICT DO NOTHING on purchase_id / stripe_session_id).
+--
+-- This migration file itself is a NO-OP MARKER — it advances the
+-- chora-tenancy migration counter without mutating data. Its purpose is
+-- to bind the runbook + serial number into the migration history so
+-- operators can see Stage D was performed.
+--
+-- =============================================================================
+--
+-- OPERATOR RUNBOOK (Wave 1 Stage D):
+--
+--   PRE-CONDITIONS:
+--     1. chora_payments database exists + the 6 tables from
+--        services/chora-payments/migrations/0001_initial.up.sql are
+--        applied + RLS policies in place.
+--     2. chora-payments service is deployed in CHORA_STRIPE_TEST_MODE=true
+--        (Stage A close, no live cutover yet).
+--     3. The `migrate` role has SELECT on chora_tenancy.familiar_egg_
+--        purchases + chora_tenancy.tenant_mana_pool_topups AND has
+--        INSERT on chora_payments.familiar_egg_purchases +
+--        chora_payments.tenant_mana_topups.
+--     4. (No-rollback safety) Take a fresh Cloud SQL backup BEFORE running
+--        the extract:
+--           gcloud sql backups create --instance chora-dev \
+--             --description 'pre-adr164-stage-d-extract-2026-05-24'
+--
+--   EXECUTE:
+--     1. Apply this migration via the canonical migrations-runner Job.
+--        It is a NO-OP marker — the runner records 0016 as applied.
+--     2. Run the extract binary against the dev / staging / prod Cloud SQL
+--        instance:
+--             cd services/chora-tenancy/cmd/extract-purchases-to-payments
+--             CHORA_DB_DSN="$(get_secret chora-dev-cloudsql-chora_tenancy-migrate-dsn)" \
+--             CHORA_PAYMENTS_DB_DSN="$(get_secret chora-dev-cloudsql-chora_payments-migrate-dsn)" \
+--             EXTRACT_MODE=apply \
+--             go run .
+--        Set EXTRACT_MODE=dry_run first to preview row counts without
+--        writing.
+--     3. VALIDATE row-count parity:
+--           psql "$CHORA_DB_DSN"          -tAc \
+--             "SELECT count(*) FROM familiar_egg_purchases"
+--           psql "$CHORA_PAYMENTS_DB_DSN" -tAc \
+--             "SELECT count(*) FROM familiar_egg_purchases"
+--           psql "$CHORA_DB_DSN"          -tAc \
+--             "SELECT count(*) FROM tenant_mana_pool_topups"
+--           psql "$CHORA_PAYMENTS_DB_DSN" -tAc \
+--             "SELECT count(*) FROM tenant_mana_topups"
+--        The chora_payments counts MUST be == the chora_tenancy counts
+--        per table (with a tolerance of zero — the script aborts if it
+--        sees mismatches).
+--     4. Confirm Stage F end-to-end smokes GREEN against chora_payments.
+--     5. ONLY THEN run migration 0017 to DROP the source chora_tenancy
+--        tables.
+--
+--   ROLLBACK (extract direction only, before 0017 drop):
+--           EXTRACT_MODE=apply DIRECTION=reverse go run .
+--        re-INSERTs back to chora_tenancy from chora_payments. Same
+--        idempotency semantics — safe to re-run.
+--
+-- See `services/chora-tenancy/cmd/extract-purchases-to-payments/main.go`
+-- for the exact column-mapped SQL + the abort-on-mismatch logic.
+-- =============================================================================
+
+BEGIN;
+
+-- No-op marker. The data move is performed by the Go binary; this file
+-- exists to advance the migration counter + bind the runbook above into
+-- migration history.
+
+DO $$
+BEGIN
+    RAISE NOTICE 'chora-tenancy 0016: ADR-164 Stage D no-op marker — actual data extract performed by cmd/extract-purchases-to-payments/main.go';
+END$$;
+
+COMMIT;

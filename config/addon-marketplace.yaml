@@ -1,0 +1,171 @@
+# chora-tenancy / Addon Marketplace static catalog
+#
+# Phyllis MVP scope per docs/design/ux_tenant_addon_lifecycle.md +
+# audit-platform-fillgaps.md §9.6. CMS-driven marketplace catalog is
+# deferred to post-M13.
+#
+# Per CLAUDE.md §6 (no inline config) — this file is loaded at service
+# startup. Production deploys mount it via a Cloud Run sidecar volume
+# from a GCS bucket (chora-config-{env}).
+#
+# Schema (per addon entry):
+#   code:          machine code (matches addon.AddOn.Code in seed catalogue)
+#   display_name:  H+ marketplace tile heading
+#   short_pitch:   ≤120 char pitch for the dashboard tile sub-heading
+#   long_description: paragraph for STITCH-H-ADD-5 detail screen
+#   category:      Core / Creation / Consumption / Engagement / Delivery /
+#                  Integrations / Governance / Identity
+#   compliance:    GDPR / PDPA / CCPA / IMDA pills (true=certified,
+#                  self_attested=yellow, false=N/A)
+#   compliance_locked: deactivation requires super_admin override
+#   integrations:  array of {type, label, status} for the integrations matrix
+#   ratings:       community avg + count (placeholder; M16 wires to chora-sharing)
+#   screenshots:   array of public URLs (placeholder; M14 wires to GCS)
+#
+# Exit criteria for migrating to CMS-driven catalog:
+#   - chora-cms ships per-addon page templates
+#   - O+ admin can edit catalog at runtime without redeploy
+#   - rolling-update of pricing tiers without code change
+#
+# Until then, edits to this file require service restart.
+
+version: "1.0.0"
+last_updated: "2026-05-09"
+addons:
+  - code: base
+    display_name: "Chora Base"
+    short_pitch: "Atom-centric LMS foundation"
+    long_description: |
+      Chora Base is the always-on foundation for every tenant.
+      Includes 5 core domains (Creation/Consumption/Delivery/Sharing/A2A)
+      with the bimodal Straight-Up + Discovery learning experience.
+    category: Core
+    compliance: { gdpr: true, pdpa: true, ccpa: true, imda: true }
+    compliance_locked: true
+    ratings: { average: 4.8, count: 0 }
+    screenshots: []
+
+  - code: tms
+    display_name: "Training Management Suite"
+    short_pitch: "Training-org admin: bookings, rosters, certifications"
+    long_description: |
+      Full TMS surface on R+ for instructor / training-admin: course
+      scheduling, classroom booking, rostering, certification issuance,
+      and project-group management. Integrates with Stripe for paid
+      enrollment and Zoom for online sessions.
+    category: Delivery
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: true }
+    integrations:
+      - { type: stripe, label: "Stripe Connect", status: active }
+      - { type: zoom, label: "Zoom API", status: active }
+    ratings: { average: 4.5, count: 12 }
+
+  - code: cms
+    display_name: "Content Management Suite"
+    short_pitch: "Author atoms with the 6-agent gate"
+    long_description: |
+      Full atom authoring pipeline with the Validator → Classifier → Web
+      Researcher → Q&A Generator → Evaluator → Reporter agent gate
+      (per chora-creation domain). Append-only AtomRevisions; media
+      ingestion via chora-media-processor.
+    category: Creation
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: true }
+    ratings: { average: 4.7, count: 8 }
+
+  - code: pvp-arena
+    display_name: "PvP Arena"
+    short_pitch: "Real-time duels + Territory Conquest"
+    long_description: |
+      Synchronous PvP duels, Territory Conquest, and seasonal leaderboards
+      driven by chora-sharing. Includes referral and Reward Vault add-on
+      hooks for the Three-Currency Economy (XP/Coins/Reputation).
+    category: Engagement
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: false }
+    ratings: { average: 4.3, count: 5 }
+
+  - code: familiar
+    display_name: "Familiar Companion"
+    short_pitch: "RPG companion + AI agent backing it"
+    long_description: |
+      Per-user Familiar entity (in-game RPG companion) backed by an AI
+      agent for hint generation + spaced-repetition nudging. Familiar mana
+      subscription (Basic/Standard/Premium) sold per-user via the
+      A+ Marketplace; tenant-level activation tied here.
+    category: Engagement
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: true }
+    ratings: { average: 4.9, count: 21 }
+
+  - code: campus-ops
+    display_name: "Campus Operations"
+    short_pitch: "Multi-site campus admin"
+    long_description: |
+      Campus operator features: Live Quiz (Live Classroom), Live Polling,
+      JamBoard, browser-based digital signage, proctored cert exam admin.
+    category: Delivery
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: true }
+    ratings: { average: 4.4, count: 3 }
+
+  - code: marketplace
+    display_name: "Marketplace Add-Ons"
+    short_pitch: "Per-user A+ marketplace SKUs"
+    long_description: |
+      Enables the per-user A+ marketplace where individual learners can
+      purchase per-seat SKUs (Familiar Premium, Exam-Prep Coach, Reward
+      Vault, etc). Tenant-level toggle gates access.
+    category: Engagement
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: false }
+
+  - code: ai_assist
+    display_name: "AI Assist (Tier-4 Guardrail)"
+    short_pitch: "Guardrail-screened AI atom generation"
+    long_description: |
+      Cloud Model Armor + Cloud DLP + regex baseline + output validators
+      gate AI atom generation. Routed through the Model Broker (Router →
+      Gateway → Classifier per Tier 2 D6).
+    category: Creation
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: true }
+    ratings: { average: 4.6, count: 18 }
+
+  - code: daily_dose
+    display_name: "Familiar Daily Dose"
+    short_pitch: "5-atom daily comeback nudge"
+    long_description: |
+      Composes a daily 5-atom dose deterministically from the per-user
+      TopicRetention table (Ebbinghaus forgetting curve). Notifications
+      subscriber pushes to the in-app banner + email.
+    category: Engagement
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: true }
+
+  - code: kg_hexagonal
+    display_name: "Hexagonal Knowledge Graph"
+    short_pitch: "Per-user fog-of-war KG (ADR-143)"
+    long_description: |
+      Per-user Knowledge Graph fog: 1 focal node + 6 LLM-generated
+      neighbours cached in kg_hexagon_nodes per ADR-143. User-consented
+      MapCluster merge only.
+    category: Consumption
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: true }
+
+  - code: course_application
+    display_name: "Course Application + Checkout"
+    short_pitch: "Stripe Checkout for paid course apply flow"
+    long_description: |
+      End-to-end paid course application: apply → interview → checkout →
+      tax invoice → confirmation. Stripe Subscription Schedule for
+      installment plans.
+    category: Delivery
+    compliance: { gdpr: true, pdpa: true, ccpa: false, imda: true }
+
+  - code: governance_dashboard
+    display_name: "Governance Dashboard (O+)"
+    short_pitch: "IMDA D1-D4 evidence dashboard (compliance-locked)"
+    long_description: |
+      O+ Observability+ baseline IMDA evidence dashboard covering all 4
+      dimensions per ADR-141: D1 accountability / D2 transparency /
+      D3 safety_and_robustness / D4 fairness_and_human_oversight.
+      Compliance-locked — deactivation requires super_admin override
+      with audit trail entry.
+    category: Governance
+    compliance: { gdpr: true, pdpa: true, ccpa: true, imda: true }
+    compliance_locked: true
+    ratings: { average: 4.9, count: 2 }

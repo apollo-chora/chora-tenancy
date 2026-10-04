@@ -1,0 +1,100 @@
+-- =============================================================================
+-- chora-tenancy : 0013_app_rw_nobypassrls.sql
+--
+-- D0.1 (CHO-1538) follow-up #2 — REMOVE the `BYPASSRLS` role attribute
+-- from `chora_tenancy_app_rw`. This is the second half of the cross-tenant
+-- isolation regression closure (0012 was the first half).
+--
+-- WHAT WENT WRONG
+--   Live-DB reconciliation during D0.1 (2026-05-14, app_rw DSN functional
+--   probe via Cloud Run Job) found that the post-cutover mint workaround
+--   was applied TWO ways, not one:
+--     (a) `ALTER TABLE members DISABLE ROW LEVEL SECURITY` — reverted by
+--         migration 0012.
+--     (b) `ALTER ROLE chora_tenancy_app_rw BYPASSRLS` — reverted HERE.
+--   Neither was captured in version control. `(b)` is the more dangerous
+--   of the two: `BYPASSRLS` on the role short-circuits EVERY RLS policy in
+--   the chora_tenancy database for every connection authenticating as
+--   `chora_tenancy_app_rw` — not just `members`. So even after 0012
+--   re-enabled RLS on `members`, the app_rw role still saw every tenant's
+--   rows: a live probe confirmed `SELECT count(*) FROM members` returned
+--   ALL rows with NO `chora.tenant_id` set.
+--
+--   The `9999_grant_app_roles.sql` migration's header explicitly states
+--   the invariant this migration restores:
+--     "app_rw / app_ro do NOT have BYPASSRLS attribute; their grants are
+--      subject to every per-table RLS policy. Only the migrate role is
+--      exempt (it owns the tables ...)."
+--   The out-of-band `BYPASSRLS` grant violated that invariant.
+--
+-- WHY THIS IS SAFE — the cross-tenant directory query no longer needs it
+--   The auth mint flow's cross-tenant `ListMembershipsByGCID` lookup is
+--   the ONLY reason app_rw ever needed to read across tenants. Migration
+--   0011 introduced `list_memberships_by_gcid(uuid)` — a SECURITY DEFINER
+--   function with `SET row_security = off` — which is the correct,
+--   surgically-scoped mechanism for exactly that one query. With 0011 in
+--   place, the role-wide `BYPASSRLS` sledgehammer is redundant AND a
+--   liability, so it is removed here. Verified live: after NOBYPASSRLS,
+--   the SECURITY DEFINER function still returns the full cross-tenant set
+--   (its bypass is intrinsic to the function, independent of the role
+--   attribute), while ordinary tenant-scoped reads of `members` by app_rw
+--   are correctly RLS-filtered.
+--
+-- ORDERING
+--   This file is 0013 — it lex-sorts AFTER 0011 (the SECURITY DEFINER
+--   function) and 0012 (RLS re-enable). By the time NOBYPASSRLS lands, the
+--   function-based cross-tenant path is already live, so the mint flow is
+--   never broken by this change.
+--
+-- PRIVILEGE NOTE
+--   `ALTER ROLE ... NOBYPASSRLS` requires the executing role to be able to
+--   alter the target role. The migrations-runner authenticates as
+--   `chora_tenancy_migrate`, which on this Cloud SQL instance is a member
+--   of `cloudsqlsuperuser` (CREATEROLE) — verified live that the migrate
+--   role CAN run this ALTER successfully. If a future environment runs
+--   migrations under a role that cannot, this statement will raise a
+--   permission error and `ON_ERROR_STOP=1` will halt the runner — that is
+--   the desired fail-loud behaviour, since leaving `BYPASSRLS` in place is
+--   a security hole, not an acceptable degraded state.
+--
+-- Domain  : Tenancy + Billing (combined supporting/platform)
+-- Database: chora_tenancy
+-- Author  : tenancy-rls agent (D0.1 Phyllis backend demo-readiness)
+-- Date    : 2026-05-14
+--
+-- IDEMPOTENCY
+--   `ALTER ROLE ... NOBYPASSRLS` is a no-op when the role already lacks
+--   BYPASSRLS. Safe to re-run under the migrations-runner dedup table.
+--
+-- HARD RULE: cross-database queries forbidden. This touches only the
+-- chora_tenancy-local `chora_tenancy_app_rw` role.
+-- =============================================================================
+
+-- NOTE: deliberately NOT wrapped in BEGIN/COMMIT. `ALTER ROLE` is a
+-- catalog-level change; keeping it as a standalone statement avoids any
+-- transaction-scope surprises with the migrations-runner's per-file apply
+-- (the runner applies each .sql file as its own psql invocation anyway).
+
+-- Restore the baseline invariant from 9999_grant_app_roles.sql: app_rw is
+-- subject to every RLS policy. The cross-tenant directory query goes
+-- through the 0011 SECURITY DEFINER function instead.
+ALTER ROLE chora_tenancy_app_rw NOBYPASSRLS;
+
+-- =============================================================================
+-- VERIFICATION (run manually after apply):
+--
+--   -- app_rw no longer carries BYPASSRLS.
+--   SELECT rolname, rolbypassrls FROM pg_roles WHERE rolname = 'chora_tenancy_app_rw';
+--   -- expect: rolbypassrls = f
+--
+--   -- A direct read of members by app_rw with NO chora.tenant_id set is
+--   -- now RLS-filtered to zero rows.
+--   --   (connect with the app_rw DSN)
+--   SELECT count(*) FROM members;                 -- expect 0
+--   BEGIN; SET LOCAL chora.tenant_id = '<a real tenant>';
+--     SELECT count(*) FROM members;               -- expect >= 1 (that tenant only)
+--   ROLLBACK;
+--
+--   -- The cross-tenant directory query STILL works via the 0011 function.
+--   SELECT count(*) FROM list_memberships_by_gcid('<a real gcid>'::uuid);  -- expect >= 1
+-- =============================================================================

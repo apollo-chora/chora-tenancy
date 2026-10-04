@@ -1,0 +1,9 @@
+README.md
+*.md
+.git
+.gitignore
+.DS_Store
+*.test
+*.out
+coverage.out
+cover.out

@@ -1,0 +1,11 @@
+-- 0014_outbox_wipe_json_pending.down.sql
+--
+-- Down-migration is a no-op. The up-migration drained pre-fix JSON-payload
+-- pending outbox rows by transitioning them to 'failed' status. There is no
+-- meaningful way to reverse: the original 'pending' status would set the
+-- dispatcher back into an infinite retry loop against schemas the bytes
+-- cannot satisfy.
+--
+-- If a runbook needs to reproduce the pre-fix state for testing, write a
+-- targeted INSERT to chora_tenancy.outbox_events with synthetic rows.
+SELECT 1;

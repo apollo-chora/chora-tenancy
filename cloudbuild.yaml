@@ -1,0 +1,595 @@
+# cloudbuild-service.yaml — CANONICAL 15-stage CICD template for Chora Go
+# microservices targeting GKE Autopilot `chora-prod-cluster`.
+#
+# Refreshed 2026-05-17 to the post-OAuth canonical pattern proven on
+# chora-creation (build 51ecc1c5 → Cloud Deploy release
+# chora-creation-233f9c9-06620). Replaces the legacy 2-step build+kubectl
+# template (preserved at cloudbuild-service.legacy.yaml).
+#
+# ──────────────────────────────────────────────────────────────────────────
+# HOW TO COPY THIS TEMPLATE TO A NEW SERVICE (per-service Go microservice)
+# ──────────────────────────────────────────────────────────────────────────
+#  1. cp chora-infra/templates/cloudbuild-service.yaml services/<svc>/cloudbuild.yaml
+#  2. Edit `substitutions:` block — override _SERVICE / _NAMESPACE_PROD /
+#     _NAMESPACE_DEV / _DELIVERY_PIPELINE for the new service.
+#  3. Provision Cloud Deploy resources (one-time per service):
+#       services/<svc>/clouddeploy/
+#         ├── skaffold.yaml          (copy from chora-creation, swap profiles)
+#         ├── dev/kustomization.yaml (namespace: <svc>-dev, base: chora-infra/k8s/services/<svc>)
+#         └── prod/kustomization.yaml (namespace: <svc>, base: same)
+#       chora-infra/clouddeploy/targets/<svc>-{dev,prod}.yaml
+#       chora-infra/clouddeploy/pipelines/<svc>-pipeline.yaml
+#       gcloud deploy apply --file=... for each (until Terraform-IaC'd).
+#  4. Provision dev namespace + WIF binding (one-time):
+#       kubectl create namespace <svc>-dev
+#       kubectl -n <svc>-dev apply -f <SA + ConfigMap mirror>
+#       gcloud iam service-accounts add-iam-policy-binding <gsa>@<proj>.iam... \
+#         --role=roles/iam.workloadIdentityUser \
+#         --member='serviceAccount:chora-489812.svc.id.goog[<svc>-dev/<svc>]'
+#  5. Cloud Build trigger: the existing m10-ci Terraform-managed
+#     `chora-<svc>-main-dev` trigger ALREADY fires on push to
+#     services/<svc>/** — once cloudbuild.yaml is the new canonical, it
+#     picks up automatically. No new trigger needed for the standard pattern.
+#
+# Per-service overrides (the only fields you need to change):
+#   _SERVICE         — chora-CHANGE-ME → chora-<svc>
+#   _NAMESPACE_PROD  — CHANGE-ME-NS  → <svc> (existing prod ns)
+#   _NAMESPACE_DEV   — CHANGE-ME-NS-dev → <svc>-dev (new dev ns)
+#   _DELIVERY_PIPELINE — chora-CHANGE-ME-pipeline → chora-<svc>-pipeline
+#
+# Everything else is platform-wide constants and stays as-is.
+#
+# Aligned with:
+#   docs/architecture.md §6.8 (TOGAF 15-stage Mermaid + 3-workflow comparison)
+#   docs/cicd/EVIDENCE_PACK_INDEX_2026-05-17.md (verifiable demonstrated state)
+#   .claude/skills/infra-gcp-compute/SKILL.md (Artifact Registry conventions)
+#   .claude/skills/secrets-and-env/SKILL.md (no inline config)
+#   feedback_buildx_platform_amd64 (mandatory --platform=linux/amd64)
+#   feedback_no_stubs_real_wiring (fail loud on each gate)
+#
+# Runtime SA: chora-cicd-svc@chora-489812.iam.gserviceaccount.com — already
+# has all the necessary roles (granted 2026-05-17):
+#   roles/artifactregistry.writer, roles/clouddeploy.releaser, roles/
+#   clouddeploy.developer, roles/cloudkms.signerVerifier, roles/cloudkms.viewer
+#   (keyring-scoped), roles/storage.admin, roles/container.developer,
+#   roles/iam.serviceAccountUser, roles/containeranalysis.notes.editor,
+#   roles/binaryauthorization.attestorsViewer, roles/logging.logWriter.
+
+substitutions:
+  # ─── PER-SERVICE OVERRIDES (edit these per-service) ──────────────────────
+  _SERVICE: chora-tenancy
+  _NAMESPACE_PROD: tenancy
+
+  # ─── PLATFORM-WIDE CONSTANTS (do NOT change without coordinating) ────────
+  _AR_REPO: chora-services
+  _REGION: asia-southeast1
+  _PLATFORM_PROJECT: chora-489812
+  _GKE_CLUSTER: chora-prod-cluster
+  _KMS_KEYRING: chora-keys
+  _KMS_KEY: chora-binauthz-signer
+  _KMS_KEY_VERSION: "1"
+  _BINAUTHZ_ATTESTOR: chora-build-attestor
+  # Secret holding a GitHub token with contents:write, used ONLY by
+  # pin-writeback. Purpose-named and separate from github-codescanning-pat
+  # so a read-only scanning credential is not silently widened to repo writes.
+  # Absent secret => the step skips loudly and the pin stays stale.
+  _PIN_WRITEBACK_SECRET: chora-manifest-pin-pat
+
+steps:
+  # ── 1. Lint (golangci-lint) — ADVISORY for first iteration ──────────────
+  # Emits lint-report.txt for evidence pack per docs/architecture.md §6.8.
+  - id: lint
+    name: golangci/golangci-lint:v2.12.2-alpine
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        mkdir -p /workspace/reports
+        cd services/${_SERVICE}
+        # Advisory mode: report findings, don't block. Promote to strict by
+        # dropping --issues-exit-code=0 once existing code is gated-clean.
+        golangci-lint run --timeout=5m --issues-exit-code=0 \
+          2>&1 | \
+          tee /workspace/reports/${_SERVICE}-lint-report.txt || true
+
+  # ── 2. Unit test + coverage — ADVISORY for first iteration ──────────────
+  - id: unit-test
+    name: golang:1.26-bookworm
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        cd services/${_SERVICE}
+        mkdir -p /workspace/reports
+        # Fail-loud per [[feedback-no-stubs-real-wiring]] — Go 1.26 actually runs now
+        go test -race -coverprofile=/workspace/reports/${_SERVICE}-cover.out \
+          -covermode=atomic ./...
+        TEST_RC=$$?
+        go tool cover -func=/workspace/reports/${_SERVICE}-cover.out 2>/dev/null | tail -5 || true
+        COVERAGE=$(go tool cover -func=/workspace/reports/${_SERVICE}-cover.out 2>/dev/null | \
+          awk '/^total:/{print $$3}' | sed 's/%//' || echo "0")
+        echo "Total coverage: $${COVERAGE}% (gate at 85%, advisory)"
+        # BLOCKING on a test failure (promoted 2026-08-15, /CICDpipeline Part 2).
+        # This step ended on the echo above and `bash -c` returns the LAST
+        # command's status, so a red suite exited 0. chora-tenancy was one of the
+        # five lanes failing its own suite on main while reporting SUCCESS; all
+        # four of its failures are closed, so it can now say so.
+        # Coverage stays ADVISORY here: measured 79.8 percent, below the 85 floor,
+        # so promoting the threshold would block every deploy. Test-failure gating
+        # is the part that is earned today.
+        if [ "$${TEST_RC}" != "0" ]; then
+          echo "FAIL: go test exited $${TEST_RC} (unit suite red)"
+          exit "$${TEST_RC}"
+        fi
+
+  # ── 3. Integration test — ADVISORY (gated by //go:build integration tag) ─
+  - id: integration-test
+    name: golang:1.26-bookworm
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        cd services/${_SERVICE}
+        mkdir -p /workspace/reports
+        if ! grep -rEl '^//\s*(go:build|\+build)\s+integration' \
+              --include='*_test.go' . >/dev/null 2>&1; then
+          echo "no integration tests found (no files with //go:build integration tag) — skipping"
+          # Marker so strict artifacts.objects does not cosmetic-FAIL on missing cover-integration.out
+          echo "# no integration tests found for ${_SERVICE}" > /workspace/reports/${_SERVICE}-cover-integration.out
+          exit 0
+        fi
+        go test -race -tags=integration \
+          -coverprofile=/workspace/reports/${_SERVICE}-cover-integration.out \
+          -covermode=atomic ./... || \
+          echo "WARN: integration test failures — review log (advisory in iter 1)"
+        go tool cover -func=/workspace/reports/${_SERVICE}-cover-integration.out 2>/dev/null | tail -5 || true
+    waitFor:
+      - unit-test
+
+  # ── 4. SAST (gosec) — ADVISORY for first iteration ──────────────────────
+  - id: sast-gosec
+    name: securego/gosec:latest
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        cd services/${_SERVICE}
+        mkdir -p /workspace/reports
+        export GOTOOLCHAIN=auto  # gosec:latest=go1.26.0 < go.work 1.26.1 -> analyze, not 0-file no-op (CHO-1677)
+        go version >/dev/null 2>&1 || true
+        go list -m >/dev/null 2>&1 || true
+        gosec -fmt=sarif -out=/workspace/reports/${_SERVICE}-gosec.sarif \
+          -severity high ./... || \
+          echo "WARN: gosec found HIGH severity issues — review SARIF, promote to blocking later"
+
+  # ── 5. SCA (govulncheck) — ADVISORY for first iteration ─────────────────
+  # Emits JSON (raw findings) + summary txt.
+  # ── SAST verdict, baseline gated (CHO-1676) ─────────────────────────────
+  # gosec above writes the SARIF and does not decide the build. This step does.
+  # It refuses any HIGH finding that is not in the service's checked-in baseline,
+  # and any baselined finding occurring MORE times than recorded, so existing debt
+  # is carried while anything NEW stops the release. The baseline is
+  # chora-infra/security/gosec-baselines/<service>.json and is meant to shrink.
+  - id: sast-baseline-gate
+    name: python:3.13-slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        python3 chora-infra/scripts/gosec-baseline-gate.py check \
+          /workspace/reports/${_SERVICE}-gosec.sarif \
+          chora-infra/security/gosec-baselines/${_SERVICE}.json \
+          ${_SERVICE}
+    waitFor:
+      - sast-gosec
+
+  - id: sca-govulncheck
+    name: golang:1.26-bookworm
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set +e
+        mkdir -p /workspace/reports
+        export GOTOOLCHAIN=auto  # download go.work 1.26.1 so govulncheck analyzes (advisory)
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        if [ $? -ne 0 ]; then
+          echo "WARN: govulncheck install failed — skipping (advisory)"
+          exit 0
+        fi
+        cd services/${_SERVICE}
+        JSON_OUT=/workspace/reports/${_SERVICE}-govulncheck.json
+        SUM_OUT=/workspace/reports/${_SERVICE}-govulncheck-summary.txt
+        govulncheck -json ./... > "$${JSON_OUT}" 2>/dev/null
+        GVCRC=$?
+        TOTAL_FINDINGS=$(grep -c '"finding"' "$${JSON_OUT}" 2>/dev/null || echo "0")
+        TOTAL_OSV=$(grep -c '"osv"' "$${JSON_OUT}" 2>/dev/null || echo "0")
+        {
+          echo "govulncheck summary for ${_SERVICE} @ ${SHORT_SHA}"
+          echo "  vulnerabilities (osv records): $${TOTAL_OSV}"
+          echo "  findings (called from your code): $${TOTAL_FINDINGS}"
+          echo "  raw JSON: $${JSON_OUT}"
+          echo "  exit code: $${GVCRC} (0=clean, non-zero=findings present)"
+          echo "  mode: ADVISORY — does not block build"
+        } | tee "$${SUM_OUT}"
+        exit 0
+
+  # ── 6. IaC scan (tfsec + checkov) — soft-fail ───────────────────────────
+  - id: iac-scan
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        mkdir -p /workspace/reports
+        # tfsec scans Terraform (when relevant module exists); checkov adds
+        # CIS/NIST K8s compliance checks. Both soft-fail to advisory mode.
+        if [[ -d chora-infra/terraform/modules/m10-${_SERVICE}/ ]]; then
+          docker run --rm -v /workspace:/workspace -w /workspace \
+            aquasec/tfsec:latest chora-infra/terraform/modules/m10-${_SERVICE}/ \
+            --soft-fail --format=junit | tee /workspace/reports/${_SERVICE}-tfsec.xml || true
+        fi
+        docker run --rm -v /workspace:/workspace -w /workspace \
+          bridgecrew/checkov:latest \
+          --directory chora-infra/k8s/services/${_SERVICE}/ \
+          --quiet --soft-fail || true
+
+  # ── 7. Docker buildx (linux/amd64 mandatory) ─────────────────────────────
+  - id: docker-build
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        IMAGE="${_REGION}-docker.pkg.dev/${_PLATFORM_PROJECT}/${_AR_REPO}/${_SERVICE}"
+        BUILD_TIME=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        docker buildx create --use --name chora-builder >/dev/null 2>&1 || true
+        docker buildx build \
+          --platform=linux/amd64 \
+          -f services/${_SERVICE}/Dockerfile \
+          --build-arg SERVICE_NAME=${_SERVICE} \
+          --build-arg GIT_SHA=${SHORT_SHA} \
+          --build-arg BUILD_TIME=$${BUILD_TIME} \
+          -t "$${IMAGE}:${SHORT_SHA}" \
+          --push \
+          .
+    waitFor:
+      - lint
+      - unit-test
+
+  # ── 8. Image vuln scan (Trivy → SARIF) — BLOCKING on CRITICAL/HIGH ──────
+  - id: image-scan
+    name: aquasec/trivy:latest
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        set -e
+        IMAGE="${_REGION}-docker.pkg.dev/${_PLATFORM_PROJECT}/${_AR_REPO}/${_SERVICE}:${SHORT_SHA}"
+        mkdir -p /workspace/reports
+        trivy image \
+          --cache-dir /tmp/trivy \
+          --format sarif \
+          --output /workspace/reports/${_SERVICE}-trivy.sarif \
+          --ignore-unfixed \
+          --severity CRITICAL,HIGH \
+          --exit-code 1 \
+          "$${IMAGE}"
+    waitFor:
+      - docker-build
+
+  # ── 9. Cosign sign image (KMS-backed; distroless cosign image has no sh) ─
+  - id: cosign-sign
+    name: gcr.io/projectsigstore/cosign:v2.4.1
+    args:
+      - sign
+      - --key=gcpkms://projects/${_PLATFORM_PROJECT}/locations/${_REGION}/keyRings/${_KMS_KEYRING}/cryptoKeys/${_KMS_KEY}/cryptoKeyVersions/${_KMS_KEY_VERSION}
+      - --yes
+      - ${_REGION}-docker.pkg.dev/${_PLATFORM_PROJECT}/${_AR_REPO}/${_SERVICE}:${SHORT_SHA}
+    waitFor:
+      - image-scan
+
+  # ── 10. SBOM attestation (Trivy → SPDX) ──────────────────────────────────
+  - id: cosign-attest-sbom
+    name: aquasec/trivy:latest
+    entrypoint: sh
+    args:
+      - -c
+      - |
+        set -e
+        IMAGE="${_REGION}-docker.pkg.dev/${_PLATFORM_PROJECT}/${_AR_REPO}/${_SERVICE}:${SHORT_SHA}"
+        trivy image --cache-dir /tmp/trivy --format spdx-json --output /workspace/reports/${_SERVICE}-sbom.spdx.json "$${IMAGE}"
+    waitFor:
+      - cosign-sign
+
+  # ── 11. Cosign attestation sign (SPDX SBOM as predicate) ─────────────────
+  - id: cosign-sign-attestation
+    name: gcr.io/projectsigstore/cosign:v2.4.1
+    args:
+      - attest
+      - --key=gcpkms://projects/${_PLATFORM_PROJECT}/locations/${_REGION}/keyRings/${_KMS_KEYRING}/cryptoKeys/${_KMS_KEY}/cryptoKeyVersions/${_KMS_KEY_VERSION}
+      - --yes
+      - --predicate=/workspace/reports/${_SERVICE}-sbom.spdx.json
+      - --type=spdxjson
+      - ${_REGION}-docker.pkg.dev/${_PLATFORM_PROJECT}/${_AR_REPO}/${_SERVICE}:${SHORT_SHA}
+    waitFor:
+      - cosign-attest-sbom
+
+  # ── 12. SARIF publish — GitHub Security only (SCC dropped per user) ────
+  # Closes the audit gap from docs/architecture.md §6.8 spec where SARIF
+  # (gosec + trivy) was meant to flow to SCC + GitHub Security but today
+  # only lands in the GCS evidence bucket. Per user directive 2026-05-18,
+  # SCC ingest is DROPPED (SCC source `2088393142581639856` retained in
+  # org for future re-enable; v2 findings.create API returned opaque 400
+  # INVALID_ARGUMENT under SCC Standard tier — needs Premium or
+  # undocumented schema). Pipeline now publishes SARIF only to GitHub
+  # Security. Stage stays ADVISORY — the step always exits 0 so missing
+  # PAT doesn't block deployment.
+  #
+  # Prereq (user-managed, not auto-provisioned):
+  #   - GitHub Security: provision a fine-grained PAT with
+  #     `code_scanning_alerts: read/write` scope on `5007-Capstone/chora`;
+  #     store in Secret Manager as `github-codescanning-pat`. Without
+  #     this the GH upload is silently skipped (ADVISORY log line).
+  #
+  # SARIF files (gosec, trivy) are uploaded via the GitHub Code Scanning
+  # SARIF API:
+  #   POST /repos/5007-Capstone/chora/code-scanning/sarifs
+  # Findings appear at:
+  #   https://github.com/5007-Capstone/chora/security/code-scanning
+  - id: sarif-publish
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set +e
+        GOSEC=/workspace/reports/${_SERVICE}-gosec.sarif
+        TRIVY=/workspace/reports/${_SERVICE}-trivy.sarif
+        SHA="${SHORT_SHA}"
+        GH_PAT=$$(gcloud secrets versions access latest \
+          --secret=github-codescanning-pat --project=${_PLATFORM_PROJECT} 2>/dev/null)
+        if [ -z "$${GH_PAT}" ]; then
+          echo "ADVISORY: github-codescanning-pat secret not present — skipping SARIF -> GH Security"
+          exit 0
+        fi
+        REPO="5007-Capstone/chora"
+        REF="refs/heads/main"
+        COMMIT="$${SHA}"
+        UPLOADED=0
+        for FILE in "$${GOSEC}" "$${TRIVY}"; do
+          [ -f "$${FILE}" ] || continue
+          B64=$$(gzip -c "$${FILE}" | base64 -w0)
+          RESP=$$(curl -sS -X POST \
+            -H "Authorization: Bearer $${GH_PAT}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$${REPO}/code-scanning/sarifs" \
+            -d "{\"commit_sha\":\"$${COMMIT}\",\"ref\":\"$${REF}\",\"sarif\":\"$${B64}\",\"tool_name\":\"chora-cicd\"}" 2>&1)
+          if echo "$${RESP}" | grep -q '"id"'; then
+            echo "Uploaded $$(basename $${FILE}) to GH code-scanning (response id present)"
+            UPLOADED=$$((UPLOADED + 1))
+          else
+            echo "ADVISORY: GH SARIF upload may have failed for $${FILE} — response: $${RESP}" | head -3
+          fi
+        done
+        echo "SARIF upload: $${UPLOADED} file(s) accepted by GitHub code-scanning API"
+        exit 0
+    waitFor:
+      - cosign-sign-attestation
+
+  # ── Binary Authorization attestation (Grafeas). MANDATORY, FAIL LOUD ──
+  # The cosign stages write OCI artifacts, the `.sig` and `.att` tags beside
+  # the image. Binary Authorization does not read those. Admission consults
+  # Grafeas ATTESTATION occurrences under
+  # projects/${_PLATFORM_PROJECT}/notes/chora-build-attestor-note, so without
+  # this step the lane ships a signed image the cluster still refuses the
+  # moment binaryAuthorization.evaluationMode leaves DISABLED (FINDING-01,
+  # docs/report/evidence/2026-08-07/cli/).
+  # The `beta` track is required: the GA `gcloud container binauthz` surface
+  # carries no sign-and-create verb.
+  # The artifact URL is the DIGEST, never the tag. An attestation recorded
+  # against a tag is never consulted, because admission resolves the digest
+  # first. An empty digest is refused rather than attested, so a lane can
+  # never silently attest the wrong thing.
+  - id: binauthz-attest
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        IMAGE_PATH="${_REGION}-docker.pkg.dev/${_PLATFORM_PROJECT}/${_AR_REPO}/${_SERVICE}"
+        DIGEST=$$(gcloud artifacts docker images describe \
+          "$${IMAGE_PATH}:${SHORT_SHA}" --format='value(image_summary.digest)')
+        if [ -z "$${DIGEST}" ]; then
+          echo "FATAL: empty digest for $${IMAGE_PATH}:${SHORT_SHA}, refusing to attest" >&2
+          exit 1
+        fi
+        gcloud beta container binauthz attestations sign-and-create \
+          --artifact-url="$${IMAGE_PATH}@$${DIGEST}" \
+          --attestor=${_BINAUTHZ_ATTESTOR} \
+          --attestor-project=${_PLATFORM_PROJECT} \
+          --keyversion-project=${_PLATFORM_PROJECT} \
+          --keyversion-location=${_REGION} \
+          --keyversion-keyring=${_KMS_KEYRING} \
+          --keyversion-key=${_KMS_KEY} \
+          --keyversion=${_KMS_KEY_VERSION}
+        echo "$${DIGEST}" > /workspace/.image-digest
+        echo "attested $${IMAGE_PATH}@$${DIGEST} via attestor ${_BINAUTHZ_ATTESTOR}"
+    waitFor:
+      - sarif-publish
+
+  # ── Deploy — set-image-only on THIS service (platform ruling 2026-06-10) ──
+  # REPLACES the Cloud Deploy release step. Rationale: `gcloud deploy releases
+  # create --source=.` rendered the chora-infra/k8s manifests AT THIS BUILD'S
+  # SOURCE COMMIT, so every image build re-applied its checkout's image pin
+  # (and env) over whatever was live — 5 cross-lane pin-reverts on 2026-06-10
+  # alone. An image build now deploys exactly ONE thing: its own just-built,
+  # cosign-attested image (BinAuthz admits it), scoped to this service's
+  # Deployment. Manifest changes (env, resources, priorityClass, authz, pins)
+  # apply ONLY via explicit infra runs:
+  #   kubectl apply -k chora-infra/k8s/services/${_SERVICE}/
+  # Keep the manifest pin bumped on every roll so explicit applies stay safe.
+  - id: deploy-set-image
+    name: gcr.io/cloud-builders/kubectl
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        # Deploy the DIGEST, not the tag. Binary Authorization refuses a
+        # tag-form reference outright (FINDING-06), and the digest handed over
+        # by binauthz-attest is by construction the one that was signed.
+        DIGEST=$$(cat /workspace/.image-digest)
+        if [ -z "$${DIGEST}" ]; then
+          echo "FATAL: no digest from binauthz-attest, refusing to deploy" >&2
+          exit 1
+        fi
+        IMAGE="${_REGION}-docker.pkg.dev/${_PLATFORM_PROJECT}/${_AR_REPO}/${_SERVICE}@$${DIGEST}"
+        gcloud container clusters get-credentials ${_GKE_CLUSTER} \
+          --location=${_REGION} --project=${_PLATFORM_PROJECT}
+        kubectl -n ${_NAMESPACE_PROD} set image deployment/${_SERVICE} service="$${IMAGE}"
+        kubectl -n ${_NAMESPACE_PROD} rollout status deployment/${_SERVICE} --timeout=420s
+        echo "deployed ${_SERVICE} -> $${IMAGE} (own-service only; no manifest apply)"
+    # sast-baseline-gate is named here EXPLICITLY. The artefact chain does not
+    # need it: the SAST verdict produces no input the deploy step reads. It is
+    # declared so that ENFORCEMENT lives in the DAG rather than in a runner
+    # behaviour. Without this edge, the only thing stopping a release on a new
+    # high-severity finding is Cloud Build aborting the build at the first
+    # failing step (which is what build dad0611e recorded on 2026-08-08: step 3
+    # FAILURE, deploy QUEUED and never run). That works, and it does not survive
+    # a step reorder, an allowFailure, or a future runner change, and it cannot
+    # be audited from this file. Stated edge > implicit behaviour.
+    waitFor:
+      - binauthz-attest
+      - sast-baseline-gate
+
+  # ── DAST (OWASP ZAP baseline), ADVISORY, against the deployed dev host ─────
+  # Scans this service's dev surface after rollout. Never blocks the release:
+  # like iac-scan it writes evidence and reports; gating is a separate
+  # decision. Uses the same OWASP ZAP baseline image + flags the daily Cloud
+  # Scheduler DAST cron runs via chora-infra/scripts/cicd-evidence/<svc>/dast-zap.sh.
+  # Services without a DAST wrapper or a resolvable DEV_URL skip cleanly.
+
+  # ── Manifest pin write-back (bookkeeping, NEVER a gate) ───────────────────
+  # The deploy step above ran `kubectl set image`, which mutates ONLY the live
+  # object. chora-infra/k8s/services/${_SERVICE}/deployment.yaml still pins
+  # whatever digest it was last hand-edited to, so the manifest rots on every
+  # roll. Not cosmetic: a stale pin makes an explicit `kubectl apply -k` roll the
+  # image BACKWARD, and the 2026-08-14 IaC audit found the fleet in exactly that
+  # state, re-pinning 5 manifests twice as sibling lanes landed mid-audit.
+  #
+  # This automates the requirement the deploy step's own comment already states:
+  # "Keep the manifest pin bumped on every roll so explicit applies stay safe."
+  #
+  # NOT A GATE, and the trailing `exit 0` is the justification Law 1 asks of any
+  # non-blocking step: this runs AFTER the deploy has already mutated the
+  # cluster, so failing the build here would report a DELIVERED service as a
+  # failed lane. A stale pin is the lesser falsehood. Failures are loud instead.
+  #
+  # Writes through the GitHub Contents API rather than `git commit`: that
+  # endpoint takes one path and one blob sha, so it cannot sweep a co-tenant
+  # session's staged work off the shared /workspace (which has happened in this
+  # repo), and it 409s cleanly when a sibling lane lands first.
+  - id: pin-writeback
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -uo pipefail
+        DIGEST=$$(cat /workspace/.image-digest 2>/dev/null || true)
+        if [ -z "$${DIGEST}" ]; then
+          echo "WARN pin-writeback: no digest on disk, skipping" >&2
+          exit 0
+        fi
+        GH_PAT=$$(gcloud secrets versions access latest \
+          --secret=${_PIN_WRITEBACK_SECRET} \
+          --project=${_PLATFORM_PROJECT} 2>/dev/null || true)
+        export GH_PAT
+        python3 chora-infra/scripts/pin-manifest-digest.py \
+          "${_SERVICE}" \
+          "${_REGION}-docker.pkg.dev/${_PLATFORM_PROJECT}/${_AR_REPO}/${_SERVICE}" \
+          "$${DIGEST}" \
+          || echo "WARN pin-writeback: failed, manifest pin stays stale" >&2
+        exit 0
+    waitFor:
+      - deploy-set-image
+
+  - id: dast-zap-baseline
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -e
+        mkdir -p /workspace/reports
+        # Always write the three report files (placeholder when skipped) so the
+        # lane's artifacts upload never fails on a missing file — the same
+        # deterministic-evidence contract the DAST library uses.
+        ensure_report() { : > "/workspace/reports/$1"; }
+        if [ ! -f "chora-infra/scripts/cicd-evidence/${_SERVICE}/dast-zap.sh" ]; then
+          echo "SKIP: no DAST wrapper for ${_SERVICE}; nothing to scan"
+          ensure_report zap-report.html; ensure_report zap-report.json; ensure_report zap-report.xml
+          exit 0
+        fi
+        DEV_URL="$$(grep -E '^export DEV_URL=' "chora-infra/scripts/cicd-evidence/${_SERVICE}/dast-zap.sh" | head -1 | cut -d'=' -f2 | tr -d '"')"
+        if [ -z "$${DEV_URL}" ]; then
+          echo "SKIP: no resolvable DEV_URL for ${_SERVICE}; scan requires a deployed host"
+          ensure_report zap-report.html; ensure_report zap-report.json; ensure_report zap-report.xml
+          exit 0
+        fi
+        # docker run is used for two reasons (same pattern as the iac-scan step):
+        #   1. uid — the stable ZAP image drops to uid 1000 (zap); Cloud Build's
+        #      /workspace is root-owned, so the raw step failed with "Permission
+        #      denied" on /workspace/reports. -u 0 avoids that.
+        #   2. path — when running inside a container, zap-baseline.py hardcodes
+        #      the report base dir to /zap/wrk and exits 3 if that directory is
+        #      not mounted. Mounting /workspace/reports onto /zap/wrk makes the
+        #      three report files land directly on the artifact upload path.
+        # Note: -u 0 (root) is required because only root may write Cloud Build's
+        # /workspace; upstream notes ajax spider may not run under root, but the
+        # scan stays baseline+traditional-spider regardless (decision: fix CI first).
+        echo "ZAP baseline scanning $${DEV_URL} (advisory)"
+        docker run --rm -u 0 -v /workspace/reports:/zap/wrk           ghcr.io/zaproxy/zaproxy:stable zap-baseline.py           -t "$${DEV_URL}" -r zap-report.html -J zap-report.json -x zap-report.xml           -d -I -j           || echo "WARN: ZAP baseline found findings or failed; advisory only"
+        ensure_report zap-report.html; ensure_report zap-report.json; ensure_report zap-report.xml
+
+
+# ── Artifacts (uploaded for evidence collection) ────────────────────────────
+# NOTE: paths are advisory — if a step's artifact doesn't materialise (e.g.,
+# test failures left cover.out unwritten, or no integration tests exist), the
+# build is marked FAILURE on the artifact upload even though all 12 stages
+# passed. To avoid the cosmetic FAILURE, either ensure the relevant step
+# always writes the artifact OR remove the relevant artifact path.
+artifacts:
+  objects:
+    location: gs://${_PLATFORM_PROJECT}-cloudbuild-evidence/${_SERVICE}/${SHORT_SHA}/
+    paths:
+      - /workspace/reports/${_SERVICE}-lint-report.txt
+      - /workspace/reports/${_SERVICE}-cover.out
+      - /workspace/reports/${_SERVICE}-cover-integration.out
+      - /workspace/reports/${_SERVICE}-gosec.sarif
+      - /workspace/reports/${_SERVICE}-govulncheck.json
+      - /workspace/reports/${_SERVICE}-govulncheck-summary.txt
+      - /workspace/reports/${_SERVICE}-trivy.sarif
+      - /workspace/reports/${_SERVICE}-sbom.spdx.json
+      - /workspace/reports/zap-report.html
+      - /workspace/reports/zap-report.json
+      - /workspace/reports/zap-report.xml
+
+# ── Build options ──────────────────────────────────────────────────────────
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+timeout: "2400s"  # 40 min ceiling for full pipeline (typically 8-15 min)
+
+tags:
+  - chora
+  - service-${_SERVICE}
+  - cicd-canonical
+  - canonical-15-stage
