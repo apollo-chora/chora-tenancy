@@ -34,8 +34,8 @@ services:
 
   tenancy:
     build:
-      context: ../..
-      dockerfile: services/chora-tenancy/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
     depends_on:
