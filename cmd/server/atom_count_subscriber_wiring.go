@@ -13,7 +13,7 @@ import (
 	"log"
 	"sync"
 
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 	tnevents "github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/events"
 )
 
