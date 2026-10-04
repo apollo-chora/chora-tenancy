@@ -1,20 +1,9 @@
 # syntax=docker/dockerfile:1.6
 #
 # chora-tenancy Dockerfile — Go service.
-# Generated from chora-infra/templates/Dockerfile.go-service.
-# DO NOT edit ad-hoc; sync changes back to the template.
-#
+# Local/container deployment image.
 # Build context = repo root (monorepo). The build uses a minimal go.work
 # synthesised inside the image listing only this service + libs/chora-go-common.
-# Standard invocation (chora-infra/scripts/build-publish-local.sh):
-#   docker buildx build --platform=linux/amd64 \
-#     -f services/chora-tenancy/Dockerfile \
-#     --build-arg SERVICE_NAME=chora-tenancy \
-#     --build-arg GIT_SHA=$(git rev-parse --short HEAD) \
-#     --build-arg BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
-#     -t asia-southeast1-docker.pkg.dev/chora-489812/chora-services/chora-tenancy:${TAG} \
-#     --push \
-#     .
 
 ARG GO_VERSION=1.26.6
 ARG ALPINE_VERSION=3.23
@@ -81,14 +70,14 @@ RUN go build -trimpath \
 ############################
 # Stage 2 — runtime
 ############################
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM alpine:${ALPINE_VERSION}
 
 ARG SERVICE_NAME
 ARG GIT_SHA
 ARG BUILD_TIME
 
 LABEL org.opencontainers.image.title="${SERVICE_NAME}" \
-      org.opencontainers.image.source="https://github.com/5007-Capstone/chora" \
+      org.opencontainers.image.source="https://github.com/apollo-chora/chora-tenancy" \
       org.opencontainers.image.revision="${GIT_SHA}" \
       org.opencontainers.image.created="${BUILD_TIME}" \
       org.opencontainers.image.vendor="Chora Platform" \
@@ -96,6 +85,8 @@ LABEL org.opencontainers.image.title="${SERVICE_NAME}" \
       io.chora.service="${SERVICE_NAME}" \
       io.chora.git-sha="${GIT_SHA}" \
       io.chora.build-time="${BUILD_TIME}"
+
+RUN apk add --no-cache ca-certificates && addgroup -S app && adduser -S -G app app
 
 WORKDIR /
 
@@ -107,5 +98,5 @@ COPY --from=builder /out/service /service
 # the subscriber boots DISABLED (PII map load error).
 COPY --from=builder /src/services/${SERVICE_NAME}/config/PII_Closure_Map.yaml /config/PII_Closure_Map.yaml
 
-USER nonroot:nonroot
+USER app:app
 ENTRYPOINT ["/service"]
