@@ -24,7 +24,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/skillsfuture"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/skillsfuture"
 )
 
 const (
