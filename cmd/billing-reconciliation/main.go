@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/5007-Capstone/chora/libs/chora-go-common/observability"
-	cgcpubsub "github.com/5007-Capstone/chora/libs/chora-go-common/pubsub"
+	"github.com/apollo-chora/chora-common/observability"
+	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 
 	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/billingpubsub"
 	"github.com/5007-Capstone/chora/services/chora-tenancy/internal/adapter/billingstripe"
