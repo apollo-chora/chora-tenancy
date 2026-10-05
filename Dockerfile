@@ -6,6 +6,7 @@ ARG GIT_SHA=unknown
 ARG BUILD_TIME=unknown
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
+ARG TARGETARCH
 
 ARG GIT_SHA
 ARG BUILD_TIME
@@ -18,7 +19,7 @@ COPY . .
 
 RUN go mod tidy
 
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH}
 
 RUN go build -trimpath \
     -ldflags "-s -w -X main.gitSHA=${GIT_SHA} -X main.buildTime=${BUILD_TIME}" \
