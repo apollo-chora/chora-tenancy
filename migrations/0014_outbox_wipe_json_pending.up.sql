@@ -5,16 +5,16 @@
 -- Background
 -- ----------
 -- Pre-fix outbox rows on chora_tenancy.outbox_events held JSON-marshalled
--- payload bytes that GCP Pub/Sub Schema Registry (BINARY encoding) rejects
--- at publish time with "Invalid binary proto message". The dispatcher
+-- payload bytes that a BINARY-contracted topic rejects at publish time with
+-- "Invalid binary proto message". The dispatcher
 -- retries up to MaxAttempts (default 5) then deadletters; the row never
 -- publishes successfully.
 --
 -- Fix
 -- ---
 -- internal/adapter/events/protomarshal now emits canonical binary protobuf
--- bytes for every chora.tenancy.* topic that has a registered Pub/Sub
--- Schema Registry schema (BINARY encoding):
+-- bytes for every chora.tenancy.* topic that has a registered binary
+-- proto contract (BINARY encoding):
 --
 --   * chora.tenancy.tenant.created.v1
 --   * chora.tenancy.addon.activated.v1
@@ -47,11 +47,10 @@
 --
 -- Familiar Egg note
 -- -----------------
--- The chora.tenancy.familiar_egg.* topics are not yet registered on GCP
--- Pub/Sub Schema Registry at migration time (per
--- `gcloud pubsub topics list --filter='name ~ familiar_egg'`). Until they
--- are registered, the rows publish as opaque bytes; the encoder is in
--- place so when registration lands the bytes are immediately valid.
+-- The chora.tenancy.familiar_egg.* topics had no registered binary contract
+-- at migration time. Until they get one, the rows publish as opaque bytes;
+-- the encoder is in place so when the contract lands the bytes are
+-- immediately valid.
 --
 -- Idempotent: re-running is a no-op (the WHERE clause matches no rows
 -- after the first pass).

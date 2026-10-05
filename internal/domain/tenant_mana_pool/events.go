@@ -1,7 +1,7 @@
 // Package pool — domain event payloads (canonical Go shape).
 //
 // These structs mirror chora-contracts/proto/events/tenancy/tenant_mana_pool.proto
-// for the Go-side adapter that builds Pub/Sub envelopes. Field types are
+// for the Go-side adapter that builds event envelopes. Field types are
 // chosen for round-trip with the proto generator output: int64 for unit
 // counts, string for IDs, time.Time for timestamps.
 //

@@ -1,11 +1,11 @@
 // Package observability holds the lightweight observability shim for the
-// chora-tenancy skeleton.
+// chora-tenancy service.
 //
-// Per CLAUDE.md §6 the production stack is OTLP-everywhere direct to Cloud
-// Trace + Cloud Logging via OpenInference / OpenLLMetry semantic conventions.
-// The skeleton emits structured logs with a generated trace_id (W3C
-// traceparent friendly) so downstream Cloud Logging can correlate today; the
-// full OTel SDK wiring lands in M12 alongside Postgres + Pub/Sub adapters.
+// The production stack is OTLP-everywhere: spans flow to the standard OTLP
+// endpoint (see otlp.go) and structured logs carry a generated trace_id (W3C
+// traceparent friendly) so the collector can correlate them. The shim below
+// emits those structured log lines and mints/propagates trace context for the
+// HTTP surface.
 package observability
 
 import (
@@ -64,9 +64,6 @@ func randHex(n int) string {
 //
 // Format: service=<name> trace_id=<id> span_id=<id> tenant_id=<id>
 // gcid=<id> method=<m> path=<p> status=<n> duration_ms=<n>.
-//
-// Cloud Logging will scoop trace_id automatically when this format lands
-// inside a Cloud Run log.
 func LogRequest(tc TraceContext, tenantID, gcid, method, path string, status int, dur time.Duration) {
 	log.Printf(
 		"service=%s trace_id=%s span_id=%s tenant_id=%s gcid=%s method=%s path=%s status=%d duration_ms=%d",
@@ -75,7 +72,7 @@ func LogRequest(tc TraceContext, tenantID, gcid, method, path string, status int
 }
 
 // TraceparentHeader formats a TraceContext as a W3C traceparent string.
-// Used when the service emits outbound HTTP / gRPC / Pub/Sub envelopes.
+// Used when the service emits outbound HTTP / gRPC / event envelopes.
 func (tc TraceContext) TraceparentHeader() string {
 	return fmt.Sprintf("00-%s-%s-%s", tc.TraceID, tc.SpanID, tc.TraceFlg)
 }

@@ -32,7 +32,6 @@ import (
 // Canonical constants. Keep aligned with:
 //   - chora-contracts/proto/events/tenancy/external_egress_policy.proto
 //   - chora-contracts/asyncapi/tenancy/external-egress-policy-updated-v1.yaml
-//   - chora-infra/topics/topics.yaml
 const (
 	TopicExternalEgressPolicyUpdated = "chora.tenancy.external_egress_policy.updated.v1"
 

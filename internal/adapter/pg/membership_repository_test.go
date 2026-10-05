@@ -2,7 +2,7 @@
 // (Bucket 1, 2026-05-14 multi-tenant identity; D0.1 RLS-bypass rewire
 // 2026-05-14, CHO-1538).
 //
-// Stubs QueryRunner to avoid a live Cloud SQL dependency.
+// Stubs QueryRunner to avoid a live Postgres dependency.
 //
 // D0.1 rewire: ListByGCID no longer emits an inline cross-tenant
 // `SELECT ... ARRAY_AGG ... FROM members JOIN tenants`. That inline query

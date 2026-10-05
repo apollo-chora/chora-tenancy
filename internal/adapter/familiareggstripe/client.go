@@ -35,7 +35,7 @@ import (
 // Sentinel errors.
 var (
 	ErrNoAPIBase    = errors.New("familiareggstripe: STRIPE_API_BASE required (no inline config)")
-	ErrNoSecretKey  = errors.New("familiareggstripe: STRIPE_API_KEY required (Secret Manager)")
+	ErrNoSecretKey  = errors.New("familiareggstripe: STRIPE_API_KEY required (no inline config)")
 	ErrInvalidEvent = errors.New("familiareggstripe: invalid Stripe event body")
 )
 

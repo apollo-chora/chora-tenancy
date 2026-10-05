@@ -19,8 +19,8 @@
 --      light-wizard tenants start outside 'active' until /golive flips them.
 --
 --   3. addon_usage_events  stage table — high-volume per-event log written
---      from per-service usage emitters. The nightly Cloud Run Job
---      (services/chora-tenancy/cmd/usage-rollup) walks this table and
+--      from per-service usage emitters. The nightly rollup job
+--      (cmd/usage-rollup) walks this table and
 --      aggregates into addon_usage_daily then emits
 --      chora.tenancy.addon.usage_recorded.v1 per (tenant, addon, date).
 --

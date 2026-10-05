@@ -1,4 +1,4 @@
-// Tests for the chora-payments Pub/Sub subscribers in chora-tenancy.
+// Tests for the chora-payments subscribers in chora-tenancy.
 //
 // chora-tenancy is the originating service for two Purchase aggregates
 // extracted to chora-payments (ADR-164):
@@ -977,7 +977,7 @@ func TestPaymentsSubscriber_TenantAddon_PaymentRecovered_ClearsRegistryPastDue(t
 
 // Registry mutation is best-effort — when the registry returns an
 // error (e.g. tenant unknown) the handler still emits + acks so
-// Pub/Sub doesn't loop.
+// the broker doesn't loop.
 func TestPaymentsSubscriber_TenantAddon_SubscriptionPaymentFailed_RegistryErr_StillEmits(t *testing.T) {
 	rec := events.NewRecorder()
 	reg := &fakePastDueRegistry{failNext: errors.New("subscription not found")}
@@ -1098,7 +1098,7 @@ func TestPaymentsSubscriber_TenantAddon_ScheduleReleased_DowngradePath(t *testin
 }
 
 func TestPaymentsSubscriber_TenantAddon_ScheduleReleased_Idempotent(t *testing.T) {
-	// Duplicate Pub/Sub delivery → inbox dedup makes the second call a
+	// Duplicate delivery → inbox dedup makes the second call a
 	// no-op; PromoteScheduledTier is only invoked once even though the
 	// registry's own PromoteScheduledTier is also idempotent.
 	rec := events.NewRecorder()

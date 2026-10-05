@@ -6,7 +6,7 @@
 -- chora-common/idempotent.PostgresStore copies this DDL into its own
 -- migration directory (e.g. services/chora-creation/migrations/000N_add_idempotency_keys.up.sql).
 --
--- Operational dedup table for at-least-once Pub/Sub subscribers.
+-- Operational dedup table for at-least-once subscribers.
 --
 -- Per CLAUDE.md §6 + .claude/skills/data-consistency, every subscriber MUST
 -- de-duplicate by event_id (or business idempotency_key) before applying
@@ -72,10 +72,10 @@ $$;
 COMMENT ON FUNCTION cleanup_idempotency_keys(TEXT) IS
 'Operational TTL purge for idempotency_keys table. Called from
 chora-common/idempotent.Store.CleanupExpired() via either pg_cron or a
-Cloud Run Job on a regular schedule (typical: hourly).';
+scheduled job on a regular schedule (typical: hourly).';
 
 -- Grant EXECUTE to app roles. The exact role names per database follow
--- the chora-infra m10-data-plane convention (chora_{domain}_app_rw).
+-- the platform convention (chora_{domain}_app_rw).
 -- This grant is parameterised in the per-domain migration that wraps
 -- this template.
 --

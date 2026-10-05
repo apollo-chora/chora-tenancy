@@ -35,7 +35,7 @@
 --
 -- HARD RULE: cross-database queries forbidden — this migration touches
 -- only chora_tenancy.tenants. Cross-domain side effects (identity audit,
--- billing entitlement unlocks) flow through Pub/Sub events.
+-- billing entitlement unlocks) flow through events.
 -- =============================================================================
 
 BEGIN;

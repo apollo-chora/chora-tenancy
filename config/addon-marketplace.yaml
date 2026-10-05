@@ -5,8 +5,7 @@
 # deferred to post-M13.
 #
 # Per CLAUDE.md §6 (no inline config) — this file is loaded at service
-# startup. Production deploys mount it via a Cloud Run sidecar volume
-# from a GCS bucket (chora-config-{env}).
+# startup. Production deploys mount it from a config volume / object store.
 #
 # Schema (per addon entry):
 #   code:          machine code (matches addon.AddOn.Code in seed catalogue)

@@ -647,7 +647,7 @@ func NewEnrollmentSubscriber(deps SubscriberDeps) *EnrollmentSubscriber {
 // learner is registered with the LearnerCounter (driving future EqualSplit
 // monthly ticks), then the policy engine produces 0 or 1 allocation
 // intent. Each intent is materialised into an aggregate row + pool debit
-// + Pub/Sub event atomically.
+// + event atomically.
 func (s *EnrollmentSubscriber) HandleEnrollment(ctx context.Context, ev EnrollmentEvent) error {
 	if strings.TrimSpace(ev.TenantID) == "" || strings.TrimSpace(ev.GCID) == "" {
 		return nil
@@ -684,7 +684,7 @@ func (t *MonthlyTicker) RunMonthlyTick(ctx context.Context, tenantID string) err
 }
 
 // materialiseIntents converts engine intents into aggregate rows + pool
-// debits + Pub/Sub events.
+// debits + events.
 func materialiseIntents(ctx context.Context, deps SubscriberDeps, intents []pool.AllocationIntent, fallbackReason allocation.Reason) error {
 	for _, in := range intents {
 		p, err := deps.Pools.GetByTenant(ctx, in.TenantID)

@@ -4,7 +4,7 @@
 // the same canonical governance event + topic is REUSED (ADR-205 D1 locks
 // `chora.governance.audit.cross_tenant_payments_viewed.v1`), written as a
 // pending row into chora_tenancy's outbox_events so the existing Dispatcher
-// drains it to Pub/Sub. The chora-governance subscriber (B6 / CHO-1942) is
+// drains it to the event bus. The chora-governance subscriber (B6 / CHO-1942) is
 // already the consumer.
 //
 // The emit MUST run BEFORE the span-all SQL (fail-closed: if the durable
@@ -14,7 +14,7 @@
 // platform-level events), matching the payments precedent.
 //
 // The payload is binary protobuf (proto.Marshal) — identical wire shape to the
-// payments emission, so the topic's Pub/Sub Schema Registry binary schema
+// payments emission, so the topic's flat proto binary contract
 // validates and B6 decodes it unchanged. We build the outbox.Row directly
 // (NOT via Publisher) because Publisher enforces the chora.tenancy.* topic
 // namespace and would reject a chora.governance.* topic.
@@ -105,7 +105,7 @@ func (e *TransactionAuditEmitter) EmitCrossTenantViewed(
 	// carry no W3C trace context. The envelope traceparent is mandatory —
 	// without it the shared envelope Validate() rejects the row pre-publish
 	// ("envelope: traceparent is required") and the audit deadletters instead
-	// of reaching Pub/Sub. Mirror envelope.Build(): propagate an inbound
+	// of reaching the bus. Mirror envelope.Build(): propagate an inbound
 	// traceparent, mint a synthetic root only when absent. The audit content,
 	// the emit ORDERING, and the before-SQL fail-closed semantics are unchanged
 	// — this only populates the previously-missing envelope attribute.

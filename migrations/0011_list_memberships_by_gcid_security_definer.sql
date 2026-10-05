@@ -20,7 +20,7 @@
 --   gcid = $1` is filtered to ZERO rows whenever RLS is enabled — mint
 --   then returns `403 AUTH_NO_TENANT_MEMBERSHIP` for every user.
 --
---   Live-DB reconciliation (2026-05-14, read-only Cloud Run Job inspect):
+--   Live-DB reconciliation (2026-05-14, read-only job inspection):
 --   `members.relrowsecurity = f` — RLS had been DISABLED on the live DB
 --   as an out-of-band workaround (NOT captured in any migration). That is
 --   a cross-tenant data-leak regression: any holder of the app_rw role

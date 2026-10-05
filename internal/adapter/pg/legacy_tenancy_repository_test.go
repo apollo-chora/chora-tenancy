@@ -4,7 +4,7 @@
 // These adapters satisfy the httpapi.TenantStore / AddOnStore /
 // EntitlementStore ports and read/write the real chora_tenancy tables
 // (tenants, add_ons, add_on_subscriptions). Stub queriers (no live DB)
-// exercise the SQL emit + row scan + RLS-tx wiring; live Cloud SQL proof
+// exercise the SQL emit + row scan + RLS-tx wiring; live Postgres proof
 // is in legacy_tenancy_integration_test.go.
 //
 // Reuses stubQuerier (tenant_repository_test.go) + stubQueryRunner /

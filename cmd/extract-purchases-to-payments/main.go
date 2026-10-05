@@ -14,13 +14,13 @@
 //
 // WHY A SEPARATE BINARY (Pattern B)
 //
-//	The Cloud SQL `migrations-runner` Cloud Run Job applies SQL migrations
-//	per-database via psql, and the `dblink` extension is NOT pre-loaded on
-//	chora_tenancy → chora_payments. The extract therefore lives in a small
-//	pgx-backed Go binary that opens TWO pools (one per DB DSN) at
-//	migration time — Stage D's only acceptable cross-DB code path.
+//	The migrations-runner applies SQL migrations per-database via psql, and
+//	the `dblink` extension is NOT pre-loaded on chora_tenancy →
+//	chora_payments. The extract therefore lives in a small pgx-backed Go
+//	binary that opens TWO pools (one per DB DSN) at migration time — Stage
+//	D's only acceptable cross-DB code path.
 //
-// ENV CONTRACT (canonical Secret Manager pattern per `feedback_no_inline_config`)
+// ENV CONTRACT (no inline config)
 //
 //	CHORA_DB_DSN              — chora_tenancy DSN (READ).  REQUIRED.
 //	CHORA_PAYMENTS_DB_DSN     — chora_payments DSN (WRITE). REQUIRED.

@@ -7,7 +7,7 @@
 //
 // The engine returns an "intent" describing what allocations to issue + what
 // debits to apply to the pool. The HTTP/event adapters wrap this into the
-// actual aggregate updates and Pub/Sub publishes.
+// actual aggregate updates and event publishes.
 package pool_test
 
 import (

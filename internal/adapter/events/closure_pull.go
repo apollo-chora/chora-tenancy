@@ -1,6 +1,6 @@
 // Pull-loop adapter binding the federated closure-saga subscriber to the
-// cgcpubsub CloudSubscriber (CHO-1719 gap 4). The CloudSubscriber acks on
-// nil and nacks on error (ack-after-processing per D6.2).
+// eventbus Subscriber (CHO-1719 gap 4). The consumer acks on nil and nacks on
+// error (ack-after-processing per D6.2).
 package events
 
 import (
@@ -8,15 +8,15 @@ import (
 	"encoding/json"
 	"errors"
 
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 )
 
-// ClosurePullHandler adapts the ClosureSubscriber to a cgcpubsub.Handler.
+// ClosurePullHandler adapts the ClosureSubscriber to an eventbus.Handler.
 // The orchestrator's JSON fan-out body becomes the payload; the Header
 // (tenancy's envelope shape) is projected from the message envelope.
-func ClosurePullHandler(s *ClosureSubscriber) cgcpubsub.Handler {
-	return func(ctx context.Context, msg *cgcpubsub.Message) error {
-		if s == nil || msg == nil {
+func ClosurePullHandler(s *ClosureSubscriber) eventbus.Handler {
+	return func(ctx context.Context, msg eventbus.Message) error {
+		if s == nil {
 			return errors.New("events: closure pull handler not initialised")
 		}
 		var p PseudonymiseRequestedPayload
@@ -38,15 +38,15 @@ func ClosurePullHandler(s *ClosureSubscriber) cgcpubsub.Handler {
 }
 
 // closureAckSink is the lib ClosureAckPublisher's Publish shape
-// (cgcpubsub.ClosureAckPublisher satisfies it; tests inject a recorder).
+// (eventbus.ClosureAckPublisher satisfies it; tests inject a recorder).
 type closureAckSink interface {
 	Publish(topic, tenantID, gcid, traceparent string,
 		payload map[string]interface{}) error
 }
 
 // CloudClosurePublisher bridges tenancy's Recorder-shaped
-// PublishWithError port onto the shared cgcpubsub.ClosureAckPublisher so
-// closure acks reach real Cloud Pub/Sub (the in-memory Recorder never
+// PublishWithError port onto the shared eventbus.ClosureAckPublisher so
+// closure acks reach the real event bus (the in-memory Recorder never
 // leaves the process).
 type CloudClosurePublisher struct {
 	sink closureAckSink

@@ -59,10 +59,10 @@ func NewServer(deps Deps) http.Handler {
 
 	// Health/readiness — no tenant required.
 	//
-	// Cloud Run's GFE intercepts the bare /healthz path before it reaches the
-	// container — clients hitting Cloud Run get a Google 404 HTML page.
-	// /healthz/ (trailing slash) and /health both reach the container, so we
-	// register all three aliases (same pattern as chora-aplus-api-hello).
+	// Some managed front-ends intercept the bare /healthz path before it
+	// reaches the container and return their own 404. /healthz/ (trailing
+	// slash) and /health both reach the container, so we register all three
+	// aliases.
 	mux.HandleFunc("/healthz", logging(healthHandler))
 	mux.HandleFunc("/healthz/", logging(healthHandler))
 	mux.HandleFunc("/health", logging(healthHandler))

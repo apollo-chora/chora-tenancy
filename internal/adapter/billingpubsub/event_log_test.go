@@ -7,7 +7,7 @@ import (
 	"time"
 
 	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingpubsub"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
@@ -45,7 +45,7 @@ func TestEventLogReplayFeeder_Record(t *testing.T) {
 
 func TestEventLogReplayFeeder_HandlesPubSubMessage(t *testing.T) {
 	t.Parallel()
-	bus := cgcpubsub.NewInMemoryBus(cgcpubsub.WithSynchronousDelivery())
+	bus := eventbus.NewInMemoryBus(eventbus.WithSynchronousDelivery())
 	defer bus.Close()
 	feeder := billingpubsub.NewEventLogReplayFeeder()
 	defer feeder.Close()
@@ -82,7 +82,7 @@ func TestEventLogReplayFeeder_HandlesPubSubMessage(t *testing.T) {
 
 func TestEventLogReplayFeeder_IgnoresMalformedPayload(t *testing.T) {
 	t.Parallel()
-	bus := cgcpubsub.NewInMemoryBus(cgcpubsub.WithSynchronousDelivery())
+	bus := eventbus.NewInMemoryBus(eventbus.WithSynchronousDelivery())
 	defer bus.Close()
 	feeder := billingpubsub.NewEventLogReplayFeeder()
 	defer feeder.Close()
@@ -104,7 +104,7 @@ func TestEventLogReplayFeeder_IgnoresMalformedPayload(t *testing.T) {
 
 func TestEventLogReplayFeeder_IgnoresZeroAmountAndZeroTime(t *testing.T) {
 	t.Parallel()
-	bus := cgcpubsub.NewInMemoryBus(cgcpubsub.WithSynchronousDelivery())
+	bus := eventbus.NewInMemoryBus(eventbus.WithSynchronousDelivery())
 	defer bus.Close()
 	feeder := billingpubsub.NewEventLogReplayFeeder()
 	defer feeder.Close()

@@ -17,7 +17,7 @@
 // rlsCatalogDB is the wire-realistic double: it evaluates that exact policy
 // expression against a per-transaction GUC that ONLY RunInTenantTx sets, so
 // a repository that queries the bare pool fails here for the same reason it
-// fails against Cloud SQL. The live-DB counterpart is
+// fails against Postgres. The live-DB counterpart is
 // familiar_egg_catalog_rls_integration_test.go (build tag `integration`).
 package pg_test
 

@@ -112,7 +112,7 @@ type StripeFeeder interface {
 // total for a given day — by replay-subscribing to
 // chora.tenancy.payment.captured.v1 + chora.identity.payment.captured.v1.
 // Cross-DB queries are forbidden (per .claude/rules/ddd-enforcement.md):
-// implementations consume the centralised Pub/Sub history only.
+// implementations consume the centralised event history only.
 type EventLogFeeder interface {
 	SumCapturedCentsForDay(ctx context.Context, day time.Time) (int64, error)
 }
@@ -136,15 +136,14 @@ type JobConfig struct {
 }
 
 // Job orchestrates a daily reconciliation. Designed to be invoked from
-// cmd/billing-reconciliation/main.go (Cloud Run Job) once per day via
-// Cloud Scheduler.
+// cmd/billing-reconciliation/main.go (scheduled job) once per day.
 type Job struct {
 	cfg JobConfig
 }
 
 // NewJob constructs a Job. Returns nil-safe panicking on missing collaborators
-// is deliberately avoided — the job runs in a Cloud Run Job and we want a
-// descriptive runtime error, not a panic.
+// is deliberately avoided — the job runs as a scheduled batch process and we
+// want a descriptive runtime error, not a panic.
 func NewJob(cfg JobConfig) *Job {
 	if cfg.Now == nil {
 		cfg.Now = func() time.Time { return time.Now().UTC() }
@@ -153,8 +152,7 @@ func NewJob(cfg JobConfig) *Job {
 }
 
 // ErrJobMisconfigured is returned by RunDaily when required collaborators are
-// nil. (Cloud Run Job will exit non-zero, which Cloud Scheduler retries per
-// its policy.)
+// nil. (The job exits non-zero, which the scheduler retries per its policy.)
 var ErrJobMisconfigured = errors.New("reconciliation: job misconfigured (missing Stripe / EventLog / Emitter)")
 
 // RunDaily executes one reconciliation pass for the supplied day (UTC).
@@ -164,8 +162,8 @@ var ErrJobMisconfigured = errors.New("reconciliation: job misconfigured (missing
 // it ALSO emits the `anomaly` event.
 //
 // Returns the Report on success. Errors surface from the Stripe feeder /
-// event-log feeder / emitters; Cloud Run Job non-zero exit triggers
-// Cloud Scheduler retry per its policy.
+// event-log feeder / emitters; a non-zero job exit triggers the scheduler
+// retry per its policy.
 func (j *Job) RunDaily(ctx context.Context, day time.Time) (Report, error) {
 	if j.cfg.Stripe == nil || j.cfg.EventLog == nil || j.cfg.Emitter == nil {
 		return Report{}, ErrJobMisconfigured

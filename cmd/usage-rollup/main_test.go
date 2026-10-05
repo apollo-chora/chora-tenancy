@@ -1,5 +1,5 @@
 // Package main_test holds the unit tests for the chora-tenancy usage-rollup
-// Cloud Run Job. The job's `runRollup` is the seam under test — it walks
+// scheduled job. The job's `runRollup` is the seam under test — it walks
 // (tenant × addon × usage-snapshot) and emits one usage_recorded event
 // per row.
 package main

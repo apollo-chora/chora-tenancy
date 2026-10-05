@@ -3,7 +3,7 @@
 // per ADR-205. It is a read model, not a rich aggregate — there are no
 // invariants beyond "one row per logical entry, idempotently projected from
 // events". The write side (this package's WriteRepository port + the pg
-// adapter) is driven by the Pub/Sub projection subscriber (B2 / CHO-1938);
+// adapter) is driven by the event-bus projection subscriber (B2 / CHO-1938);
 // the read side is served scope-aware over gRPC (B3 / CHO-1939).
 //
 // Canonical-source policy (avoids double-counting the same money across

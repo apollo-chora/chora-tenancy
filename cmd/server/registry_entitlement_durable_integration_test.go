@@ -5,7 +5,7 @@
 // a process that NEVER hydrated the in-memory registry, which is every pod that
 // booted before the tenant existed.
 //
-// Run against the local Postgres 18 mirror while Cloud SQL is cost-paused:
+// Run against the local Postgres 18:
 //
 //	CHORA_TEST_DSN='postgres://chora_tenancy_migrate:dev@localhost:5432/chora_tenancy?sslmode=disable' \
 //	  go test -tags integration ./cmd/server/ -run Integration_EntitlementRead
@@ -26,10 +26,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	cgcdb "github.com/apollo-chora/chora-common/db"
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
 	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
+	platformdb "github.com/apollo-chora/chora-tenancy/internal/platform/db"
 )
 
 func liveEntitlementDB(t *testing.T) *pgxpool.Pool {
@@ -40,7 +40,7 @@ func liveEntitlementDB(t *testing.T) *pgxpool.Pool {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	pool, err := cgcdb.Bootstrap(ctx, cgcdb.BootstrapOptions{
+	pool, err := platformdb.Bootstrap(ctx, platformdb.Options{
 		DSN:             dsn,
 		RewriteFromPort: 6432,
 		RewriteToPort:   5432,

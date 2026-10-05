@@ -54,7 +54,7 @@ type AllocationGrantedPublisher interface {
 }
 
 // CreditIssuer satisfies familiar_egg_sweeper.ManaCreditIssuer with real
-// pg-backed (or in-memory) persistence + Pub/Sub publish.
+// pg-backed (or in-memory) persistence + event publish.
 type CreditIssuer struct {
 	repoR     AllocationGetter
 	repoW     AllocationSaver

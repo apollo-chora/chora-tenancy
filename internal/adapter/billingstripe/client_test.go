@@ -1,5 +1,5 @@
 // Package billingstripe_test — Stripe Charges API client for the daily
-// reconciliation Cloud Run Job. Ported from
+// reconciliation job. Ported from
 // services/chora-billing-webhook/internal/adapter/stripe as part of the
 // M12.2 Batch-1 consolidation.
 package billingstripe_test

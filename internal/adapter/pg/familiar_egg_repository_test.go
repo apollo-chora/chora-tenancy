@@ -1,7 +1,7 @@
 // familiar_egg_repository_test.go — unit tests for the pgx FamiliarEgg
 // repositories (Iter G.3, ADR-149).
 //
-// Stubs the QueryRunner seam to avoid a live Cloud SQL dependency. The
+// Stubs the QueryRunner seam to avoid a live Postgres dependency. The
 // SQL emit + scan paths are exercised; the actual Postgres semantics are
 // covered by integration tests at M14.
 package pg_test

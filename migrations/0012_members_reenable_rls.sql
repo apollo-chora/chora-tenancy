@@ -12,7 +12,7 @@
 --   `ListMembershipsByGCID` query would return rows. That workaround was
 --   applied out-of-band — no migration in version control performs it.
 --
---   Live-DB reconciliation (2026-05-14, read-only Cloud Run Job inspect)
+--   Live-DB reconciliation (2026-05-14, read-only job inspection)
 --   CONFIRMED the live state: `members.relrowsecurity = f`. With RLS off,
 --   any holder of `chora_tenancy_app_rw` can read EVERY tenant's member
 --   directory — a multi-tenant isolation breach.

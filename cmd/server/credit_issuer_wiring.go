@@ -3,7 +3,7 @@
 //
 // Adapts the canonical outbox publisher to the manapool.Publisher surface
 // the CreditIssuer expects. Egg refund events flow through the same
-// outbox → dispatcher → Pub/Sub pipeline as every other tenancy event,
+// outbox → dispatcher → event-bus pipeline as every other tenancy event,
 // preserving end-to-end ordering + DLQ + retry behaviour.
 //
 // Scope note: this Iter G.5 wiring uses an in-memory allocation repo
@@ -24,7 +24,7 @@ import (
 
 // allocationGrantedOutboxAdapter satisfies manapool.AllocationGrantedPublisher
 // by delegating to the canonical outbox publisher (which writes to
-// outbox_events for the dispatcher to drain to Pub/Sub).
+// outbox_events for the dispatcher to drain to the event bus).
 type allocationGrantedOutboxAdapter struct {
 	inner *tenancyoutbox.Publisher
 }

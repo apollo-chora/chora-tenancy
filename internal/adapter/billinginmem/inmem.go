@@ -4,7 +4,7 @@
 // Includes:
 //
 //   - InMemoryEmitter — captures reconciliation events the way the
-//     production Cloud Pub/Sub emitter would.
+//     production event-bus emitter would.
 //   - InMemoryStripeFeeder — canned Stripe captured-cents per day.
 //   - InMemoryEventLogFeeder — canned chora event-log captured-cents per day.
 //

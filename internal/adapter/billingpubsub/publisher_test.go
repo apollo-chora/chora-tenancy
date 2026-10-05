@@ -1,4 +1,4 @@
-// Package billingpubsub_test — Pub/Sub publisher + reconciliation emitter
+// Package billingpubsub_test — event-bus publisher + reconciliation emitter
 // for the chora-tenancy billing-webhook seam. Ported from
 // services/chora-billing-webhook/internal/adapter/pubsub as part of the
 // M12.2 Batch-1 consolidation.
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingpubsub"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
@@ -197,11 +197,11 @@ func TestReconciliationEmitter_EmitsBothEventsWithIMDADimensions(t *testing.T) {
 
 func TestRoundtripsThroughInMemoryBus(t *testing.T) {
 	t.Parallel()
-	bus := cgcpubsub.NewInMemoryBus(cgcpubsub.WithSynchronousDelivery())
+	bus := eventbus.NewInMemoryBus(eventbus.WithSynchronousDelivery())
 	defer bus.Close()
 
-	received := make(chan *cgcpubsub.Message, 1)
-	cancel, err := bus.Subscribe(context.Background(), "chora.tenancy.payment.captured.v1", func(_ context.Context, m *cgcpubsub.Message) error {
+	received := make(chan eventbus.Message, 1)
+	cancel, err := bus.Subscribe(context.Background(), "chora.tenancy.payment.captured.v1", func(_ context.Context, m eventbus.Message) error {
 		received <- m
 		return nil
 	})
@@ -241,7 +241,7 @@ func TestNewReconciliationEmitter_Defaults(t *testing.T) {
 	t.Parallel()
 	// Empty SourceService/SourceProject/Now fall back to defaults; the
 	// publish still lands on the supplied bus.
-	bus := cgcpubsub.NewInMemoryBus()
+	bus := eventbus.NewInMemoryBus()
 	defer bus.Close()
 	e := billingpubsub.NewReconciliationEmitter(billingpubsub.EmitterConfig{Bus: bus})
 	if e == nil {

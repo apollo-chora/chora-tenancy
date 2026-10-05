@@ -3,7 +3,7 @@
 // ownership_transfer_integration_test.go: the accept transaction (UX Track U,
 // E3 slice 2, S7-B4).
 //
-// Run against the local Postgres 18 mirror while Cloud SQL is cost-paused:
+// Run against the local Postgres 18:
 //
 //	CHORA_TEST_DSN='postgres://chora_tenancy_migrate:dev@localhost:5432/chora_tenancy?sslmode=disable' \
 //	  go test -tags integration ./internal/adapter/pg/ -run Integration_OwnershipTransfer

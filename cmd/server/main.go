@@ -1,7 +1,7 @@
-// Package main wires the chora-tenancy Go service for Cloud Run.
+// Package main wires the chora-tenancy Go service for the local stack.
 //
-// Per CLAUDE.md §6 the production stack is OTLP-everywhere direct to Cloud
-// Trace via the Telemetry API + Cloud Logging.
+// The production stack is OTLP-everywhere: spans go to the standard OTLP
+// endpoint (the local OTel Collector by default).
 //
 // Mounts both the legacy v1 server (paths /api/* + /healthz + /readyz) and
 // the new v2 + BE-T-ADD-1 admin server (paths /v2/* + /api/v1/admin/*) on
@@ -14,16 +14,16 @@
 //     tenant.Repository is wired in alongside the legacy in-memory repos
 //     (the legacy ones still drive the v1 server and parts of v2 that
 //     have not been ported). When unset, falls back to in-memory.
-//   - When PUBSUB_PROJECT_ID is set, the Pub/Sub client is
+//   - When NATS_URL is set, the JetStream event bus is
 //     bootstrapped + wired as the Bus for the D6.2 outbox dispatcher.
 //     When unset, an in-memory bus is used so the service stays runnable
 //     in dev.
 //   - D6.2 producer-side outbox (M12.3 W2b): the OutboxPublisher writes
 //     to outbox_events; a background Dispatcher goroutine drains pending
-//     rows to the Pub/Sub bus with retry + DLQ. When CHORA_OUTBOX_DSN is
+//     rows to the event bus with retry + DLQ. When CHORA_OUTBOX_DSN is
 //     unset, falls back to the in-memory store (NOT durable across
 //     restart; dev-only).
-//   - Consumer-side inbox: every Pub/Sub subscriber wraps its handler in
+//   - Consumer-side inbox: every subscriber wraps its handler in
 //     idempotent.Store.Process(...). When CHORA_OUTBOX_DSN is set, the
 //     PostgresStore-backed inbox is wired against the chora_tenancy
 //     idempotency_keys table; otherwise an in-memory store is used.
@@ -53,16 +53,15 @@ import (
 	tenancyv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/services/tenancy/v1"
 
 	"github.com/apollo-chora/chora-common/durabilityguard"
+	"github.com/apollo-chora/chora-common/eventbus"
 	grpcconn "github.com/apollo-chora/chora-common/grpcconn"
 	"github.com/apollo-chora/chora-common/idempotent"
-	cgcobservability "github.com/apollo-chora/chora-common/observability"
 	// pgx stdlib driver — registered for sql.Open("pgx", dsn) used by
 	// the per-domain outbox PostgresStore in bootstrap.go.
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
-
 	tnevents "github.com/apollo-chora/chora-tenancy/internal/adapter/events"
+	"github.com/apollo-chora/chora-tenancy/internal/adapter/exportworker"
 	familiareggsweeper "github.com/apollo-chora/chora-tenancy/internal/adapter/familiar_egg_sweeper"
 	familiareggstripe "github.com/apollo-chora/chora-tenancy/internal/adapter/familiareggstripe"
 	tenancygrpc "github.com/apollo-chora/chora-tenancy/internal/adapter/grpc"
@@ -72,6 +71,7 @@ import (
 	tenancyoutbox "github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/payments"
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
+	tenancys3 "github.com/apollo-chora/chora-tenancy/internal/adapter/s3"
 	stripestub "github.com/apollo-chora/chora-tenancy/internal/adapter/stripe"
 	tnconfig "github.com/apollo-chora/chora-tenancy/internal/config"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/bootstrap"
@@ -80,6 +80,7 @@ import (
 	// Aliased: the local *pgxpool.Pool variable in main() is named `pool`,
 	// which would shadow the package name.
 	manapooldomain "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
+	tenancyobservability "github.com/apollo-chora/chora-tenancy/internal/observability"
 )
 
 const (
@@ -99,14 +100,11 @@ func main() {
 	// ----------------------------------------------------------------------
 	// Optional OTLP wiring.
 	//
-	// Per C(a).S1 path (b) — tracker #151 — OTLP init runs in its own
-	// goroutine with its own (env-tunable, default 15s) deadline + fail-
-	// soft semantics. Timeout / init-error degrade to a no-op shutdown,
-	// so the rest of bootstrap (pgx pool, Pub/Sub clients) gets the FULL
-	// CHORA_BOOTSTRAP_TIMEOUT_SECONDS budget. Previously a slow Cloud
-	// Trace TLS handshake could swallow the shared budget and crash-
-	// loop the pod under PgBouncer 4-container cold-start.
-	otlpHandle := cgcobservability.InitOTLPAsync(ctx, serviceName, serviceVersion)
+	// OTLP init runs in its own goroutine with its own (env-tunable,
+	// default 15s) deadline + fail-soft semantics. Timeout / init-error
+	// degrade to a no-op shutdown, so the rest of bootstrap (pgx pool,
+	// event bus) gets the FULL CHORA_BOOTSTRAP_TIMEOUT_SECONDS budget.
+	otlpHandle := tenancyobservability.InitOTLPAsync(ctx, serviceName, serviceVersion)
 	defer func() {
 		// handle.Wait(0) blocks until init settles — usually a no-op by
 		// shutdown time because pgx-pool init below already gave OTLP
@@ -231,17 +229,21 @@ func main() {
 	}
 
 	// ----------------------------------------------------------------------
-	// Pub/Sub bus — Cloud client when env is configured; in-memory bus
-	// otherwise. The bus is wired to the D6.2 outbox dispatcher below.
+	// Event bus — JetStream when NATS_URL is configured; in-memory bus
+	// otherwise. The outbox dispatcher takes the Publisher view of whichever
+	// is wired; the subscriber wiring takes the full Bus (nil when NATS is
+	// unset).
 	// ----------------------------------------------------------------------
-	pubsubClient, pubsubShutdown := bootstrapPubSubClient(ctx)
-	if pubsubShutdown != nil {
-		defer pubsubShutdown()
+	jetBus, busShutdown := bootstrapBus(ctx)
+	if busShutdown != nil {
+		defer busShutdown()
 	}
-	var bus tenancyoutbox.Bus = cgcpubsub.NewInMemoryBus()
-	if pubsubClient != nil {
-		bus = cgcpubsub.NewCloudPublisher(pubsubClient)
-		log.Printf("tenancy: Pub/Sub client wired (project=%s)", os.Getenv("PUBSUB_PROJECT_ID"))
+	var bus tenancyoutbox.Bus = eventbus.NewInMemoryBus()
+	if jetBus != nil {
+		bus = jetBus
+		log.Printf("tenancy: NATS JetStream event bus wired (url=%s)", os.Getenv("NATS_URL"))
+	} else {
+		log.Printf("tenancy: in-memory event bus wired (NATS_URL unset; NOT durable across restart)")
 	}
 
 	// ----------------------------------------------------------------------
@@ -271,15 +273,15 @@ func main() {
 	// Mirrors the chora-delivery D5 closureRepo hoist.
 	// ----------------------------------------------------------------------
 	var closureRepo tnevents.ClosureRepository
-	if pubsubClient != nil {
+	if jetBus != nil {
 		piiPath := os.Getenv("CHORA_PII_CLOSURE_MAP_PATH")
 		if piiPath == "" {
 			piiPath = "config/PII_Closure_Map.yaml"
 		}
 		closureAckPub := tnevents.NewCloudClosurePublisher(
-			cgcpubsub.NewClosureAckPublisher(
-				cgcpubsub.NewCloudPublisher(pubsubClient),
-				os.Getenv("PUBSUB_PROJECT_ID"),
+			eventbus.NewClosureAckPublisher(
+				jetBus,
+				envOrDefault("CHORA_SOURCE_PROJECT", "chora"),
 				"chora-tenancy",
 			),
 		)
@@ -300,7 +302,7 @@ func main() {
 			}
 			go func() {
 				log.Printf("tenancy: closure subscriber binding %s -> %s", closureSubName, tnevents.TopicPseudonymiseRequested)
-				if err := cgcpubsub.NewCloudSubscriber(pubsubClient).Subscribe(ctx, closureSubName, tnevents.ClosurePullHandler(closureSub)); err != nil && !errors.Is(err, context.Canceled) {
+				if err := jetBus.Subscribe(ctx, consumerConfig(closureSubName, tnevents.TopicPseudonymiseRequested), tnevents.ClosurePullHandler(closureSub)); err != nil && !errors.Is(err, context.Canceled) {
 					log.Printf("tenancy: closure subscriber exited: %v", err)
 				}
 			}()
@@ -312,7 +314,7 @@ func main() {
 	//
 	// Per `feedback_d6_resilience_first_class` + `agentic-resilience-d6`
 	// skill Pillar 2. The OutboxPublisher writes to outbox_events; the
-	// Dispatcher drains to the Pub/Sub bus on a background goroutine.
+	// Dispatcher drains to the event bus on a background goroutine.
 	//
 	// When CHORA_OUTBOX_DSN is unset we fall back to InMemoryStore so the
 	// service stays runnable in dev — production wiring ALWAYS sets the
@@ -344,18 +346,18 @@ func main() {
 	// took events.Recorder accept *tenancyoutbox.Publisher transparently.
 	// Wired into v2Deps.Events below via wireV2DepsEvents so every
 	// /v1/* + /v2/* + /api/v1/admin/* handler emission flows through the
-	// outbox → Pub/Sub dispatcher.
+	// outbox → event-bus dispatcher.
 	//
 	// Debt #50 fix (2026-05-16): prior to this revision the v2 handlers'
 	// Events port was the in-memory events.Recorder default returned by
 	// NewDefaultV2Deps, so tenant.created / addon.activated /
 	// addon.deactivated / addon.upgraded / addon.downgraded /
 	// addon.usage_recorded events were LOST in transit (never reached
-	// Pub/Sub). The familiar_egg HTTP flow already wired the outbox
+	// the bus). The familiar_egg HTTP flow already wired the outbox
 	// publisher via eggDeps.Publisher — this fix brings the rest of the
 	// HTTP surface to parity.
 
-	// Dispatcher runs in the background, draining the outbox to Pub/Sub.
+	// Dispatcher runs in the background, draining the outbox to the bus.
 	dispatcher := tenancyoutbox.NewDispatcher(tenancyoutbox.DispatcherConfig{
 		Store:        outboxStore,
 		Bus:          bus,
@@ -382,7 +384,7 @@ func main() {
 	// inboxFactory() at construction time.
 	//
 	// Per `agentic-resilience-d6` skill Pillar 2 (consumer-side dual of
-	// the outbox), every Pub/Sub subscriber MUST wrap its handler in
+	// the outbox), every subscriber MUST wrap its handler in
 	// idempotent.Store.Process(...). In-process maps are insufficient
 	// under chaos (pod-death loses state; multi-replica → independent
 	// dedupe sets).
@@ -390,7 +392,7 @@ func main() {
 	inboxFactory := newInboxFactory(outboxDB)
 
 	// ----------------------------------------------------------------------
-	// ADR-164 Wave 1 Stage D — chora-payments Pub/Sub subscriber bootstrap.
+	// ADR-164 Wave 1 Stage D — chora-payments subscriber bootstrap.
 	//
 	// chora-tenancy is the originating service for the two Purchase
 	// aggregates extracted to chora-payments (FamiliarEgg + TenantManaTopUp).
@@ -475,7 +477,7 @@ func main() {
 	}
 	// Debt #50 fix — bind v2 handler events to the canonical OutboxPublisher
 	// so HTTP-handler emissions flow through outbox_events → Dispatcher →
-	// Cloud Pub/Sub. Pre-fix the default in-memory recorder swallowed every
+	// event bus. Pre-fix the default in-memory recorder swallowed every
 	// emission.
 	wireV2DepsEvents(&v2Deps, outboxPublisher)
 	log.Printf("tenancy: v2Deps.Events wired to outbox publisher (debt #50 closed)")
@@ -594,7 +596,7 @@ func main() {
 	// CHO-1752 — hydrate the in-memory v2 SubscriptionRegistry from the
 	// pg `add_on_subscriptions` table on boot. Without this, every
 	// tenancy restart wipes every tenant's H+ management view until they
-	// re-Subscribe by hand (Cloud Run revision rollovers in prod; go run
+	// re-Subscribe by hand (container revision rollovers in prod; go run
 	// restarts in local dev). On error we LOG + CONTINUE: a hydration
 	// failure must not block tenancy from serving, because the runtime
 	// path (POST /api/v1/admin/tenants/{id}/addons etc.) still works
@@ -684,7 +686,7 @@ func main() {
 		// legacy Unsubscribe → 30-day-grace path. Same adapter.
 		DeactivationAnchorer: addOnActivator,
 	})
-	paymentsSubWG, psErr := startPaymentsSubscribers(ctx, pubsubClient, paymentsSubscriber)
+	paymentsSubWG, psErr := startPaymentsSubscribers(ctx, jetBus, paymentsSubscriber)
 	if psErr != nil {
 		log.Fatalf("tenancy: ADR-164 payments subscriber bootstrap failed: %v", psErr)
 	}
@@ -704,7 +706,7 @@ func main() {
 		txLedgerRepo := pg.NewTransactionLedgerWriteRepo(pg.NewPgxPoolQuerier(pool))
 		txLedgerSub := tnevents.NewTransactionLedgerSubscriber(txLedgerRepo, inboxFactory())
 		var tlErr error
-		txLedgerSubWG, tlErr = startTransactionLedgerSubscribers(ctx, pubsubClient, txLedgerSub)
+		txLedgerSubWG, tlErr = startTransactionLedgerSubscribers(ctx, jetBus, txLedgerSub)
 		if tlErr != nil {
 			log.Fatalf("tenancy: ADR-205 transaction-ledger subscriber bootstrap failed: %v", tlErr)
 		}
@@ -719,7 +721,7 @@ func main() {
 		atomCountRepo := pg.NewAtomCountWriteRepo(pg.NewPgxPoolQuerier(pool))
 		atomCountSub := tnevents.NewAtomCountSubscriber(atomCountRepo, inboxFactory())
 		var acErr error
-		atomCountSubWG, acErr = startAtomCountSubscribers(ctx, pubsubClient, atomCountSub)
+		atomCountSubWG, acErr = startAtomCountSubscribers(ctx, jetBus, atomCountSub)
 		if acErr != nil {
 			log.Fatalf("tenancy: ADR-217 atom-count subscriber bootstrap failed: %v", acErr)
 		}
@@ -991,7 +993,7 @@ func main() {
 	root.Handle("/", legacyHandler)
 
 	// Wrap with the OTLP HTTP middleware so every request emits a span.
-	tracedHandler := cgcobservability.HTTPMiddleware()(root)
+	tracedHandler := tenancyobservability.HTTPMiddleware()(root)
 
 	addr := ":" + port
 	srv := &http.Server{
@@ -1068,9 +1070,25 @@ func main() {
 		txHistoryServer := tenancygrpc.NewTransactionHistoryServer(txReadRepo, txAuditEmitter).
 			WithFranchisees(txReadRepo)
 
-		// Transaction exports previously depended directly on GCS. They remain
-		// disabled until a local/portable object-storage adapter is configured.
-		log.Printf("tenancy: transaction export DISABLED (no local object-storage adapter configured)")
+		// B5/CHO-1941 async export — gated on the export bucket env. When set,
+		// wire the S3-compatible object store + the export-job repo + start the
+		// poll-based build worker (RunLoop bound to the shutdown ctx); otherwise
+		// the export RPCs return Unavailable (no silent half-feature). The
+		// worker is OFF the request path, so a slow object-store sign cannot
+		// 504 a user request.
+		if exportBucket := strings.TrimSpace(os.Getenv("CHORA_TENANCY_EXPORT_BUCKET")); exportBucket != "" {
+			exportStore, esErr := tenancys3.NewExportStorage(exportBucket)
+			if esErr != nil {
+				log.Fatalf("tenancy: export storage: %v", esErr)
+			}
+			exportRepo := pg.NewTransactionExportRepo(pg.NewPgxPoolQuerier(pool))
+			txHistoryServer = txHistoryServer.WithExports(exportRepo)
+			worker := exportworker.New(exportRepo, txReadRepo, exportStore, exportworker.Config{}, log.Default())
+			go worker.RunLoop(ctx)
+			log.Printf("tenancy: transaction export worker running (bucket=%s)", exportBucket)
+		} else {
+			log.Printf("tenancy: transaction export DISABLED (CHORA_TENANCY_EXPORT_BUCKET unset) — Create/GetTransactionExport return Unavailable")
+		}
 
 		tenancyv1.RegisterTransactionHistoryServiceServer(grpcSrv, txHistoryServer)
 
@@ -1143,8 +1161,8 @@ func main() {
 			log.Printf("tenancy: final outbox drain published %d rows", n)
 		}
 
-		// ADR-164 payments subscriber drain — bounded so a stuck Cloud
-		// Pub/Sub receive loop doesn't hold up pod shutdown.
+		// ADR-164 payments subscriber drain — bounded so a stuck
+		// receive loop doesn't hold up pod shutdown.
 		drainPaymentsSubscribers(paymentsSubWG, 5*time.Second)
 		// ADR-205 transaction-ledger projection subscriber drain (same
 		// bounded shutdown; helper is nil-safe).

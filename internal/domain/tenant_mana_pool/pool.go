@@ -5,7 +5,7 @@
 //
 // Hexagonal: this package is the pure domain core for the mana-pool +
 // allocation feature set. It has NO dependencies on HTTP, persistence,
-// Stripe, Pub/Sub, or any other infrastructure. All such concerns live in
+// Stripe, the event bus, or any other infrastructure. All such concerns live in
 // adapter packages (`internal/adapter/...`) that import this domain.
 //
 // Aggregate invariants (per BE-USR-3 brief):

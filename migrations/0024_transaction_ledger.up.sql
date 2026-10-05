@@ -8,7 +8,7 @@
 --
 -- The CQRS READ projection for the unified transaction timeline (payments +
 -- mana), owned by chora_tenancy (Billing) per ADR-205 resolved-decision #1.
--- Fed by Pub/Sub event subscribers (B2 / CHO-1938); served scope-aware via
+-- Fed by event subscribers (B2 / CHO-1938); served scope-aware via
 -- gRPC (B3 / CHO-1939). Cross-DB-clean: NO FKs to other domains; cross-domain
 -- ids are opaque UUID/text refs validated upstream (DDD invariant).
 --

@@ -1,4 +1,4 @@
-// Package protodecode decodes inbound Pub/Sub message bytes into a
+// Package protodecode decodes inbound event-bus message bytes into a
 // snake_case map[string]any compatible with the legacy json.Unmarshal flow.
 //
 // Why this package exists
@@ -45,23 +45,22 @@ var binaryDecoders = map[string]struct {
 	project projector
 }{}
 
-// DecodePayloadMap decodes inbound Pub/Sub message bytes into a snake_case
+// DecodePayloadMap decodes inbound event-bus message bytes into a snake_case
 // map[string]any.
 //
-// Use DecodePayloadMapWithAttrs when the caller has Pub/Sub msg.Attributes
+// Use DecodePayloadMapWithAttrs when the caller has message attributes
 // available — the publisher places envelope fields (event_id / tenant_id /
 // gcid / traceparent) there, not in the payload body.
 func DecodePayloadMap(topic string, payload []byte) (map[string]any, error) {
 	return DecodePayloadMapWithAttrs(topic, payload, nil)
 }
 
-// DecodePayloadMapWithAttrs decodes inbound Pub/Sub message bytes + the
-// publisher-supplied msg.Attributes into a snake_case map[string]any.
+// DecodePayloadMapWithAttrs decodes inbound event-bus message bytes + the
+// publisher-supplied message attributes into a snake_case map[string]any.
 //
 // Field precedence (high → low):
 //  1. Binary proto Envelope (when payload is binary-decodable for this topic)
-//  2. Pub/Sub msg.Attributes (publisher's canonical envelope projection per
-//     chora-common/pubsub.envelopeAttributes)
+//  2. Message attributes (publisher's canonical envelope projection)
 //  3. JSON payload body
 //
 // nil attrs ⇒ legacy DecodePayloadMap behaviour. Empty payload ⇒
@@ -156,7 +155,7 @@ func DecodePayloadIntoWithAttrs(topic string, payload []byte, attrs map[string]s
 	return nil
 }
 
-// mergeAttrsEnvelope projects Pub/Sub msg.Attributes onto the decoded map's
+// mergeAttrsEnvelope projects message attributes onto the decoded map's
 // canonical envelope keys. Empty / missing attrs are no-ops.
 //
 // Attribute key mapping (publisher → consumer field name):

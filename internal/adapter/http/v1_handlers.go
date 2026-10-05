@@ -14,8 +14,8 @@
 //	POST   /v1/admin/tenants/{id}/addons/{addonPlanId}/usage:record       record one usage snapshot (test + nightly job)
 //	POST   /v1/admin/tenants/{id}/addons/{addonPlanId}/usage:flush        emit chora.tenancy.addon.usage_recorded.v1
 //
-// All event emission goes through deps.Events (Recorder in tests; Pub/Sub
-// publisher in prod) using the shared envelope conventions.
+// All event emission goes through deps.Events (Recorder in tests; the
+// event-bus publisher in prod) using the shared envelope conventions.
 //
 // Per .claude/skills/secrets-and-env: STRIPE_API_URL is required and is
 // pulled from env in main(); the stub fails closed without it.
@@ -35,9 +35,8 @@ import (
 
 // V1MountInto adds the Phyllis MVP §5.2 + addon lifecycle routes to the v2
 // mux. Called from NewV2Server so a single handler chain covers all
-// versions. Per ai-observability-cloud-trace skill every route is wrapped
-// in v1OtelMiddleware so traceparent propagation + per-route span timing
-// is captured for Cloud Trace.
+// versions. Every route is wrapped in v1OtelMiddleware so traceparent
+// propagation + per-route span timing is captured.
 func v1MountInto(mux *http.ServeMux, deps V2Deps) {
 	mux.HandleFunc("/v1/tenants", v2Logging(v1OtelMiddleware("v1.tenants", handleV1Tenants(deps))))
 	mux.HandleFunc("/v1/tenants/", v2Logging(v1OtelMiddleware("v1.tenants.sub", handleV1TenantSub(deps))))
@@ -45,8 +44,8 @@ func v1MountInto(mux *http.ServeMux, deps V2Deps) {
 }
 
 // v1OtelMiddleware is the per-route OTel-friendly span shim. Captures
-// W3C traceparent propagation + structured request logs that Cloud
-// Logging correlates with Cloud Trace.
+// W3C traceparent propagation + structured request logs that the log
+// pipeline correlates with traces.
 //
 // The actual OTel SDK wiring lands in M12 (per service skeleton README);
 // this middleware reproduces the trace-context propagation discipline so
@@ -282,8 +281,8 @@ func handleV1Golive(deps V2Deps, tenantID string, w http.ResponseWriter, r *http
 
 // stripeCustomerInputFrom is the projection from the Tenant aggregate to
 // the Stripe CreateCustomerInput. Display name + country + currency travel
-// from the light-wizard form; Email is left empty until Identity Platform
-// federates Phyllis's Google IdP profile.
+// from the light-wizard form; Email is left empty until the identity
+// service supplies the owner profile.
 func stripeCustomerInputFrom(t *tenant.Tenant) stripestub.CreateCustomerInput {
 	return stripestub.CreateCustomerInput{
 		TenantID:    t.ID,
@@ -597,7 +596,7 @@ func handleV1ChangeTier(deps V2Deps, tenantID, planID string, w http.ResponseWri
 }
 
 // handleV1RecordUsage records a single usage snapshot for the bucket
-// `today`. Used by tests + the nightly Cloud Run Job's stage-write step.
+// `today`. Used by tests + the nightly rollup job's stage-write step.
 func handleV1RecordUsage(deps V2Deps, tenantID, planID string, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		v2WriteError(w, http.StatusMethodNotAllowed, "method_not_allowed", "method not allowed")

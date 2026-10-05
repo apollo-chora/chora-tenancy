@@ -15,7 +15,7 @@
 // is in-memory until the pgx port lands (main.go "pgx port follow-on").
 //
 // Event note: no chora.tenancy.tenant_mana_pool.* topics exist in the
-// Pub/Sub topology yet — create/auto-renew intentionally emit nothing
+// event topology yet — create/auto-renew intentionally emit nothing
 // (publishing to a nonexistent topic dead-letters the outbox dispatcher).
 // The allocations grant keeps its pre-existing mana_pool.adjusted.v1
 // emission. Recorded as a deferral on CHO-1705 close.

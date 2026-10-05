@@ -541,7 +541,7 @@ func TestManaPoolRepository_Save_RejectsBlankTenantOnPool(t *testing.T) {
 //
 // The refusal is what makes the lane self-healing: the losing handler returns
 // an error, idempotent.PostgresStore.Process does NOT Mark a key whose fn
-// failed, so Pub/Sub redelivers, the retry re-reads the advanced row and
+// failed, so the broker redelivers, the retry re-reads the advanced row and
 // credits on top of it.
 // ----------------------------------------------------------------------------
 

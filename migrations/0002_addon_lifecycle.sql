@@ -23,7 +23,7 @@
 --   4. Indexes for the new query patterns.
 --
 -- All cross-DB FKs forbidden (per ddd-enforcement). GCIDs stored as UUID
--- without FK; cross-domain validation via Pub/Sub events.
+-- without FK; cross-domain validation via events.
 -- =============================================================================
 
 BEGIN;
@@ -106,7 +106,7 @@ CREATE TABLE addon_lifecycle_events (
     requested_by_gcid     UUID                          NULL,            -- cross-DB ref to chora_identity
     effective_at          TIMESTAMPTZ                   NULL,
     occurred_at           TIMESTAMPTZ                   NOT NULL DEFAULT now(),
-    -- Pub/Sub event correlation per envelope conventions.
+    -- Event correlation per envelope conventions.
     event_envelope_id     UUID                          NULL,
     traceparent           VARCHAR(64)                   NULL,
     created_at            TIMESTAMPTZ                   NOT NULL DEFAULT now(),
@@ -144,7 +144,7 @@ CREATE POLICY tenant_isolation ON addon_lifecycle_events
 -- addon_usage_daily — pre-aggregated rollup for STITCH-H-ADD-3
 -- -----------------------------------------------------------------------------
 --
--- Daily bucket rollup populated by a Cloud Run Job consuming
+-- Daily bucket rollup populated by a scheduled job consuming
 -- chora.tenancy.addon.usage_recorded.v1 events. Powers the time-series
 -- chart in the usage analytics screen without scanning the high-volume
 -- raw event topic on every load.

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/events/protodecode"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
@@ -41,7 +41,7 @@ func NewEventLogReplayFeeder() *EventLogReplayFeeder {
 // Returns an error if either subscription fails. The feeder accumulates
 // captures by parsing the payload's `OccurredAt` as the day key.
 func (f *EventLogReplayFeeder) Subscribe(ctx context.Context, bus interface {
-	Subscribe(ctx context.Context, topic string, handler cgcpubsub.Handler) (func(), error)
+	Subscribe(ctx context.Context, topic string, handler eventbus.Handler) (func(), error)
 }) error {
 	topics := []string{
 		"chora.tenancy.payment.captured.v1",
@@ -77,7 +77,7 @@ type minimalPaymentPayload struct {
 	OccurredAt  time.Time `json:"OccurredAt"`
 }
 
-// handle adds a Pub/Sub message's amount to the day bucket.
+// handle adds a message's amount to the day bucket.
 //
 // Wire-format-tolerant via protodecode (proto.Unmarshal first when registered,
 // json.Unmarshal fallback). Today payment.captured topics still emit JSON;
@@ -85,14 +85,14 @@ type minimalPaymentPayload struct {
 // add an entry to protodecode.binaryDecoders.
 //
 // Envelope-aware decode: the bus's parsed Envelope is projected back into
-// Pub/Sub-attribute shape and threaded through protodecode so envelope
-// fields (event_id / tenant_id / gcid) populate even on the JSON-fallback
-// path. The minimalPaymentPayload struct itself doesn't reference envelope
-// fields today — this seam future-proofs the path when a JSON producer
-// adds them OR a publisher flips to binary (#33 / #38).
-func (f *EventLogReplayFeeder) handle(_ context.Context, msg *cgcpubsub.Message) error {
+// attribute shape and threaded through protodecode so envelope fields
+// (event_id / tenant_id / gcid) populate even on the JSON-fallback path. The
+// minimalPaymentPayload struct itself doesn't reference envelope fields today
+// — this seam future-proofs the path when a JSON producer adds them OR a
+// publisher flips to binary (#33 / #38).
+func (f *EventLogReplayFeeder) handle(_ context.Context, msg eventbus.Message) error {
 	var p minimalPaymentPayload
-	if err := protodecode.DecodePayloadIntoWithAttrs(msg.Topic, msg.Payload, attrsFromBusEnvelope(msg), &p); err != nil {
+	if err := protodecode.DecodePayloadIntoWithAttrs(msg.Subject, msg.Payload, attrsFromBusEnvelope(msg), &p); err != nil {
 		// Bad payload — bus retries; eventually DLQ. We don't return error
 		// here because a malformed payload is a producer bug, not a
 		// transient failure. Log + drop.
@@ -108,17 +108,13 @@ func (f *EventLogReplayFeeder) handle(_ context.Context, msg *cgcpubsub.Message)
 	return nil
 }
 
-// attrsFromBusEnvelope projects a cgcpubsub.Message's parsed envelope back
-// into the Pub/Sub-attribute shape expected by protodecode. The bus
-// reconstructs Envelope from msg.Attributes on receive (per
-// chora-common/pubsub.envelopeFromAttributes); this is the inverse.
-func attrsFromBusEnvelope(msg *cgcpubsub.Message) map[string]string {
-	if msg == nil {
-		return nil
-	}
+// attrsFromBusEnvelope projects an eventbus.Message's parsed envelope back
+// into the attribute shape expected by protodecode. The bus reconstructs
+// Envelope from the broker's headers on receive; this is the inverse.
+func attrsFromBusEnvelope(msg eventbus.Message) map[string]string {
 	env := msg.Envelope
 	attrs := map[string]string{
-		"topic":     msg.Topic,
+		"topic":     msg.Subject,
 		"event_id":  env.EventID,
 		"tenant_id": env.TenantID,
 		"gcid":      env.GCID,
@@ -145,7 +141,7 @@ func attrsFromBusEnvelope(msg *cgcpubsub.Message) map[string]string {
 }
 
 // Record is a test seam — directly add a capture to the feeder's accumulator.
-// Use this to pre-load history without going through Pub/Sub.
+// Use this to pre-load history without going through the broker.
 func (f *EventLogReplayFeeder) Record(day time.Time, cents int64) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

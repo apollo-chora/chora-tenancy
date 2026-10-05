@@ -17,7 +17,7 @@
 // wiring lives in cmd/server/main.go against the chora_tenancy
 // idempotency_keys table (migration 0006_idempotency_keys.up.sql).
 //
-// Per CLAUDE.md §6 the cross-domain wire is Pub/Sub events only.
+// Per CLAUDE.md §6 the cross-domain wire is events only.
 // Cross-DB queries forbidden — chora-consumption publishes the upstream
 // events; chora-tenancy subscribes here.
 package usagesub
@@ -36,7 +36,7 @@ import (
 )
 
 // InboxTTL is the dedupe-key retention window for the subscriber's inbox.
-// 24h covers Pub/Sub max redelivery window (7d default) reduced for usage
+// 24h covers the broker max redelivery window (7d default) reduced for usage
 // events' typical end-to-end latency. Production may tune via
 // WithInboxTTL.
 const InboxTTL = 24 * time.Hour
@@ -102,7 +102,7 @@ func (s *AddonUsageSubscriber) WithInboxTTL(ttl time.Duration) *AddonUsageSubscr
 // addon's UsageSnapshot for the (tenant, addon, day) bucket.
 //
 // Idempotency is enforced by inbox.Process(...) on the
-// (tenant_id :: addon_code :: source_event_id) key. A duplicate Pub/Sub
+// (tenant_id :: addon_code :: source_event_id) key. A duplicate event
 // delivery (pod restart, multi-replica race, retry-after-ack-window)
 // hits the same key + skips the handler body, returning nil. The dedup
 // token lives for InboxTTL in the domain's idempotency_keys table.

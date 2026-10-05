@@ -2,13 +2,13 @@
 // for chora-tenancy's outbox event payloads.
 //
 // Per CLAUDE.md §development-execution + feedback_strict_tdd, tests are
-// written BEFORE the encoder lands. Each test pins a specific Schema
-// Registry-attached topic's wire layout per
+// written BEFORE the encoder lands. Each test pins a specific
+// proto-contracted topic's wire layout per
 // chora-contracts/proto/events-flat/tenancy/* — those flat protos ARE the
-// registered schemas (see `gcloud pubsub schemas list`).
+// canonical schemas.
 //
 // Gap closed: chora-tenancy's OutboxPublisher persisted JSON-marshalled
-// payload bytes that Pub/Sub Schema Registry (BINARY encoding) rejected at
+// payload bytes that the flat proto contract (BINARY encoding) rejected at
 // publish time with "Invalid binary proto message". Fix is producer-side
 // inside the outbox path; the dispatcher passes bytes through unchanged.
 package protomarshal_test

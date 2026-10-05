@@ -11,8 +11,8 @@
 //   - Preview-only — returns the same payload but never persists; the
 //     ScheduleID is left empty so the caller can detect preview mode.
 //
-// Per CLAUDE.md §6 (no inline config) Stripe URL + key flow from env vars
-// sourced from Terraform / Secret Manager. Real wiring (M14) hits
+// Per CLAUDE.md §6 (no inline config) Stripe URL + key flow from env vars.
+// Real wiring (M14) hits
 //
 //	POST /v1/subscription_schedules { phases: [{...}, {...}] }
 //

@@ -99,7 +99,7 @@ func TestEmitCrossTenantViewed(t *testing.T) {
 // context that may carry no W3C trace context. The envelope's traceparent is
 // mandatory — without it the shared envelope Validate() rejects the row
 // pre-publish ("envelope: traceparent is required") and the compliance audit
-// deadletters instead of reaching Pub/Sub. The emitter mints a synthetic-root
+// deadletters instead of reaching the bus. The emitter mints a synthetic-root
 // traceparent when the context has none.
 func TestEmitCrossTenantViewed_StampsTraceparent_WhenContextHasNone(t *testing.T) {
 	store := &captureStore{}

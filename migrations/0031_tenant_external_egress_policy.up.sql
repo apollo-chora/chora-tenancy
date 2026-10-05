@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS tenant_external_egress_policies (
 
     -- Monotonic. Increments ONLY on a real change (an identical write is a
     -- no-op). Carried on the policy-changed event so the chora-observability
-    -- projection can reject an OUT-OF-ORDER Pub/Sub delivery: a stale event
+    -- projection can reject an OUT-OF-ORDER event delivery: a stale event
     -- whose version <= the projected version is discarded, never applied.
     version             BIGINT      NOT NULL DEFAULT 1,
 

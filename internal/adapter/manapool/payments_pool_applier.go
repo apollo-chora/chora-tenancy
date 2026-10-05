@@ -1,6 +1,6 @@
 // Payments-subscriber PoolApplier — wires the events.PaymentsSubscriber's
 // PoolApplier port to the existing tenant_mana_pool.PoolStore so chora-
-// payments Pub/Sub events (ADR-164) can credit / debit the canonical
+// payments events (ADR-164) can credit / debit the canonical
 // `tenant_mana_pools.balance_units` aggregate.
 //
 // Cross-DB-forbidden compliance: this adapter ONLY touches chora_tenancy.

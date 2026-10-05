@@ -1,4 +1,4 @@
-// Package manapool — Pub/Sub publisher for the 7 mana topics.
+// Package manapool — event-bus publisher for the 7 mana topics.
 //
 // 7 NEW topics introduced by BE-USR-3:
 //
@@ -10,7 +10,7 @@
 //  6. chora.tenancy.tenant_mana_allocation.revoked.v1
 //  7. chora.tenancy.tenant_mana_allocation.expired.v1
 //
-// The Publisher port is implemented in production by a Cloud Pub/Sub
+// The Publisher port is implemented in production by the event-bus
 // adapter (M12+). For the BE-USR-3 skeleton we ship a recorder that
 // captures published events in-process for test assertions.
 //
@@ -170,7 +170,7 @@ func buildEnvelope(hdr EnvelopeHeader) Envelope {
 		PublishedAt:    now,
 		Traceparent:    tp,
 		Tracestate:     hdr.Tracestate,
-		SourceProject:  envOr("CHORA_TENANCY_GCP_PROJECT", "chora-489812"),
+		SourceProject:  envOr("CHORA_SOURCE_PROJECT", "chora-489812"),
 		SourceService:  ServiceName,
 		SchemaVersion:  schemaVersion,
 	}

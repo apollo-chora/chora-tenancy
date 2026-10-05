@@ -1,7 +1,7 @@
 // Tests for the runtime entry point of the extract binary —
 // env parsing + null-time projection. The cross-DB streaming logic
 // (runExtract / extractEggs / extractManaTopUps / validateParity) is
-// exercised by the chora-infra migrations-runner integration job;
+// exercised by the migrations-runner integration job;
 // these unit tests cover the pure-Go helpers + the env contract.
 package main
 

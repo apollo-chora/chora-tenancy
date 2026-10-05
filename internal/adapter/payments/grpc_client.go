@@ -14,7 +14,7 @@
 // originating-service write path to that home over mTLS-backed gRPC
 // (Cloud Service Mesh handles the SPIFFE identity + transport).
 //
-// The async ORIGINATING-SERVICE NOTIFICATION path (Pub/Sub events
+// The async ORIGINATING-SERVICE NOTIFICATION path (events
 // chora.payments.{aggregate}.{event_type}.v1) lives in
 // internal/adapter/events/payments_subscriber.go — it is what materialises
 // FamiliarInstance provisioning + tenant_mana_pool.balance_units

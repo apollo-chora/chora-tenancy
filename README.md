@@ -2,7 +2,7 @@
 
 Tenancy, membership, entitlement, billing, and related platform services for Chora.
 
-The service is designed to run locally with Docker Compose and uses environment variables for configuration. No GCP account, Workload Identity, Secret Manager, Cloud SQL, Cloud Build, or Cloud Deploy setup is required.
+The service is designed to run locally with Docker Compose and uses environment variables for configuration. No cloud account or managed services (managed SQL, message broker, object storage, secret manager, or CI/CD) are required.
 
 ## Local stack
 
@@ -10,7 +10,7 @@ The default Compose stack contains:
 
 - **chora-tenancy** — HTTP and gRPC service
 - **PostgreSQL 18** — tenancy data, durable outbox, and subscriber idempotency
-- **Google Pub/Sub emulator** — local event publishing and subscriptions
+- **NATS JetStream** — local event publishing and subscriptions (streams provisioned by `nats-init`)
 
 Stripe is optional. When no Stripe API key is configured, the service uses its development stub.
 
@@ -36,8 +36,10 @@ Important variables:
 | `CHORA_GRPC_PORT` | gRPC port | `9090` |
 | `CHORA_DB_DSN` | PostgreSQL connection string | Compose PostgreSQL |
 | `CHORA_OUTBOX_DSN` | Durable outbox/inbox database | Same PostgreSQL instance |
-| `PUBSUB_PROJECT_ID` | Logical Pub/Sub project | `chora-local` |
-| `PUBSUB_EMULATOR_HOST` | Pub/Sub emulator endpoint | `pubsub:8085` |
+| `NATS_URL` | NATS JetStream event bus | `nats://nats:4222` |
+| `S3_ENDPOINT` | S3-compatible object storage | `http://minio:9000` |
+| `CHORA_TENANCY_EXPORT_BUCKET` | Bucket for ADR-205 exports (empty = disabled) | empty |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP/gRPC trace endpoint | `http://otel-collector:4317` |
 | `STRIPE_API_KEY` | Optional Stripe API key | empty |
 | `STRIPE_WEBHOOK_SECRET` | Optional Stripe webhook secret | empty |
 
@@ -89,13 +91,13 @@ The service reads its connection details from `CHORA_DB_DSN`. `CHORA_OUTBOX_DSN`
 
 Database schema changes live in `migrations/`.
 
-## Pub/Sub
+## Event bus
 
-Local messaging uses the Google Pub/Sub emulator. The existing Pub/Sub application interfaces are retained so event publishing and subscriber behavior remain compatible with the service's current contracts.
+Local messaging uses NATS JetStream. The event taxonomy (`chora.{domain}.{aggregate}.{event_type}.v{N}`) is unchanged, and the transport is brokered by `github.com/apollo-chora/chora-common/eventbus`.
 
-The Google Pub/Sub client recognizes `PUBSUB_EMULATOR_HOST` and connects to the emulator instead of the hosted Google service. Emulator traffic does not require Google credentials.
+`nats-init` provisions two streams: `CHORA_EVENTS` (subjects `chora.>`) and `CHORA_DLQ` (subjects `_dlq.>`, the dead-letter convention). Consumers are durable, created on demand by the service.
 
-If `PUBSUB_PROJECT_ID` is unset, the application falls back to its in-memory event bus where supported.
+If `NATS_URL` is unset, the application falls back to its in-memory event bus where supported.
 
 ## Stripe
 
@@ -110,13 +112,13 @@ STRIPE_CANCEL_URL=http://localhost:3000/billing/cancel
 
 Leaving the API key empty keeps the development Stripe stub enabled.
 
-There is no Secret Manager integration in the local runtime.
-
 ## Transaction exports
 
-The previous transaction-export implementation depended directly on Google Cloud Storage. That integration has been disabled while the service is moved away from GCP.
-
-A portable object-storage adapter can be added later if transaction exports are required.
+ADR-205 asynchronous transaction exports write a CSV/JSON object to S3-compatible
+object storage (MinIO locally) and mint a presigned GET URL. Set
+`CHORA_TENANCY_EXPORT_BUCKET` (with `S3_ENDPOINT` / credentials) to enable the
+export worker; leaving the bucket empty keeps it disabled and the export RPCs
+return `Unavailable`.
 
 ## Development
 
@@ -134,14 +136,12 @@ Runtime configuration belongs in environment variables, normally supplied throug
 
 Infrastructure-specific authentication is intentionally kept out of the service. In particular, the local deployment does not require:
 
-- Google Cloud credentials
-- Workload Identity
-- Secret Manager
-- Cloud SQL
-- Cloud Storage
-- Cloud Build
-- Cloud Deploy
-- GKE
-- build-evidence buckets or Binary Authorization
+- cloud credentials or federated identity
+- a managed secret store
+- managed SQL
+- managed object storage
+- managed message broker
+- managed build/deploy pipelines
+- Kubernetes
 
 This keeps the service deployable on a normal Docker host while preserving its PostgreSQL, outbox, event, HTTP, and gRPC behavior.

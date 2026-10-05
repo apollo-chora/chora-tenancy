@@ -1,10 +1,10 @@
 // Package outbox — Dispatcher implementation.
 //
-// Dispatcher drains pending outbox_events rows to Cloud Pub/Sub. Composes
+// Dispatcher drains pending outbox_events rows to the event bus. Composes
 // Store.FetchPending → Bus.Publish → Store.MarkPublished / MarkFailed /
 // Deadletter. On max-attempts exhaustion the row lands in
-// outbox_dead_letters AND a Pub/Sub-side DLQ subscription (configured in
-// Terraform — see m10-pubsub-dlq).
+// outbox_dead_letters AND the broker-side DLQ (the JetStream consumer's
+// _dlq.<subject> stream).
 //
 // Per `feedback_d6_resilience_first_class` B.6.2.a — dispatcher is the
 // retry + DLQ ladder for the producer-side outbox. Subscriber-side
@@ -25,9 +25,9 @@ import (
 	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
 )
 
-// Bus is the Pub/Sub publisher contract the Dispatcher uses. Matches
-// `chora-common/pubsub.OutboxCompatible` so the InMemoryBus + the
-// CloudPubSub adapter slot in directly.
+// Bus is the event-bus publisher contract the Dispatcher uses. It is
+// structurally identical to `chora-common/eventbus.Publisher`, so a
+// JetStream (or in-memory) eventbus.Bus slots in directly.
 type Bus interface {
 	Publish(ctx context.Context, topic string, env cgcenvelope.Envelope, payload []byte) error
 }
@@ -37,7 +37,7 @@ type DispatcherConfig struct {
 	// Store is the outbox table backend. Required.
 	Store Store
 
-	// Bus is the Pub/Sub publisher. Required.
+	// Bus is the event-bus publisher. Required.
 	Bus Bus
 
 	// WorkerID identifies the dispatcher worker that records Deadletter
@@ -73,7 +73,7 @@ type DispatcherConfig struct {
 }
 
 // Logger is the minimal contract used by the Dispatcher. The bootstrap
-// wiring passes a Cloud Logging adapter in production; tests use the
+// wiring passes a structured-log adapter in production; tests use the
 // default stdlib bridge.
 type Logger interface {
 	Infof(format string, args ...any)
@@ -198,7 +198,7 @@ func (d *Dispatcher) publishOne(ctx context.Context, row *Row) error {
 
 // Run drives DrainOnce in a loop until ctx is canceled, sleeping
 // PollInterval between empty drain cycles. Designed for long-running
-// Cloud Run / GKE workers.
+// workers.
 //
 // Returns context.Canceled / context.DeadlineExceeded when the caller
 // stops the dispatcher.

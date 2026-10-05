@@ -12,7 +12,7 @@
 --   chora_tenancy.familiar_egg_purchases     → chora_payments.familiar_egg_purchases
 --   chora_tenancy.tenant_mana_pool_topups    → chora_payments.tenant_mana_topups
 --
--- The Cloud SQL `migrations-runner` (chora-infra/scripts/migrations-runner/
+-- The `migrations-runner` (scripts/migrations-runner/
 -- runner.sh) applies migrations one-database-at-a-time via psql with the per-
 -- DB `migrate` role DSN. The `dblink` extension is NOT pre-loaded; the
 -- canonical cross-DB read used by Wave 1 Stage D is the dedicated Go
@@ -21,9 +21,8 @@
 --   services/chora-tenancy/cmd/extract-purchases-to-payments/main.go
 --
 -- That binary connects to BOTH chora_tenancy AND chora_payments via the
--- standard pgxpool wiring (env-driven DSNs — see canonical
--- CHORA_DB_DSN + CHORA_PAYMENTS_DB_DSN secret name pattern in chora-infra/
--- scripts/bootstrap-cloudsql-users.sh) and idempotently INSERTs the
+-- standard pgxpool wiring (env-driven DSNs — CHORA_DB_DSN +
+-- CHORA_PAYMENTS_DB_DSN) and idempotently INSERTs the
 -- chora_tenancy rows into chora_payments with column-mapped UPSERT
 -- semantics. Re-running the binary is a no-op once rows are in place
 -- (ON CONFLICT DO NOTHING on purchase_id / stripe_session_id).
@@ -47,19 +46,17 @@
 --        purchases + chora_tenancy.tenant_mana_pool_topups AND has
 --        INSERT on chora_payments.familiar_egg_purchases +
 --        chora_payments.tenant_mana_topups.
---     4. (No-rollback safety) Take a fresh Cloud SQL backup BEFORE running
---        the extract:
---           gcloud sql backups create --instance chora-dev \
---             --description 'pre-adr164-stage-d-extract-2026-05-24'
+--     4. (No-rollback safety) Take a fresh database backup BEFORE running
+--        the extract.
 --
 --   EXECUTE:
 --     1. Apply this migration via the canonical migrations-runner Job.
 --        It is a NO-OP marker — the runner records 0016 as applied.
---     2. Run the extract binary against the dev / staging / prod Cloud SQL
+--     2. Run the extract binary against the dev / staging / prod Postgres
 --        instance:
---             cd services/chora-tenancy/cmd/extract-purchases-to-payments
---             CHORA_DB_DSN="$(get_secret chora-dev-cloudsql-chora_tenancy-migrate-dsn)" \
---             CHORA_PAYMENTS_DB_DSN="$(get_secret chora-dev-cloudsql-chora_payments-migrate-dsn)" \
+--             cd cmd/extract-purchases-to-payments
+--             CHORA_DB_DSN="$CHORA_DB_DSN" \
+--             CHORA_PAYMENTS_DB_DSN="$CHORA_PAYMENTS_DB_DSN" \
 --             EXTRACT_MODE=apply \
 --             go run .
 --        Set EXTRACT_MODE=dry_run first to preview row counts without

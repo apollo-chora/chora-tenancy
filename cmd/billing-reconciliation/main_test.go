@@ -1,4 +1,4 @@
-// main_test.go — unit tests for the billing-reconciliation Cloud Run Job
+// main_test.go — unit tests for the billing-reconciliation job
 // entrypoint's pure helpers. main() itself needs a full config/env + live
 // bus, so coverage targets pickReconciliationDay (the cron-day decision).
 package main

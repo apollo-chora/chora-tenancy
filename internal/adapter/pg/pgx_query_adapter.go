@@ -2,7 +2,7 @@
 // local Rows surface for the QueryRunner port.
 //
 // Trivial pass-through wrappers; covered by integration tests against a
-// real Cloud SQL fixture in M14. NOT exercised in unit tests (no way to
+// real Postgres fixture in M14. NOT exercised in unit tests (no way to
 // construct a pgx.Rows without a real pool).
 package pg
 

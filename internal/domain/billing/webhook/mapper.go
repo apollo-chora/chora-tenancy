@@ -16,7 +16,7 @@
 //     within a tolerance window.
 //
 // Dependency direction (per .claude/skills/hexagonal): domain has NO infra
-// imports — no Stripe SDK type references, no Pub/Sub, no DB. The HTTP
+// imports — no Stripe SDK type references, no broker, no DB. The HTTP
 // adapter parses the wire body into webhook.StripeEvent and the pubsub /
 // outbox adapters consume the Classification result.
 //

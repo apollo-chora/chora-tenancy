@@ -1,12 +1,10 @@
 //go:build integration
 
-// Live Cloud SQL integration tests for the legacy /api/* pgx adapters (A7).
+// Live Postgres integration tests for the legacy /api/* pgx adapters (A7).
 //
 // Run with:
 //
-//	export GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/gcloud/sa-keys/dale-cli-chora-489812.json
-//	export CHORA_TEST_DSN_SECRET_ID=chora-dev-cloudsql-chora_tenancy-app_rw-dsn
-//	export CHORA_TEST_DB_PROJECT=chora-489812
+//	export CHORA_TEST_DSN=postgres://chora_tenancy_migrate:chora@localhost:5432/chora_tenancy?sslmode=disable
 //	go test -tags integration ./internal/adapter/pg/...
 //
 // Verifies (against the app_rw role — NOBYPASSRLS, migration 0013):
@@ -35,7 +33,7 @@ import (
 	tenancy "github.com/apollo-chora/chora-tenancy/internal/domain/tenancy"
 )
 
-// Phyllis demo cast (deterministic UUIDs — see chora-infra/seed/phyllis/02_tenancy.sql).
+// Phyllis demo cast (deterministic UUIDs from the seed data).
 const (
 	itMTMTenant  = "11111111-1111-7111-8111-111111111111"
 	itChenTenant = "22222222-2222-7222-8222-222222222222"

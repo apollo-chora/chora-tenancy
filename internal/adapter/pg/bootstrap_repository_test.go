@@ -5,9 +5,7 @@
 // Run with the same DSN env-var harness as the other live-DB integration
 // tests in this package:
 //
-//	export GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/gcloud/sa-keys/dale-cli-chora-489812.json
-//	export CHORA_TEST_DSN_SECRET_ID=chora-dev-cloudsql-chora_tenancy-migrate-dsn
-//	export CHORA_TEST_DB_PROJECT=chora-489812
+//	export CHORA_TEST_DSN=postgres://chora_tenancy_migrate:chora@localhost:5432/chora_tenancy?sslmode=disable
 //	go test -tags integration ./internal/adapter/pg/...
 //
 // Uses the `migrate` role DSN (not `app_rw`) because Persist needs to
@@ -116,7 +114,7 @@ func TestIntegration_BootstrapRepository_Persist_writesAllThreeRows(t *testing.T
 
 	// 4. CHO-1630 Phase 2 — outbox_events row landed atomically with
 	// the three bootstrap rows. Topic, payload non-empty, status
-	// pending (dispatcher will flip to published after Cloud Pub/Sub
+	// pending (dispatcher will flip to published after the broker
 	// ack). outbox_events is not tenant-scoped; bypass SET LOCAL.
 	var outboxTopic, outboxStatus, outboxIdemKey string
 	var outboxPayloadLen int

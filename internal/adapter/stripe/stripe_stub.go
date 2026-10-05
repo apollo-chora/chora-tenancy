@@ -1,8 +1,8 @@
 // Package stripestub is the Stripe payment adapter — STUB only.
 //
 // Per CLAUDE.md §6 + secrets-and-env: the Stripe API URL + secret key flow
-// from Terraform / Secret Manager via STRIPE_API_URL + STRIPE_API_KEY env
-// vars. The stub implements the same interface as the real adapter so
+// from the environment via STRIPE_API_URL + STRIPE_API_KEY env vars. The stub
+// implements the same interface as the real adapter so
 // go-live + payment-method + proration + customer create are testable
 // without an external Stripe sandbox.
 //

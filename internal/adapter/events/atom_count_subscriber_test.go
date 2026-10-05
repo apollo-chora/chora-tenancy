@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	cgcenv "github.com/apollo-chora/chora-common/envelope"
+	"github.com/apollo-chora/chora-common/eventbus"
 	"github.com/apollo-chora/chora-common/idempotent"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 )
 
 type fakeAtomCountRepo struct {
@@ -36,9 +36,9 @@ func newAtomCountSub(repo *fakeAtomCountRepo) *AtomCountSubscriber {
 	return NewAtomCountSubscriber(repo, idempotent.NewMemoryStore())
 }
 
-func atomMsg(topic, eventID, tenant string) *cgcpubsub.Message {
-	return &cgcpubsub.Message{
-		Topic:    topic,
+func atomMsg(topic, eventID, tenant string) eventbus.Message {
+	return eventbus.Message{
+		Subject:  topic,
 		Envelope: cgcenv.Envelope{EventID: eventID, TenantID: tenant},
 	}
 }
@@ -106,13 +106,6 @@ func TestAtomCountSubscriber_UnhandledTopicErrors(t *testing.T) {
 	const other = "chora.creation.atom.updated.v1"
 	if err := s.Handle(context.Background(), other, atomMsg(other, "e", "ten-1")); err == nil {
 		t.Fatal("unhandled topic must error, got nil")
-	}
-}
-
-func TestAtomCountSubscriber_NilMessageErrors(t *testing.T) {
-	s := newAtomCountSub(newFakeAtomCountRepo())
-	if err := s.Handle(context.Background(), topicAtomCreated, nil); err == nil {
-		t.Fatal("nil message must error")
 	}
 }
 

@@ -1,7 +1,7 @@
 // membership_write_repository_test.go — unit tests for the pgx
 // MembershipWriteRepository (ADR-182 UpsertMembership write path).
 //
-// Stubs QueryRunner + TxQuerier — no live Cloud SQL. The RLS semantics
+// Stubs QueryRunner + TxQuerier — no live Postgres. The RLS semantics
 // (SET LOCAL chora.tenant_id) are exercised by RunInTenantTx itself and
 // covered by the existing pg integration tests; these tests assert the
 // SQL shapes, the guard ordering, and the sentinel error mapping.

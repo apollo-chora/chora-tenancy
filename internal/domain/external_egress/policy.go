@@ -57,7 +57,7 @@ type Policy struct {
 
 	// Version is monotonic and increments ONLY on a real change. It is the
 	// stale-event guard the chora-observability projection uses to reject an
-	// out-of-order Pub/Sub delivery, so it must never move backwards and never
+	// out-of-order event delivery, so it must never move backwards and never
 	// move without a corresponding change. Version 0 means "never persisted".
 	Version int64
 

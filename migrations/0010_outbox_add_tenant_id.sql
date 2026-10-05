@@ -7,7 +7,7 @@
 --   ERROR: column "tenant_id" does not exist (SQLSTATE 42703)
 --
 -- when scanning outbox_events. Verified live 2026-05-14 against pod
--- chora-tenancy-6fbfbd74b9-rtdpc (namespace=tenancy) — Cloud Logging
+-- chora-tenancy-6fbfbd74b9-rtdpc (namespace=tenancy) — the log pipeline
 -- shows 1000+ matches in the past 24h (rate limit hit; actual count
 -- likely higher).
 --

@@ -3,7 +3,7 @@
 // add_on_subscriptions_rls_force_integration_test.go: the owner hole and the
 // unguarded cast on `add_on_subscriptions` (UX Track U, row E4, migration 0040).
 //
-// Run against the local Postgres 18 mirror while Cloud SQL is cost-paused:
+// Run against the local Postgres 18:
 //
 //	CHORA_TEST_DSN='postgres://chora_tenancy_migrate:dev@localhost:5432/chora_tenancy?sslmode=disable' \
 //	  go test -tags integration ./internal/adapter/pg/ -run Integration_AddOnSubscriptionsRLS
@@ -33,9 +33,8 @@
 //     an isolation failure should read as "no rows", never as a 500.
 //
 // NOT A LIVE BYPASS, verified rather than assumed: chora-tenancy connects as
-// `chora_tenancy_app_rw` (deployment env `CHORA_DB_DSN_SECRET_ID` resolves
-// `chora-dev-cloudsql-chora_tenancy-app_rw-dsn`, whose DSN username reads
-// `chora_tenancy_app_rw`), and app_rw is NOBYPASSRLS per migration 0013 and was
+// `chora_tenancy_app_rw` (deployment env `CHORA_DB_DSN` resolves to a DSN whose
+// username reads `chora_tenancy_app_rw`), and app_rw is NOBYPASSRLS per migration 0013 and was
 // already filtered. FORCE closes the hole for the owner role, which is the
 // migrations runner and this test suite. So this is hardening, not an incident.
 package pg_test

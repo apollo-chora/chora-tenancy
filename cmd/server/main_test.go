@@ -193,7 +193,7 @@ func clearStripeURLs(t *testing.T) {
 // addon.activated / addon.deactivated / addon.upgraded /
 // addon.downgraded / addon.usage_recorded HTTP-handler emission landed
 // in an in-memory ring buffer and NEVER reached the OutboxPublisher,
-// so they never reached Pub/Sub.
+// so they never reached the event bus.
 //
 // These tests pin the composition-root contract:
 //

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/apollo-chora/chora-common/envelope"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 	"github.com/apollo-chora/chora-tenancy/internal/config"
 )
@@ -29,9 +29,9 @@ func pullPIIMap() *config.PIIClosureMap {
 	}
 }
 
-func pullMsg(payload string) *cgcpubsub.Message {
-	return &cgcpubsub.Message{
-		Topic: events.TopicPseudonymiseRequested,
+func pullMsg(payload string) eventbus.Message {
+	return eventbus.Message{
+		Subject: events.TopicPseudonymiseRequested,
 		Envelope: envelope.Envelope{
 			TenantID:    pullTenant,
 			GCID:        pullGCID,

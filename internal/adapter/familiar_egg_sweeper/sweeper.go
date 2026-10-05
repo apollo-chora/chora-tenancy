@@ -94,7 +94,7 @@ func New(cfg Config) *Sweeper {
 // wait for ctx.Done). The feature-flag-off default keeps the binary's
 // concurrency footprint identical to pre-Iter G.3.
 //
-// TODO(iter_g.6): batch retries + backoff + Cloud Trace span per sweep.
+// TODO(iter_g.6): batch retries + backoff + trace span per sweep.
 func (s *Sweeper) Run(ctx context.Context) error {
 	if !s.cfg.Enabled {
 		log.Printf("familiar_egg_sweeper: disabled (ENABLE_EGG_EXPIRY_SWEEPER=false); skipping loop")

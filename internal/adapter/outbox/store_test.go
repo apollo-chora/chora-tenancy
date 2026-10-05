@@ -3,7 +3,7 @@
 //
 // The store is the producer-side durable-emission seam. The Publisher
 // stamps a pending row inside the request handler; the Dispatcher drains
-// pending rows to Cloud Pub/Sub on a separate goroutine.
+// pending rows to the event bus on a separate goroutine.
 //
 // Two implementations:
 //

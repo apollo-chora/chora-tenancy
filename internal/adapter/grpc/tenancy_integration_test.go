@@ -15,7 +15,7 @@
 // pattern but with `//go:build integration` so stage 3 picks it up.
 //
 // The existing internal/adapter/pg/{integration_test.go, legacy_tenancy_integration_test.go}
-// require CHORA_TEST_DSN + Cloud SQL — they auto-skip in CI without the env
+// require CHORA_TEST_DSN + Postgres — they auto-skip in CI without the env
 // var. This file always runs.
 package grpc_test
 

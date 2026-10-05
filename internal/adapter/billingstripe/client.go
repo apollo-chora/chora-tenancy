@@ -1,5 +1,5 @@
 // Package billingstripe is the Stripe Charges API client used by the
-// daily reconciliation Cloud Run Job under chora-tenancy.
+// daily reconciliation job under chora-tenancy.
 //
 // Ported from services/chora-billing-webhook/internal/adapter/stripe as part
 // of the M12.2 Batch-1 consolidation. Package name `billingstripe` (NOT
@@ -44,7 +44,7 @@ type Config struct {
 	// Tests pass an httptest.Server URL.
 	APIBase string
 
-	// SecretKey is the STRIPE_SECRET_KEY env value (Secret Manager-sourced).
+	// SecretKey is the STRIPE_SECRET_KEY env value.
 	// Empty values are rejected at call time.
 	SecretKey string
 
@@ -83,7 +83,7 @@ var (
 	// ErrNoAPIBase is returned when Config.APIBase is empty.
 	ErrNoAPIBase = errors.New("billingstripe: APIBase required (no inline config)")
 	// ErrNoSecretKey is returned when Config.SecretKey is empty.
-	ErrNoSecretKey = errors.New("billingstripe: SecretKey required (Secret Manager)")
+	ErrNoSecretKey = errors.New("billingstripe: SecretKey required (no inline config)")
 )
 
 // FetchCapturedCentsForDay fetches the sum of `amount_captured` across

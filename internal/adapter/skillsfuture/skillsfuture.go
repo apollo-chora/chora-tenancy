@@ -1,7 +1,6 @@
 // Package skillsfuture implements a sandbox client for the SkillsFuture
 // Singapore (SSG) training-credit API per the locked architecture
-// (CLAUDE.md §1 "Standards" + project_chora_gcp_stack.md "External
-// integrations: SkillsFuture / Singpass").
+// (CLAUDE.md §1 "Standards" + the external-integrations design notes).
 //
 // Two flows are exposed:
 //
@@ -17,7 +16,7 @@
 // SkillsFuture is part of the Content Delivery domain in spirit (training
 // catalogue + classroom flow), but the *commercial* claim flow lives in
 // Tenancy/Billing because the subsidy reconciles against tenant invoices.
-// The two domains coordinate via Pub/Sub events ONLY (no cross-DB).
+// The two domains coordinate via events ONLY (no cross-DB).
 //
 // Endpoint base URL + API key sourced from env (SKILLSFUTURE_API_URL and
 // SKILLSFUTURE_API_KEY) — never inline. Sandbox vs production differ only
@@ -47,7 +46,7 @@ import (
 // Config holds the SkillsFuture sandbox client configuration. Sandbox values:
 //
 //	SKILLSFUTURE_API_URL  → https://stg-api.skillsfuture.gov.sg
-//	SKILLSFUTURE_API_KEY  → assigned via SSG developer portal (Secret Manager)
+//	SKILLSFUTURE_API_KEY  → assigned via SSG developer portal (env / secret store)
 //
 // Production switches APIURL to api.skillsfuture.gov.sg.
 type Config struct {
@@ -97,7 +96,7 @@ type courseListEnvelope struct {
 // local cache.
 //
 // traceparent is the W3C trace context propagated from the caller (mandatory
-// per CLAUDE.md §6 "Trace context across Pub/Sub").
+// per CLAUDE.md §6 "Trace context across events").
 func (c *Client) SyncEligibleCourses(ctx context.Context, tenantID, traceparent string) ([]EligibleCourse, error) {
 	if strings.TrimSpace(c.cfg.APIURL) == "" {
 		return nil, errors.New("skillsfuture: SKILLSFUTURE_API_URL not configured")

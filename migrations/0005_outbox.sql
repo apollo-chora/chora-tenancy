@@ -15,8 +15,8 @@
 --
 -- HARD INVARIANT: outbox rows live in the SAME database as the domain
 -- they serve (chora_tenancy). Cross-DB queries remain forbidden — the
--- background Dispatcher publishes to Cloud Pub/Sub and downstream
--- subscribers consume via Pub/Sub.
+-- background Dispatcher publishes to the event bus and downstream
+-- subscribers consume via the event bus.
 --
 -- D6.2 deltas (2026-05-12):
 --   - tenant_id (UUID, top-level + indexed) — D6.3 multi-tenant chaos

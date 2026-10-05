@@ -1,7 +1,7 @@
 // Package httpapi_test holds the RED-phase TDD specs for the HTTP/JSON
 // adapter for chora-tenancy.
 //
-// We exercise the full server.Handler with `httptest` — no Cloud Run.
+// We exercise the full server.Handler with `httptest` — no external server.
 package httpapi_test
 
 import (

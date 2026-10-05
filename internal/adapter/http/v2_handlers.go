@@ -31,9 +31,9 @@ import (
 type PublishedEvent = events.PublishedEvent
 
 // Publisher is the narrow port the v1 + v2 HTTP handlers use to emit
-// chora.tenancy.* Pub/Sub events. Production wires the OutboxPublisher
+// chora.tenancy.* events. Production wires the OutboxPublisher
 // (durable: writes outbox_events rows that the Dispatcher drains to
-// Cloud Pub/Sub). Tests wire *events.Recorder (in-process ring buffer
+// the event bus). Tests wire *events.Recorder (in-process ring buffer
 // with spy methods Recorded() / RecordedByTopic()).
 //
 // Per `feedback_d6_resilience_first_class` Pillar 2 + the hexagonal

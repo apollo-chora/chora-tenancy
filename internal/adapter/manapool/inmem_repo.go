@@ -4,11 +4,11 @@
 //   - HTTP handlers for the 8 mana-pool / mana-allocation endpoints
 //   - In-memory repositories for TenantManaPool + TenantManaAllocation
 //   - A Stripe stub adapter for pool top-ups
-//   - A recorder Pub/Sub publisher emitting the 7 mana topics
+//   - A recorder event-bus publisher emitting the 7 mana topics
 //   - An enrollment subscriber driving auto-allocation
 //   - A monthly ticker driving the EqualSplit distribution
 //
-// All package-level dependencies (Stripe URL, Pub/Sub project) are sourced
+// All package-level dependencies (Stripe URL, event-bus project) are sourced
 // from environment variables — no inline config (per
 // `feedback_no_inline_config`).
 package manapool
@@ -24,7 +24,7 @@ import (
 	pool "github.com/apollo-chora/chora-tenancy/internal/domain/tenant_mana_pool"
 )
 
-// ServiceName is the canonical service identifier used in the Pub/Sub
+// ServiceName is the canonical service identifier used in the event
 // envelope `source_service` field.
 const ServiceName = "chora-tenancy"
 

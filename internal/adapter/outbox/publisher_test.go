@@ -3,9 +3,9 @@
 // OutboxPublisher satisfies the chora-tenancy events.PublisherWithError
 // shape (PublishWithError(topic, Header, payload)) by writing the event
 // to the outbox_events table (via the Store port) instead of publishing
-// directly to Pub/Sub. A separate Dispatcher drains the outbox to Cloud
-// Pub/Sub. This decouples tenancy event emission from Pub/Sub
-// availability: a crash between domain state-write and Pub/Sub publish
+// directly to the broker. A separate Dispatcher drains the outbox to the
+// event bus. This decouples tenancy event emission from broker
+// availability: a crash between domain state-write and publish
 // no longer loses events because the row is durably committed to
 // chora_tenancy before the HTTP request returns.
 //
@@ -173,7 +173,7 @@ func TestOutboxPublisher_Publish_RejectsNilStore(t *testing.T) {
 }
 
 // TestOutboxPublisher_Publish_PayloadIsBinaryProtoForSchemaAttachedTopic
-// asserts that for a topic with a registered Pub/Sub Schema Registry schema
+// asserts that for a topic with a registered flat proto contract
 // (BINARY encoding), the OutboxPublisher persists canonical binary protobuf
 // wire bytes — NOT JSON. This is the load-bearing invariant from task #33
 // (codebase-wide outbox protobuf encoding fix surfaced 2026-05-16).
@@ -200,7 +200,7 @@ func TestOutboxPublisher_Publish_PayloadIsBinaryProtoForSchemaAttachedTopic(t *t
 		t.Fatalf("rows = %d; want 1", len(rows))
 	}
 	// JSON parse MUST fail — the payload should now be binary protobuf wire
-	// bytes that GCP Pub/Sub Schema Registry accepts.
+	// bytes that the topic's proto contract accepts.
 	var pl map[string]any
 	if err := json.Unmarshal(rows[0].Payload, &pl); err == nil {
 		t.Fatalf("payload parsed as JSON (%v); want binary protobuf bytes for schema-attached topic", pl)

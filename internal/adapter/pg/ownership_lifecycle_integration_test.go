@@ -4,7 +4,7 @@
 // S7a and S7b are built on, plus the operator override's rule about the leaving
 // owner (UX Track U, E3 slice 4, S7-B4).
 //
-// Run against the local Postgres 18 mirror while Cloud SQL is cost-paused:
+// Run against the local Postgres 18:
 //
 //	CHORA_TEST_DSN='postgres://chora_tenancy_migrate:dev@localhost:5432/chora_tenancy?sslmode=disable' \
 //	  go test -tags integration ./internal/adapter/pg/ -run Integration_OwnershipLifecycle

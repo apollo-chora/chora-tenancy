@@ -16,7 +16,7 @@
 --       SELECT add_on_id FROM add_ons WHERE name = $1
 --   inside the bootstrap transaction. Without this seed the lookup returns
 --   ErrCoreAddOnNotFound and the handler returns 500 internal_error to the H+
---   FE form. Production was unblocked via direct INSERT through cloudsql-proxy
+--   FE form. Production was unblocked via direct INSERT through a database
 --   port-forward on 2026-06-03; this migration backfills the seed so fresh
 --   environments don't repeat the trap.
 --

@@ -4,14 +4,11 @@
 //
 // Environment contract:
 //
-//	CHORA_DB_DSN_SECRET_ID  — Secret Manager secret name resolving to
-//	                          a chora_tenancy DSN (app_rw role).
-//	CHORA_DB_DSN            — direct DSN (dev override).
-//	CHORA_DB_PROJECT        — GCP project for Secret Manager (default
-//	                          chora-489812).
+//	CHORA_DB_DSN            — direct DSN to chora_tenancy (app_rw role).
+//	                          Unset = in-memory repositories (dev).
 //	CHORA_DB_REWRITE_FROM_PORT / TO_PORT — DSN port rewrite (e.g. 6432
 //	                                       → 5432 to bypass PgBouncer).
-//	CHORA_PUBSUB_PROJECT    — GCP project hosting Pub/Sub topics.
+//	NATS_URL                — NATS JetStream URL hosting the event bus.
 //	CHORA_OUTBOX_DSN        — direct DSN to chora_tenancy for the
 //	                          D6.2 outbox PostgresStore (M12.3 W2b).
 //	                          Empty = in-memory outbox store (dev).
@@ -24,15 +21,16 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	cgcdb "github.com/apollo-chora/chora-common/db"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 
 	httpapi "github.com/apollo-chora/chora-tenancy/internal/adapter/http"
 	tenancyoutbox "github.com/apollo-chora/chora-tenancy/internal/adapter/outbox"
+	platformdb "github.com/apollo-chora/chora-tenancy/internal/platform/db"
 )
 
 func bootstrapDBPool(ctx context.Context) (*pgxpool.Pool, func()) {
@@ -44,7 +42,7 @@ func bootstrapDBPool(ctx context.Context) (*pgxpool.Pool, func()) {
 
 	bootstrapCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	pool, err := cgcdb.Bootstrap(bootstrapCtx, cgcdb.BootstrapOptions{
+	pool, err := platformdb.Bootstrap(bootstrapCtx, platformdb.Options{
 		DSN:           dsn,
 		AppName:       serviceName + "@" + serviceVersion,
 		RuntimeParams: tenancyDBRuntimeParams(),
@@ -55,17 +53,21 @@ func bootstrapDBPool(ctx context.Context) (*pgxpool.Pool, func()) {
 	return pool, pool.Close
 }
 
-func bootstrapPubSubClient(ctx context.Context) (cgcpubsub.CloudPubSubClient, func()) {
-	project := os.Getenv("PUBSUB_PROJECT_ID")
-	if project == "" {
+// bootstrapBus connects the NATS JetStream event bus when NATS_URL is set.
+// It returns nil when the URL is unset (dev/no-broker mode) so the caller can
+// fall back to the in-memory bus. A connect failure is logged and treated the
+// same way — the service stays runnable without a broker.
+func bootstrapBus(ctx context.Context) (eventbus.Bus, func()) {
+	url := strings.TrimSpace(os.Getenv("NATS_URL"))
+	if url == "" {
 		return nil, nil
 	}
-	cli, err := cgcpubsub.NewGCPClient(ctx, project)
+	bus, err := eventbus.NewJetStream(eventbus.JetStreamConfig{URL: url})
 	if err != nil {
-		log.Printf("tenancy: Pub/Sub client init failed: %v — falling back to in-memory recorder", err)
+		log.Printf("tenancy: NATS JetStream connect failed (%v) — falling back to the in-memory bus", err)
 		return nil, nil
 	}
-	return cli, func() { _ = cli.Close() }
+	return bus, func() { _ = bus.Close() }
 }
 
 func bootstrapOutboxDB(ctx context.Context) (*sql.DB, func()) {
@@ -127,11 +129,11 @@ var _ tenancyoutbox.SQLDB = sqlDBAdapter{}
 // addon.activated / addon.deactivated / addon.upgraded /
 // addon.downgraded / addon.usage_recorded / member.invited /
 // member.suspended / mana_pool.adjusted / ...) writes a durable
-// outbox_events row the Dispatcher drains to Cloud Pub/Sub.
+// outbox_events row the Dispatcher drains to the event bus.
 //
 // This is the load-bearing composition-root call that closes debt #50
 // — pre-fix the v2 handlers defaulted to the in-process
-// events.Recorder, which is a ring buffer that never reaches Pub/Sub.
+// events.Recorder, which is a ring buffer that never reaches the bus.
 //
 // A nil pub argument is treated as a dev-mode safety net: the default
 // in-memory recorder set by httpapi.NewDefaultV2Deps stays in place so

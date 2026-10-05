@@ -1,4 +1,4 @@
-// atom_count_subscriber.go — ADR-217 Debt 3 (CHO-2011) Pub/Sub projection
+// atom_count_subscriber.go — ADR-217 Debt 3 (CHO-2011) event-bus projection
 // subscriber. Folds atom lifecycle events into the per-tenant tenant_atom_counts
 // projection: chora.creation.atom.created.v1 → +1, chora.creation.atom.archived.v1
 // → -1.
@@ -13,13 +13,12 @@ package events
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/apollo-chora/chora-common/eventbus"
 	"github.com/apollo-chora/chora-common/idempotent"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 	"github.com/apollo-chora/chora-common/tracing"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/atomcount"
 )
@@ -64,10 +63,7 @@ func (s *AtomCountSubscriber) SubscriptionNameForTopic(topic string) string {
 // Handle folds one atom lifecycle event into the counter. A nil return Acks; an
 // error Nacks (broker retry → DLQ). Only the envelope tenant_id + event_id + the
 // topic are read (no payload decode).
-func (s *AtomCountSubscriber) Handle(ctx context.Context, topic string, msg *cgcpubsub.Message) error {
-	if msg == nil {
-		return errors.New("atomcount: nil message")
-	}
+func (s *AtomCountSubscriber) Handle(ctx context.Context, topic string, msg eventbus.Message) error {
 	env := msg.Envelope
 	tenantID := strings.TrimSpace(env.TenantID)
 	if tenantID == "" {

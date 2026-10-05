@@ -34,7 +34,7 @@
 --
 -- NOT A LIVE BYPASS, verified rather than assumed. chora-tenancy connects as
 -- `chora_tenancy_app_rw`: the deployment sets `CHORA_DB_DSN_SECRET_ID` and
--- `CHORA_OUTBOX_DSN_SECRET_ID` to `chora-dev-cloudsql-chora_tenancy-app_rw-dsn`,
+-- `CHORA_OUTBOX_DSN` to the chora_tenancy app_rw DSN,
 -- those are its only DSN envs, no manifest references a migrate DSN, and the
 -- secret's DSN username reads `chora_tenancy_app_rw`. app_rw is NOBYPASSRLS
 -- (migration 0013) and was already filtered by the policy. So the owner hole

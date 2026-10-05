@@ -1,22 +1,22 @@
-// Package billingpubsub adapts the chora-common pubsub primitive to the
+// Package billingpubsub adapts the chora-common event-bus primitive to the
 // billing-webhook + reconciliation flows hosted under chora-tenancy.
 //
 // Ported from services/chora-billing-webhook/internal/adapter/pubsub as part
 // of the M12.2 Batch-1 consolidation.
 //
-//  1. WebhookPublisher — wraps a Pub/Sub publisher with envelope construction
-//     for a webhook.Classification (one event in → one chora event out).
+//  1. WebhookPublisher — wraps an event-bus publisher with envelope
+//     construction for a webhook.Classification (one event in → one chora
+//     event out).
 //
-//  2. ReconciliationEmitter — implements reconciliation.Emitter on top of a
-//     Pub/Sub publisher, so reconciliation Job runs publish two governance
+//  2. ReconciliationEmitter — implements reconciliation.Emitter on top of an
+//     event-bus publisher, so reconciliation Job runs publish two governance
 //     events (completed, anomaly).
 //
-// Production wires the chora-common in-memory bus first; Cloud Pub/Sub
-// drop-in lives at chora-common/pubsub/cloud_pubsub.go and slots in
-// via the same OutboxCompatible interface.
+// Production wires the chora-common JetStream bus; the in-memory bus is the
+// dev/test drop-in and slots in via the same eventbus.Publisher interface.
 //
 // JSON payload shape: temporary MVP body. Production swaps to Protobuf via
-// the chora-contracts gen/go bundle (M11.4 + Schema Registry validates).
+// the chora-contracts gen/go bundle (M11.4 + schema validation).
 package billingpubsub
 
 import (
@@ -27,7 +27,7 @@ import (
 	"time"
 
 	cgcenvelope "github.com/apollo-chora/chora-common/envelope"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 
 	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
@@ -38,16 +38,16 @@ import (
 const DefaultSourceService = "chora-tenancy-billing-webhook"
 
 // Bus is the publisher contract this adapter consumes. The chora-common
-// InMemoryBus satisfies it; in production it's the Cloud Pub/Sub adapter.
-type Bus = cgcpubsub.OutboxCompatible
+// JetStream and in-memory buses both satisfy eventbus.Publisher.
+type Bus = eventbus.Publisher
 
 // EmitterConfig is the construction-time wiring for both publishers.
 type EmitterConfig struct {
 	// Bus is the underlying chora-common publisher.
 	Bus Bus
 
-	// SourceProject is the GCP project the service runs in
-	// (e.g. chora-489812). Read from CHORA_SOURCE_PROJECT env in main().
+	// SourceProject is the platform source_project stamp
+	// (e.g. chora). Read from CHORA_SOURCE_PROJECT env in main().
 	SourceProject string
 
 	// SourceService is the publisher's service name. Defaults to
@@ -59,7 +59,7 @@ type EmitterConfig struct {
 }
 
 // WebhookPublisher publishes a webhook.Classification to the chora event
-// topology, mediated by the chora-common pubsub.Bus.
+// topology, mediated by the chora-common eventbus.Publisher.
 type WebhookPublisher struct {
 	cfg EmitterConfig
 }

@@ -1,6 +1,6 @@
 // Package protomarshal encodes chora-tenancy outbox event payloads to
-// canonical binary protobuf wire format so GCP Pub/Sub Schema Registry
-// validation (BINARY encoding) passes at publish time.
+// canonical binary protobuf wire format so consumers receive the typed
+// wire bytes their topic contract pins.
 //
 // Why hand-rolled
 // ---------------
@@ -15,10 +15,9 @@
 //
 // Field numbers + wire types are pinned to
 // chora-contracts/proto/events-flat/tenancy/* — those flat protos ARE the
-// schemas registered with Pub/Sub (see
-// `gcloud pubsub schemas list --filter='name ~ chora-tenancy'`).
+// canonical schemas for these topics.
 //
-// Invariants per the registered Schema Registry schemas:
+// Invariants per the canonical flat schemas:
 //
 //   - Field 1 = envelope (length-delimited nested message)
 //   - Envelope nested fields 1..15 follow chora.common.v1.EventEnvelope
@@ -28,12 +27,12 @@
 //     (field 2)
 //   - Enums encode as varint (proto3 int32)
 //   - Unknown topics return ErrUnsupportedTopic so the publisher can fall
-//     back to JSON with a WARN log; rows on schema-attached topics will
+//     back to JSON with a WARN log; rows on binary-contracted topics will
 //     dead-letter at the dispatcher, which is the correct loud-failure mode.
 //
-// Per CLAUDE.md §6 — wire format MUST be binary protobuf for Pub/Sub-attached
-// topics. JSON encoding is rejected at publish time with "Invalid binary proto
-// message".
+// Per CLAUDE.md §6 — wire format MUST be binary protobuf for topics with a
+// canonical proto contract. JSON encoding on those topics is a contract
+// violation that consumers reject.
 package protomarshal
 
 import (
@@ -73,12 +72,12 @@ var ErrUnsupportedTopic = errors.New("protomarshal: topic has no binary encoder;
 func IsUnsupportedTopic(err error) bool { return errors.Is(err, ErrUnsupportedTopic) }
 
 // MarshalPayload converts a topic + envelope + loose payload map into the
-// canonical binary protobuf wire bytes for that topic's Schema Registry
-// schema. Returns ErrUnsupportedTopic if no encoder is registered for the
+// canonical binary protobuf wire bytes for that topic's flat proto
+// contract. Returns ErrUnsupportedTopic if no encoder is registered for the
 // supplied topic.
 //
-// Topics with registered encoders (each matches a registered Pub/Sub schema
-// per `gcloud pubsub topics list --filter='name ~ chora.tenancy'`):
+// Topics with registered encoders (each matches a chora-contracts flat
+// tenancy schema):
 //
 //   - chora.tenancy.tenant.created.v1
 //   - chora.tenancy.addon.activated.v1
@@ -137,8 +136,8 @@ func MarshalPayload(topic string, env Envelope, payload map[string]any) ([]byte,
 //
 // Fabric-repair 2026-07-01: the Flag-1 guardrail found this topic is PRODUCED
 // (v1_handlers golive handler → deps.Events.Publish) and bound to a BINARY
-// Schema Registry schema, but protomarshal had NO encoder case — so the outbox
-// JSON-fell-back and the binary schema rejected every publish → deadletter
+// flat proto contract, but protomarshal had NO encoder case — so the outbox
+// JSON-fell-back and the binary contract rejected every publish → deadletter
 // (kg_hexagon_fog class, latent until the first tenant went live). Guarded by
 // TestTenantGoLive_CanonicalRoundTrip (fabric_golive_test.go).
 func encodeTenantGoLive(env Envelope, payload map[string]any) ([]byte, error) {
@@ -588,7 +587,7 @@ func encodeFamiliarEggCheckoutStarted(env Envelope, payload map[string]any) ([]b
 // -----------------------------------------------------------------------------
 // FamiliarEggPaymentSucceeded (chora.tenancy.familiar_egg.payment_succeeded.v1)
 // chora-contracts/proto/events/tenancy/familiar_egg.proto (no flat schema yet
-// because the topic+Schema Registry registration lands with the next
+// because the topic contract registration lands with the next
 // chora-contracts/m10-data-plane apply — kept here so the encoder is ready).
 // -----------------------------------------------------------------------------
 //

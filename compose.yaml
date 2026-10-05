@@ -17,20 +17,36 @@ services:
       timeout: 3s
       retries: 20
 
-  pubsub:
-    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+  nats:
+    image: nats:2.15.0-alpine
     restart: unless-stopped
-    env_file: .env
-    command:
-      - gcloud
-      - beta
-      - emulators
-      - pubsub
-      - start
-      - --host-port=0.0.0.0:8085
-      - --project=${PUBSUB_PROJECT_ID}
+    command: ["-js", "-sd", "/data", "-m", "8222"]
     ports:
-      - "${PUBSUB_PORT:-8085}:8085"
+      - "${NATS_PORT:-4222}:4222"
+      - "${NATS_MONITOR_PORT:-8222}:8222"
+    volumes:
+      - nats-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8222/healthz || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Idempotently provisions the JetStream streams the event bus expects:
+  # CHORA_EVENTS (chora.>) and CHORA_DLQ (_dlq.>). The root compose provides
+  # the same streams for the full stack; this keeps the standalone repo
+  # compose self-contained.
+  nats-init:
+    image: natsio/nats-cli:0.1.5
+    restart: "no"
+    depends_on:
+      nats:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        nats stream add CHORA_EVENTS --subjects='chora.>' --storage=file --replicas=1 --retention=limits --discard=old --max-age=720h --duplicate-window=24h --server=nats://nats:4222 || true
+        nats stream add CHORA_DLQ --subjects='_dlq.>' --storage=file --replicas=1 --retention=limits --discard=old --max-age=2160h --server=nats://nats:4222 || true
 
   tenancy:
     build:
@@ -41,11 +57,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      pubsub:
-        condition: service_started
+      nats:
+        condition: service_healthy
     ports:
       - "${PORT:-8080}:8080"
       - "${CHORA_GRPC_PORT:-9090}:9090"
 
 volumes:
   postgres-data:
+  nats-data:

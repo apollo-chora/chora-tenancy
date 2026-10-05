@@ -39,7 +39,7 @@ const (
 
 // AllocationIntent describes a single allocation the engine wants to issue.
 // The caller materialises it into a TenantManaAllocation aggregate row +
-// pool debit + Pub/Sub event in a single atomic step.
+// pool debit + event publish in a single atomic step.
 type AllocationIntent struct {
 	TenantID     string
 	GCID         string

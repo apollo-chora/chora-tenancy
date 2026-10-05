@@ -16,7 +16,7 @@
 // the body is caller-controlled and untrusted).
 //
 // Phase 1 scope: chora-tenancy writes only. The mirror row in
-// chora_identity.tenant_memberships lands via Pub/Sub event in Phase 2
+// chora_identity.tenant_memberships lands via an event in Phase 2
 // (out of scope per CHO-1628).
 package bootstrap
 

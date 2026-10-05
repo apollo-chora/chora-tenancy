@@ -3,7 +3,7 @@
 // bootstrap_addon_entitlements_test.go: E1 (UX refactor wave W2), the durable
 // half of "a created organisation holds its entitlements after a restart".
 //
-// Run against the local Postgres 18 mirror while Cloud SQL is cost-paused:
+// Run against the local Postgres 18:
 //
 //	CHORA_TEST_DSN='postgres://chora_tenancy_migrate:dev@localhost:5432/chora_tenancy?sslmode=disable' \
 //	  go test -tags integration ./internal/adapter/pg/ -run Integration_BootstrapRepository_AddOn

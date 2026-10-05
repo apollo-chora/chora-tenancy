@@ -2,11 +2,11 @@
 //
 // OutboxPublisher satisfies the chora-tenancy Recorder-shape API
 // (PublishWithError(topic, Header, payload)) by writing the event to the
-// outbox_events table instead of publishing directly to Pub/Sub. The
-// Dispatcher (see dispatcher.go) drains the table to Cloud Pub/Sub on a
-// separate goroutine. This decouples event emission from Pub/Sub
-// availability — a crash between the domain state-change and Pub/Sub
-// publish no longer loses events.
+// outbox_events table instead of publishing directly to the broker. The
+// Dispatcher (see dispatcher.go) drains the table to the event bus on a
+// separate goroutine. This decouples event emission from broker
+// availability — a crash between the domain state-change and the publish
+// no longer loses events.
 //
 // The wire shape of the payload matches the existing events.Recorder /
 // events.CloudPublisher payload (JSON serialisation of the body
@@ -43,7 +43,7 @@ type PublisherConfig struct {
 	// Store is the outbox table backend. Required.
 	Store Store
 
-	// SourceProject is the GCP project the service runs in (e.g.
+	// SourceProject is the source_project stamp for emitted envelopes (e.g.
 	// chora-489812). Defaults to "chora-489812".
 	SourceProject string
 
@@ -92,7 +92,7 @@ func (p *Publisher) Publish(topic string, h events.Header, payload map[string]in
 // Returns the canonical PublishedEvent (events.PublishedEvent) on success.
 //
 // The HTTP request returns successfully once the row is durably committed;
-// the Dispatcher publishes to Cloud Pub/Sub asynchronously.
+// the Dispatcher publishes to the event bus asynchronously.
 func (p *Publisher) PublishWithError(topic string, h events.Header, payload map[string]interface{}) (events.PublishedEvent, error) {
 	if p.cfg.Store == nil {
 		return events.PublishedEvent{}, errors.New("outbox: store not wired")
@@ -116,7 +116,7 @@ func (p *Publisher) PublishWithError(topic string, h events.Header, payload map[
 	}
 
 	// Build the envelope as a flat string map for the JSONB column. This is
-	// the on-wire attribute set published to Pub/Sub (subscribers can
+	// the on-wire attribute set published to the bus (subscribers can
 	// filter without parsing the payload).
 	envMap := map[string]string{
 		"event_id":        eventID,
@@ -141,7 +141,7 @@ func (p *Publisher) PublishWithError(topic string, h events.Header, payload map[
 	}
 
 	// Producer-side encoding: emit canonical binary protobuf for topics whose
-	// Pub/Sub Schema Registry schema is BINARY-encoded. JSON-marshalled
+	// flat proto contract is BINARY-encoded. JSON-marshalled
 	// payloads fail validation at publish time with "Invalid binary proto
 	// message" and dead-letter forever. Per the codebase-wide outbox
 	// protobuf encoding gap (task #33 surfaced 2026-05-16).
@@ -276,8 +276,8 @@ func newUUIDv7() string {
 // encoder. New topics MUST add a case in protomarshal.MarshalPayload.
 //
 // JSON fallback exists so call-sites that emit topics without a registered
-// Schema Registry schema (e.g. chora.tenancy.member.invited.v1 — not yet
-// in the Pub/Sub registry) keep working. Each unknown topic logs a one-time
+// flat proto contract (e.g. chora.tenancy.member.invited.v1 — not yet
+// in the topic registry) keep working. Each unknown topic logs a one-time
 // WARN so its missing encoder is visible in production logs.
 // -----------------------------------------------------------------------------
 
@@ -316,14 +316,14 @@ func encodeOutboxPayload(topic string, env protomarshal.Envelope, payload map[st
 	}
 
 	// Topic has no protobuf encoder yet. Log a one-shot WARN and fall back
-	// to JSON. These rows WILL be rejected by Schema Registry on publish if
-	// the topic IS schema-attached; if the topic is NOT yet registered, the
+	// to JSON. These rows WILL be rejected by a binary-contracted consumer if
+	// the topic IS binary-contracted; if the topic is NOT yet contracted, the
 	// publish succeeds and the bytes flow through unchanged. Add an encoder
-	// case in protomarshal.MarshalPayload before the topic gets a schema.
+	// case in protomarshal.MarshalPayload before the topic gets a contract.
 	warnedUnknownTopicsMu.Lock()
 	if !warnedUnknownTopics[topic] {
 		warnedUnknownTopics[topic] = true
-		log.Printf("WARN outbox: topic %q has no binary protobuf encoder — payload will JSON-marshal and Schema Registry will REJECT at publish if the topic is BINARY-attached. Add a case to internal/adapter/events/protomarshal/MarshalPayload.", topic)
+		log.Printf("WARN outbox: topic %q has no binary protobuf encoder — payload will JSON-marshal and a binary-contracted consumer will REJECT it. Add a case to internal/adapter/events/protomarshal/MarshalPayload.", topic)
 	}
 	warnedUnknownTopicsMu.Unlock()
 

@@ -7,7 +7,7 @@
 //
 // Per .claude/skills/secrets-and-env: all values come from env vars. Empty
 // required values surface as descriptive errors at startup so wiring
-// failures are visible in Cloud Run logs immediately.
+// failures are visible in the service logs immediately.
 package config
 
 import (
@@ -26,11 +26,11 @@ type BillingWebhookConfig struct {
 
 	// Stripe
 	StripeAPIBase       string // STRIPE_API_BASE (default https://api.stripe.com)
-	StripeSecretKey     string // STRIPE_SECRET_KEY (Secret Manager)
-	StripeWebhookSecret string // STRIPE_WEBHOOK_SECRET (Secret Manager)
+	StripeSecretKey     string // STRIPE_SECRET_KEY (env / secret store)
+	StripeWebhookSecret string // STRIPE_WEBHOOK_SECRET (env / secret store)
 	SignatureSkew       time.Duration
 
-	// Pub/Sub source attribution + Cloud Trace correlation
+	// Event source attribution + trace correlation
 	SourceProject string // CHORA_SOURCE_PROJECT (defaults to chora-489812)
 	SourceService string
 
@@ -58,13 +58,13 @@ func LoadBillingWebhookServer() (*BillingWebhookConfig, error) {
 		OTLPEndpoint:        os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
 	}
 	if strings.TrimSpace(cfg.StripeWebhookSecret) == "" {
-		return nil, errors.New("config: STRIPE_WEBHOOK_SECRET required (no inline config — set via Secret Manager)")
+		return nil, errors.New("config: STRIPE_WEBHOOK_SECRET required (no inline config — set it via the environment)")
 	}
 	return cfg, nil
 }
 
-// LoadBillingReconciliationJob loads config for the reconciliation Cloud Run
-// Job. Differs from LoadBillingWebhookServer in that the webhook secret is
+// LoadBillingReconciliationJob loads config for the reconciliation job.
+// Differs from LoadBillingWebhookServer in that the webhook secret is
 // NOT required (the Job doesn't ingress webhooks) but the Stripe SECRET_KEY
 // IS required (the Job calls the Stripe API).
 func LoadBillingReconciliationJob() (*BillingWebhookConfig, error) {
@@ -77,7 +77,7 @@ func LoadBillingReconciliationJob() (*BillingWebhookConfig, error) {
 		OTLPEndpoint:    os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
 	}
 	if strings.TrimSpace(cfg.StripeSecretKey) == "" {
-		return nil, errors.New("config: STRIPE_SECRET_KEY required (no inline config — set via Secret Manager)")
+		return nil, errors.New("config: STRIPE_SECRET_KEY required (no inline config — set it via the environment)")
 	}
 	return cfg, nil
 }

@@ -1,8 +1,8 @@
 // fabric_golive_test — golden guardrail for the tenant.golive encoder the
 // 2026-07-01 Flag-1 guardrail discovered was MISSING: chora-tenancy PRODUCES
 // chora.tenancy.tenant.golive.v1 (v1_handlers golive handler) to a BINARY
-// Schema Registry topic, but protomarshal had no encoder case → JSON fallback →
-// schema-reject → deadletter (latent until the first tenant went live). This
+// proto-contracted topic, but protomarshal had no encoder case → JSON fallback →
+// contract-reject → deadletter (latent until the first tenant went live). This
 // asserts the new encoder's bytes decode into the canonical gen struct.
 package protomarshal_test
 

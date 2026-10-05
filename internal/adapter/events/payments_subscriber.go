@@ -118,7 +118,7 @@ const (
 )
 
 // PaymentsInboxTTL is the dedupe-key retention window for chora-tenancy's
-// payments subscriber inbox. 24h covers Pub/Sub's max redelivery window for
+// payments subscriber inbox. 24h covers the broker's max redelivery window for
 // these events' typical end-to-end latency. Production may tune via
 // WithInboxTTL.
 const PaymentsInboxTTL = 24 * time.Hour
@@ -589,7 +589,7 @@ func validateEggRefunded(in FamiliarEggRefunded) error {
 // abandonment-funnel observability event is emitted by chora-observability
 // directly subscribing to the source topic; chora-tenancy's role on this
 // event is a NO-OP. We still inbox the event_id for trace-correlation +
-// to suppress noisy log spam on Pub/Sub redelivery.
+// to suppress noisy log spam on redelivery.
 func (s *PaymentsSubscriber) HandleFamiliarEggExpired(ctx context.Context, in FamiliarEggExpired) error {
 	if s == nil {
 		return errors.New("events.PaymentsSubscriber: nil")

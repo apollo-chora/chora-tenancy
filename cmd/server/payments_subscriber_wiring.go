@@ -1,4 +1,4 @@
-// ADR-164 Wave 1 Stage D — chora-payments Pub/Sub subscriber bootstrap.
+// ADR-164 Wave 1 Stage D — chora-payments event-bus subscriber bootstrap.
 //
 // chora-tenancy is the originating service for two Purchase aggregates
 // extracted to chora-payments:
@@ -7,28 +7,26 @@
 //   - TenantManaTopUp      — tenant mana pool top-ups.
 //
 // The chora-payments service emits 5 canonical events on those aggregates
-// (post-Stage A); this wiring starts CloudSubscriber goroutines that
+// (post-Stage A); this wiring starts event-bus consumer goroutines that
 // drain those topics + route to events.PaymentsSubscriber for the
 // originating-service notification work (provisioning + mana balance
 // credit/debit + legacy bridge event re-emit).
 //
 // On startup:
 //
-//	startPaymentsSubscribers(ctx, pubsubClient, subscriber, env) spawns
-//	one goroutine per topic, each blocking on
-//	cgcpubsub.CloudSubscriber.Subscribe(ctx, subscriptionName, handler).
-//	Subscriptions follow the chora-tenancy convention:
+//	startPaymentsSubscribers(ctx, bus, subscriber, env) binds one durable
+//	consumer per topic, each blocking on
+//	eventbus.Bus.Subscribe(ctx, ConsumerConfig{...}, handler).
+//	Consumer names follow the chora-tenancy convention:
 //
 //	  chora-tenancy-payments-{aggregate}-{event_type}
 //
-//	When the Pub/Sub client is unwired (CHORA_PUBSUB_PROJECT unset / dev
-//	mode), the function logs + returns nil — the in-process bus does NOT
-//	have a streaming-pull surface in this service, mirroring the
-//	chora-observability pattern at token_usage_binding.go.
+//	When the event bus is unwired (NATS_URL unset / dev mode), the function
+//	logs + returns nil.
 //
 // Idempotency: every handler is wrapped by the PaymentsSubscriber's inbox
-// (chora-common/idempotent.Store) so Pub/Sub redelivery + multi-
-// replica replays are no-ops. Postgres-backed inbox when CHORA_OUTBOX_DSN
+// (chora-common/idempotent.Store) so broker redelivery + multi-replica
+// replays are no-ops. Postgres-backed inbox when CHORA_OUTBOX_DSN
 // is set; in-memory fallback for dev.
 //
 // Per `agentic-resilience-d6` skill Pillar 2 (consumer-side dual of the
@@ -44,7 +42,7 @@ import (
 	"sync"
 	"time"
 
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 	tnevents "github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 
 	paymentsv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/payments/v1"
@@ -72,32 +70,31 @@ var paymentsTopics = []string{
 	tnevents.TopicTenantAddonSubscriptionScheduleReleased,
 }
 
-// startPaymentsSubscribers spawns one goroutine per ADR-164 inbound topic
-// + returns a WaitGroup that completes when all goroutines exit. ctx
+// startPaymentsSubscribers binds one durable consumer per ADR-164 inbound
+// topic + returns a WaitGroup that completes when all goroutines exit. ctx
 // cancellation drains every loop.
 //
-// `client` may be nil in dev (CHORA_PUBSUB_PROJECT unset) — the function
-// no-ops + returns nil in that case. `subscriber` MUST be non-nil.
+// `bus` may be nil in dev (NATS_URL unset) — the function no-ops + returns
+// nil in that case. `subscriber` MUST be non-nil.
 //
-// Subscription names follow `chora-tenancy-payments-{aggregate}-{event_
-// type}`. Subscriptions are CONSUMER-owned: this code self-provisions any
-// missing subscription at boot via EnsureSubscription (CHO-1811 — a rebuilt
-// stack previously left these permanently dead because they were never
-// provisioned out-of-band, silently breaking paid H+ add-on activation).
+// Consumer names follow `chora-tenancy-payments-{aggregate}-{event_type}`.
+// Consumers are CONSUMER-owned: JetStream CreateOrUpdateConsumer provisions
+// any missing durable consumer at boot (CHO-1811 — a rebuilt stack previously
+// left these permanently dead because they were never provisioned
+// out-of-band, silently breaking paid H+ add-on activation).
 func startPaymentsSubscribers(
 	ctx context.Context,
-	client cgcpubsub.CloudPubSubClient,
+	bus eventbus.Bus,
 	subscriber *tnevents.PaymentsSubscriber,
 ) (*sync.WaitGroup, error) {
 	if subscriber == nil {
 		return nil, errors.New("startPaymentsSubscribers: nil PaymentsSubscriber")
 	}
-	if client == nil {
-		log.Printf("tenancy: ADR-164 payments subscribers SKIPPED (CHORA_PUBSUB_PROJECT unset; in-memory bus has no streaming-pull surface)")
+	if bus == nil {
+		log.Printf("tenancy: ADR-164 payments subscribers SKIPPED (NATS_URL unset; no event bus wired)")
 		return nil, nil
 	}
 
-	sub := cgcpubsub.NewCloudSubscriber(client)
 	wg := &sync.WaitGroup{}
 	for _, topic := range paymentsTopics {
 		topicCopy := topic
@@ -109,71 +106,24 @@ func startPaymentsSubscribers(
 		wg.Add(1)
 		go func(topic, subscription string) {
 			defer wg.Done()
-			// Self-provision INSIDE the goroutine (CHO-1811) so the boot loop
-			// returns immediately. Doing the ~29 ensure admin calls synchronously
-			// delayed server start past the liveness probe; the probe-triggered
-			// SIGTERM then cancelled in-flight bootstrap (stripe creds) → fatal
-			// exit → crash-loop. Async ensure keeps boot fast; each goroutine
-			// ensures its own sub before subscribing.
-			ensureSubscription(ctx, client, subscription, topic)
 			log.Printf("tenancy: ADR-164 payments subscriber started (topic=%s subscription=%s)", topic, subscription)
-			if err := sub.Subscribe(ctx, subscription, handler); err != nil &&
+			if err := bus.Subscribe(ctx, consumerConfig(subscription, topic), handler); err != nil &&
 				!errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
 				log.Printf("tenancy: ADR-164 payments subscriber exited (topic=%s): %v", topic, err)
+				return
 			}
+			<-ctx.Done()
 		}(topicCopy, subscription)
 	}
 	return wg, nil
 }
 
-// dlqTopicFor maps a primary topic to its DLQ counterpart
-// (chora.payments.X.v1 → chora.dlq.payments.X.v1), matching the
-// chora.dlq.{primary-topic-suffix} convention in chora-infra/topics/topics.yaml.
-func dlqTopicFor(topic string) string {
-	return strings.Replace(topic, "chora.", "chora.dlq.", 1)
-}
-
-// ensureSubscription self-provisions the pull subscription if it is missing
-// (CHO-1811 self-heal — shared by the ADR-164 payments + ADR-205 txledger
-// subscribers). Config matches the chora-tenancy-{payments,txledger}-* subs
-// (ack 60s / DLQ max-5 / retry 10s→600s / 7d retention / never-expire). No-op
-// when the client does not support admin ops (in-memory/stub clients in
-// dev/tests) or when the sub already exists. Never crashes the boot: an ensure
-// failure is logged loud and the caller still attempts Subscribe (which
-// surfaces the missing sub if creation genuinely failed).
-func ensureSubscription(ctx context.Context, client cgcpubsub.CloudPubSubClient, subscription, topic string) {
-	ensurer, ok := client.(cgcpubsub.SubscriptionEnsurer)
-	if !ok {
-		return
-	}
-	created, err := ensurer.EnsureSubscription(ctx, cgcpubsub.EnsureSubscriptionConfig{
-		Subscription:        subscription,
-		Topic:               topic,
-		DeadLetterTopic:     dlqTopicFor(topic),
-		AckDeadline:         60 * time.Second,
-		MaxDeliveryAttempts: 5,
-		MinBackoff:          10 * time.Second,
-		MaxBackoff:          600 * time.Second,
-		RetentionDuration:   7 * 24 * time.Hour,
-		NeverExpire:         true,
-	})
-	switch {
-	case err != nil:
-		log.Printf("tenancy: ensure subscription %s FAILED (continuing to subscribe): %v", subscription, err)
-	case created:
-		log.Printf("tenancy: self-provisioned subscription %s (topic=%s)", subscription, topic)
-	}
-}
-
-// buildPaymentsHandler returns a cgcpubsub.Handler that decodes the
+// buildPaymentsHandler returns an eventbus.Handler that decodes the
 // protobuf payload + invokes the right PaymentsSubscriber method for the
-// given topic. Decode failures are surfaced as errors so the Cloud Sub
-// loop Nacks → broker retries → DLQ.
-func buildPaymentsHandler(s *tnevents.PaymentsSubscriber, topic string) cgcpubsub.Handler {
-	return func(ctx context.Context, msg *cgcpubsub.Message) error {
-		if msg == nil {
-			return errors.New("payments handler: nil message")
-		}
+// given topic. Decode failures are surfaced as errors so the consume loop
+// Nacks → broker retries → DLQ.
+func buildPaymentsHandler(s *tnevents.PaymentsSubscriber, topic string) eventbus.Handler {
+	return func(ctx context.Context, msg eventbus.Message) error {
 		env := msg.Envelope
 		tenantID := strings.TrimSpace(env.TenantID)
 		traceparent := strings.TrimSpace(env.Traceparent)

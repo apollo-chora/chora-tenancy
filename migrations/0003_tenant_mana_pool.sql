@@ -25,7 +25,7 @@
 --
 -- All cross-DB FKs are forbidden (per `.claude/rules/ddd-enforcement.md`).
 -- GCIDs are stored as UUID (recipient learner / actor admin) without FK;
--- cross-domain validation is via Pub/Sub events (chora.identity.* +
+-- cross-domain validation is via events (chora.identity.* +
 -- chora.tenancy.* event taxonomy).
 -- =============================================================================
 
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS tenant_mana_pool_topups (
     topped_up_by_gcid             UUID                              NULL, -- admin actor; NULL for auto-renew
     balance_after_units           BIGINT                            NOT NULL CHECK (balance_after_units >= 0),
 
-    -- Pub/Sub envelope correlation (per envelope conventions).
+    -- Event envelope correlation (per envelope conventions).
     event_envelope_id             UUID                              NULL,
     traceparent                   VARCHAR(64)                       NULL,
 

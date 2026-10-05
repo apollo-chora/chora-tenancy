@@ -1,10 +1,8 @@
 //go:build integration
 
-// Live Cloud SQL integration tests for chora-tenancy. Run with:
+// Live Postgres integration tests for chora-tenancy. Run with:
 //
-//	export GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/gcloud/sa-keys/dale-cli-chora-489812.json
-//	export CHORA_TEST_DSN_SECRET_ID=chora-dev-cloudsql-chora_tenancy-app_rw-dsn
-//	export CHORA_TEST_DB_PROJECT=chora-489812
+//	export CHORA_TEST_DSN=postgres://chora_tenancy_migrate:chora@localhost:5432/chora_tenancy?sslmode=disable
 //	go test -tags integration ./internal/adapter/pg/...
 //
 // Verifies:
@@ -30,57 +28,30 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	cgcdb "github.com/apollo-chora/chora-common/db"
-	cgcsecrets "github.com/apollo-chora/chora-common/secrets"
-
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/pg"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
+	platformdb "github.com/apollo-chora/chora-tenancy/internal/platform/db"
 )
 
 func liveDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("CHORA_TEST_DSN")
-	secretID := os.Getenv("CHORA_TEST_DSN_SECRET_ID")
-	if dsn == "" && secretID == "" {
-		t.Skip("set CHORA_TEST_DSN or CHORA_TEST_DSN_SECRET_ID to run integration tests")
-	}
-	project := os.Getenv("CHORA_TEST_DB_PROJECT")
-	if project == "" {
-		project = "chora-489812"
+	if dsn == "" {
+		t.Skip("set CHORA_TEST_DSN to run integration tests")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	var fetcher cgcdb.SecretFetcher
-	var sclient *cgcsecrets.Client
-	if secretID != "" && dsn == "" {
-		c, err := cgcsecrets.NewClient(ctx, project)
-		if err != nil {
-			t.Fatalf("secret manager: %v", err)
-		}
-		sclient = c
-		fetcher = c
-	}
-	pool, err := cgcdb.Bootstrap(ctx, cgcdb.BootstrapOptions{
+	pool, err := platformdb.Bootstrap(ctx, platformdb.Options{
 		DSN:             dsn,
-		SecretID:        secretID,
-		SecretFetcher:   fetcher,
 		RewriteFromPort: 6432,
 		RewriteToPort:   5432,
 		AppName:         "chora-tenancy-pg-integration-test",
 	})
 	if err != nil {
-		if sclient != nil {
-			_ = sclient.Close()
-		}
 		t.Fatalf("bootstrap: %v", err)
 	}
-	t.Cleanup(func() {
-		pool.Close()
-		if sclient != nil {
-			_ = sclient.Close()
-		}
-	})
+	t.Cleanup(pool.Close)
 	return pool
 }
 

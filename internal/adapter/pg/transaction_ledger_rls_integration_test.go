@@ -5,8 +5,7 @@
 //
 // Reuses the liveDB(t) harness in integration_test.go (same pg_test package):
 //
-//	export CHORA_TEST_DSN_SECRET_ID=chora-dev-cloudsql-chora_tenancy-app_rw-dsn
-//	export CHORA_TEST_DB_PROJECT=chora-489812
+//	export CHORA_TEST_DSN=postgres://chora_tenancy_migrate:chora@localhost:5432/chora_tenancy?sslmode=disable
 //	go test -tags integration ./internal/adapter/pg/...
 //
 // The app_rw DSN role is NOBYPASSRLS, so this proves the policy itself. The

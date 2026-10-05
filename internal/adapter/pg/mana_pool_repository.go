@@ -77,7 +77,7 @@ var ErrPolicyUnsupported = errors.New("pg.ManaPoolRepository: unsupported alloca
 // ErrVersionConflict is returned when the stored row has already been advanced
 // to this version or beyond, meaning another writer wrote between our read and
 // our write. It is RETRYABLE and must be surfaced, never swallowed: the
-// Pub/Sub handlers translate it into a Nack, and because
+// event handlers translate it into a Nack, and because
 // idempotent.PostgresStore.Process does not Mark a key whose fn returned an
 // error, redelivery re-reads the advanced row and applies on top of it.
 //

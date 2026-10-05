@@ -27,8 +27,7 @@ import (
 //	    go test ./internal/adapter/pg/ -run TestCatalogueSeed -v
 //
 // It skips without a DSN, matching every other integration test in this
-// package. The platform is cost-paused and Cloud SQL is STOPPED, so this
-// never points at the live instance.
+// package.
 func TestCatalogueSeed_FullMigrationSetLeavesNoDrift(t *testing.T) {
 	pool := liveDB(t) // t.Skip()s when no DSN configured
 	ctx := context.Background()

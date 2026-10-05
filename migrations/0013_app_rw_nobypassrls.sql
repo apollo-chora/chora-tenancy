@@ -7,7 +7,7 @@
 --
 -- WHAT WENT WRONG
 --   Live-DB reconciliation during D0.1 (2026-05-14, app_rw DSN functional
---   probe via Cloud Run Job) found that the post-cutover mint workaround
+--   probe via a scheduled job) found that the post-cutover mint workaround
 --   was applied TWO ways, not one:
 --     (a) `ALTER TABLE members DISABLE ROW LEVEL SECURITY` — reverted by
 --         migration 0012.
@@ -49,8 +49,8 @@
 -- PRIVILEGE NOTE
 --   `ALTER ROLE ... NOBYPASSRLS` requires the executing role to be able to
 --   alter the target role. The migrations-runner authenticates as
---   `chora_tenancy_migrate`, which on this Cloud SQL instance is a member
---   of `cloudsqlsuperuser` (CREATEROLE) — verified live that the migrate
+--   `chora_tenancy_migrate`, which on this Postgres instance is a member
+--   of a CREATEROLE superuser role — verified live that the migrate
 --   role CAN run this ALTER successfully. If a future environment runs
 --   migrations under a role that cannot, this statement will raise a
 --   permission error and `ON_ERROR_STOP=1` will halt the runner — that is

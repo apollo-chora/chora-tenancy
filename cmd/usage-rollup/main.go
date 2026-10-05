@@ -1,18 +1,16 @@
-// Command usage-rollup is the nightly Cloud Run Job that aggregates
+// Command usage-rollup is the nightly job that aggregates
 // addon_usage_events into addon_usage_daily and emits
 // chora.tenancy.addon.usage_recorded.v1 per (tenant, addon) per day.
 //
-// Triggered by Cloud Scheduler via Terraform module
-// `chora-infra/terraform/modules/tenancy/usage-rollup-cron.tf` (one
-// invocation per UTC midnight).
+// Triggered by the scheduler (one invocation per UTC midnight).
 //
 // Per CLAUDE.md §6 (no-inline-config): every URL/secret/topic name flows
-// from env vars sourced by Terraform / Secret Manager:
+// from env vars:
 //
-//	DATABASE_URL                  Cloud SQL connection (tenancy DB)
+//	DATABASE_URL                  Postgres connection (tenancy DB)
 //	PUBSUB_PROJECT                chora-489812 (platform host)
 //	PUBSUB_TOPIC_USAGE_RECORDED   chora.tenancy.addon.usage_recorded.v1
-//	OTEL_EXPORTER_OTLP_ENDPOINT   Cloud Trace endpoint
+//	OTEL_EXPORTER_OTLP_ENDPOINT   OTLP trace endpoint
 //	WINDOW_DAYS                   number of days to roll up (default 1 = previous day)
 //
 // The job is idempotent on (tenant_id, addon_id, bucket_date) — re-running
@@ -61,7 +59,7 @@ func main() {
 		jobName, jobVersion, cfg.WindowDays, cfg.PubsubTopicUsageRecorded)
 
 	// In-memory deps for now. Production wiring (M14) swaps to a Postgres
-	// repository + Cloud Pub/Sub publisher. The flush handler invoked
+	// repository + event-bus publisher. The flush handler invoked
 	// here is the same code path tested in v1_tenants_test.go.
 	deps := httpapi.NewDefaultV2Deps()
 
@@ -104,9 +102,9 @@ func loadConfig() (*Config, error) {
 		cfg.WindowDays = n
 	}
 	// In dev mode (DATABASE_URL absent) we run against the in-memory
-	// deps so the binary stays runnable in CI without a Cloud SQL
+	// deps so the binary stays runnable in CI without a Postgres
 	// instance. Production deploys MUST have DATABASE_URL set; the
-	// readyz/startup probe in the Cloud Run Job pre-checks it.
+	// readyz/startup probe pre-checks it.
 	if cfg.DatabaseURL == "" && os.Getenv("CHORA_DEV_MODE") != "true" {
 		return nil, errors.New("DATABASE_URL is required (no inline config) — set CHORA_DEV_MODE=true for in-memory dev mode")
 	}

@@ -235,7 +235,7 @@ func (r *BootstrapRepository) Persist(ctx context.Context, b *bootstrap.Bundle) 
 		// 5. outbox_events — CHO-1630 Phase 2. Emit
 		// chora.tenancy.tenant.bootstrapped.v1 atomically with the
 		// three INSERTs above so the dispatcher (separate goroutine)
-		// can durably drain it to Cloud Pub/Sub. chora-identity
+		// can durably drain it to the event bus. chora-identity
 		// subscribes and writes the mirror tenant_memberships row.
 		//
 		// outbox_events is NOT tenant-scoped — RLS is enforced via

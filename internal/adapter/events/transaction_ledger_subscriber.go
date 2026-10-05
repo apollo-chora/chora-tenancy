@@ -1,4 +1,4 @@
-// transaction_ledger_subscriber.go — ADR-205 (CHO-1938, Wave B2) Pub/Sub
+// transaction_ledger_subscriber.go — ADR-205 (CHO-1938, Wave B2) event-bus
 // projection subscriber. Consumes payments / identity / observability events
 // and upserts the unified transaction_ledger read projection (cross-DB-clean:
 // subscribe only, never join).
@@ -24,13 +24,12 @@ package events
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/apollo-chora/chora-common/eventbus"
 	"github.com/apollo-chora/chora-common/idempotent"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 	"github.com/apollo-chora/chora-common/tracing"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 
@@ -41,10 +40,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// TxLedger topics consumed by the projection. Each gets its OWN subscription
+// TxLedger topics consumed by the projection. Each gets its OWN consumer
 // (chora-tenancy-txledger-*) distinct from the payments-notification
-// subscriber's, so both process independently. Subscriptions are provisioned
-// via Terraform; this code does not create them.
+// subscriber's, so both process independently. JetStream creates the durable
+// consumers on demand.
 const (
 	topicCoursePurchaseCaptured     = "chora.payments.course_purchase.payment_captured.v1"
 	topicCoursePurchaseRefunded     = "chora.payments.course_purchase.refunded.v1"
@@ -112,10 +111,7 @@ func (s *TransactionLedgerSubscriber) SubscriptionNameForTopic(topic string) str
 // Handle decodes one message, maps it to the projection per the canonical-
 // source policy, and applies it idempotently. A nil return Acks; an error
 // Nacks (broker retry → DLQ).
-func (s *TransactionLedgerSubscriber) Handle(ctx context.Context, topic string, msg *cgcpubsub.Message) error {
-	if msg == nil {
-		return errors.New("txledger: nil message")
-	}
+func (s *TransactionLedgerSubscriber) Handle(ctx context.Context, topic string, msg eventbus.Message) error {
 	env := msg.Envelope
 	tenantID := strings.TrimSpace(env.TenantID)
 	if tenantID == "" {

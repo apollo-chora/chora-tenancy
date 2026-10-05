@@ -44,7 +44,7 @@ const (
 )
 
 // InboxTTL is the dedupe-key retention window for closure_subscriber's
-// inbox. 24h covers Pub/Sub max redelivery window (7d default) reduced
+// inbox. 24h covers the broker max redelivery window (7d default) reduced
 // for the closure saga's typical end-to-end latency.
 const InboxTTL = 24 * time.Hour
 
@@ -85,7 +85,7 @@ type ClosureRepository interface {
 
 // ClosurePublisher is the port the subscriber uses to emit completion /
 // failure acks. *Recorder satisfies it (dev/tests); production wires
-// CloudClosurePublisher over the shared cgcpubsub.ClosureAckPublisher.
+// CloudClosurePublisher over the shared eventbus.ClosureAckPublisher.
 type ClosurePublisher interface {
 	PublishWithError(topic string, h Header, payload map[string]interface{}) (PublishedEvent, error)
 }

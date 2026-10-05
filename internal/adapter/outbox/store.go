@@ -22,7 +22,7 @@
 //     caller's transaction. The HTTP request returns successfully once
 //     the row is durably committed.
 //  2. A separate background Dispatcher polls pending rows, publishes
-//     them to Cloud Pub/Sub, and marks success/failure/deadletter.
+//     them to the event bus, and marks success/failure/deadletter.
 //
 // The HTTP handler crash window now never loses an event: on restart
 // the dispatcher resumes from the pending row.

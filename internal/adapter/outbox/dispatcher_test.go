@@ -1,10 +1,9 @@
 // Package outbox_test — Dispatcher drain-loop tests.
 //
-// The Dispatcher drains outbox_events rows to Cloud Pub/Sub. It composes
+// The Dispatcher drains outbox_events rows to the event bus. It composes
 // Store.FetchPending + Bus.Publish + Store.MarkPublished / MarkFailed /
 // Deadletter. On max-attempts exhaustion the row lands in
-// outbox_dead_letters AND a Pub/Sub-side DLQ subscription (configured in
-// Terraform — see m10-pubsub-dlq).
+// outbox_dead_letters AND the broker-side DLQ (the _dlq.> stream).
 //
 // Per `feedback_d6_resilience_first_class` B.6.2.a — dispatcher is the
 // retry + DLQ ladder for the producer-side outbox. Subscriber-side

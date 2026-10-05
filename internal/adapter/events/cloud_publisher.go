@@ -2,7 +2,7 @@
 //
 // Production drop-in replacement for the in-process Recorder.Atomically
 // records events to chora_tenancy.outbox_events; the Relay drains
-// pending rows to Cloud Pub/Sub.
+// pending rows to the event bus.
 //
 // Same architecture as services/chora-identity/.../events/cloud_publisher.go
 // — different Header / Payload shape because the chora-tenancy publisher
@@ -69,7 +69,7 @@ func (p *CloudPublisher) PublishWithError(topic string, h Header, payload map[st
 	idempotencyKey := newUUIDv7()
 
 	// Producer-side encoding: emit canonical binary protobuf for topics
-	// whose Pub/Sub Schema Registry schema is BINARY-encoded. JSON
+	// whose flat proto contract is BINARY-encoded. JSON
 	// payloads on a schema-attached topic dead-letter forever with
 	// "Invalid binary proto message". Per task #33 (2026-05-16) the
 	// chora-tenancy slice covers tenant + addon + familiar_egg topics.
@@ -180,7 +180,7 @@ func encodeCloudPublisherPayload(topic string, env protomarshal.Envelope, payloa
 	cloudWarnedUnknownTopicsMu.Lock()
 	if !cloudWarnedUnknownTopics[topic] {
 		cloudWarnedUnknownTopics[topic] = true
-		log.Printf("WARN events.CloudPublisher: topic %q has no binary protobuf encoder — payload will JSON-marshal and Schema Registry will REJECT at publish if the topic is BINARY-attached. Add a case to internal/adapter/events/protomarshal/MarshalPayload.", topic)
+		log.Printf("WARN events.CloudPublisher: topic %q has no binary protobuf encoder — payload will JSON-marshal and a binary-contracted consumer will REJECT it. Add a case to internal/adapter/events/protomarshal/MarshalPayload.", topic)
 	}
 	cloudWarnedUnknownTopicsMu.Unlock()
 

@@ -29,7 +29,7 @@
 --      §"Risks + mitigations" R2 — Stripe redelivery cutover window).
 --
 -- This migration MUST be a separate explicit operator step, NOT auto-
--- applied alongside Stage D code. The chora-infra migrations-runner job
+-- applied alongside Stage D code. The migrations-runner job
 -- skips migrations matching a `--stop-at` flag; the canonical Stage D
 -- apply runs `--stop-at 0016`, leaving this migration unstaged until the
 -- Stage G follow-on explicitly applies it.

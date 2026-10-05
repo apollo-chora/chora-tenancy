@@ -4,7 +4,7 @@
 // What this asserts:
 //
 //  1. Every Phyllis-MVP / S2.2 add-on lifecycle event topic validates
-//     against the local Recorder (= Schema Registry shape gate in tests).
+//     against the local Recorder (= the binary contract shape gate in tests).
 //
 //  2. tenant.golive carries chora_imda_dimension=accountability per
 //     ADR-141 (D1) — surfaced via the payload field the publisher copies.

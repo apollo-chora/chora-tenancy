@@ -1,7 +1,7 @@
 // stripe_webhook_event_repository_test.go — unit tests for the pgx
 // stripe_webhook_events repo (Iter G.4 PROD-C, ADR-149).
 //
-// Stubs QueryRunner to avoid a live Cloud SQL dependency. Verifies the
+// Stubs QueryRunner to avoid a live Postgres dependency. Verifies the
 // SQL emit + duplicate-key detection (the UNIQUE constraint on event_id
 // is the heart of the de-dup contract).
 package pg_test

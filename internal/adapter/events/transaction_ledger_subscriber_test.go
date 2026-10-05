@@ -7,8 +7,8 @@ import (
 	"time"
 
 	cgcenv "github.com/apollo-chora/chora-common/envelope"
+	"github.com/apollo-chora/chora-common/eventbus"
 	"github.com/apollo-chora/chora-common/idempotent"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/transactionledger"
 
 	identityv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/identity/v1"
@@ -43,14 +43,14 @@ func newSub() (*TransactionLedgerSubscriber, *fakeRepo) {
 	return NewTransactionLedgerSubscriber(r, idempotent.NewMemoryStore()), r
 }
 
-func msgFor(t *testing.T, topic, eventID, tenant, gcid string, m proto.Message) *cgcpubsub.Message {
+func msgFor(t *testing.T, topic, eventID, tenant, gcid string, m proto.Message) eventbus.Message {
 	t.Helper()
 	b, err := proto.Marshal(m)
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
-	return &cgcpubsub.Message{
-		Topic:    topic,
+	return eventbus.Message{
+		Subject:  topic,
 		Envelope: cgcenv.Envelope{EventID: eventID, TenantID: tenant, GCID: gcid, OccurredAt: time.Now().UTC()},
 		Payload:  b,
 	}
@@ -197,7 +197,7 @@ func TestTxLedger_TokenUsage_ZeroManaSkipped(t *testing.T) {
 
 func TestTxLedger_Idempotent_SameEventID(t *testing.T) {
 	sub, repo := newSub()
-	build := func() *cgcpubsub.Message {
+	build := func() eventbus.Message {
 		return msgFor(t, topicCoursePurchaseCaptured, "dup", "ten1", "g1",
 			&paymentsv1.CoursePurchasePaymentCaptured{PurchaseId: "p", LearnerGcid: "g1", AmountCentsPaid: 1, Currency: "sgd", PaidAt: ts})
 	}
@@ -225,12 +225,8 @@ func TestTxLedger_Guards(t *testing.T) {
 	}
 	// unhandled topic
 	if err := sub.Handle(ctx, "chora.unknown.x.y.v1",
-		&cgcpubsub.Message{Topic: "chora.unknown.x.y.v1", Envelope: cgcenv.Envelope{EventID: "e", TenantID: "ten1"}}); err == nil {
+		eventbus.Message{Subject: "chora.unknown.x.y.v1", Envelope: cgcenv.Envelope{EventID: "e", TenantID: "ten1"}}); err == nil {
 		t.Fatal("unhandled topic should error")
-	}
-	// nil message
-	if err := sub.Handle(ctx, topicCoursePurchaseCaptured, nil); err == nil {
-		t.Fatal("nil message should error")
 	}
 }
 

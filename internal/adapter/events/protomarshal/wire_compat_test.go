@@ -1,7 +1,7 @@
 // wire_compat_test verifies the binary bytes emitted by MarshalPayload parse
 // cleanly into the generated proto types from chora-contracts/gen/go/chora/
-// tenancy/v1. This is the load-bearing assertion — if these tests pass, GCP
-// Pub/Sub Schema Registry (BINARY encoding) WILL accept the bytes.
+// tenancy/v1. This is the load-bearing assertion — if these tests pass, the
+// topic's proto contract WILL accept the bytes.
 //
 // The generated types use the imported chora.common.v1.EventEnvelope rather
 // than the inlined Envelope from the events-flat schemas, but both share

@@ -76,10 +76,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	envelopepkg "github.com/apollo-chora/chora-common/envelope"
-	pubsublib "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 	commonv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/common/v1"
 	paymentsv1 "github.com/apollo-chora/chora-contracts/gen/go/chora/payments/v1"
 	"google.golang.org/protobuf/proto"
@@ -171,24 +172,28 @@ func run(ctx context.Context, specPath string, apply bool, only, idSalt string) 
 	log.Printf("tenant=%s purchases=%d total_mana_units=%d topic=%s apply=%v only=%q id_salt=%q",
 		s.TenantID, len(s.Purchases), totalUnits, topic, apply, only, idSalt)
 
-	// Publish through the raw client, exactly as chora-payments' own outbox
-	// dispatcher does (internal/adapter/outbox/dispatcher.go publishOne).
-	// pubsublib.CloudPublisher.Publish CANNOT be used here: its
-	// ValidateTopicName rejects the entire `payments` domain because
-	// knownDomains has no "payments" entry, which is also why the real
-	// producer never routes through it. Measured, not assumed: the first
-	// run of this tool failed with `unknown domain "payments"`.
-	var client *pubsublib.GCPClient
+	// Publish through the event bus, exactly as the outbox dispatcher does.
+	//
+	// NOTE: eventbus.ValidateSubject currently rejects the `payments` domain
+	// (its knownDomains map has no "payments" entry), so --apply fails loudly
+	// until that taxonomy gap is closed in chora-common. The same gap blocks
+	// the payments consumers in cmd/server.
+	var bus eventbus.Publisher
 	if apply {
-		c, cErr := pubsublib.NewGCPClient(ctx, s.Project)
-		if cErr != nil {
-			return fmt.Errorf("pubsub client: %w", cErr)
+		url := strings.TrimSpace(os.Getenv("NATS_URL"))
+		if url == "" {
+			return errors.New("NATS_URL is required with --apply")
 		}
-		client = c
+		jb, bErr := eventbus.NewJetStream(eventbus.JetStreamConfig{URL: url})
+		if bErr != nil {
+			return fmt.Errorf("event bus: %w", bErr)
+		}
+		defer func() { _ = jb.Close() }()
+		bus = jb
 	}
 
 	for i, p := range s.Purchases {
-		env, payload, bErr := build(s.TenantID, p, idSalt)
+		env, payload, bErr := build(s.Project, s.TenantID, p, idSalt)
 		if bErr != nil {
 			return fmt.Errorf("purchase %s: %w", p.PurchaseID, bErr)
 		}
@@ -200,7 +205,7 @@ func run(ctx context.Context, specPath string, apply bool, only, idSalt string) 
 		if !apply {
 			continue
 		}
-		if _, err := client.PublishMessage(ctx, topic, payload, attrs(env, p)); err != nil {
+		if err := bus.Publish(ctx, topic, env, payload); err != nil {
 			return fmt.Errorf("publish purchase %s: %w", p.PurchaseID, err)
 		}
 		log.Printf("[%d/%d] PUBLISHED purchase=%s", i+1, len(s.Purchases), p.PurchaseID)
@@ -220,7 +225,7 @@ func run(ctx context.Context, specPath string, apply bool, only, idSalt string) 
 // capture happened; published_at is now, because that is when this
 // reconstruction was put on the wire. Keeping them distinct is what makes
 // the record honest about being a replay.
-func build(tenantID string, p purchaseSpec, idSalt string) (envelopepkg.Envelope, []byte, error) {
+func build(project, tenantID string, p purchaseSpec, idSalt string) (envelopepkg.Envelope, []byte, error) {
 	paidAt, err := time.Parse(time.RFC3339Nano, p.PaidAt)
 	if err != nil {
 		return envelopepkg.Envelope{}, nil, fmt.Errorf("paid_at %q: %w", p.PaidAt, err)
@@ -246,7 +251,7 @@ func build(tenantID string, p purchaseSpec, idSalt string) (envelopepkg.Envelope
 		OccurredAt:         paidAt,
 		PublishedAt:        now,
 		Traceparent:        deterministicTraceparent(eventID),
-		SourceProject:      env.GetOrDefault("CHORA_SOURCE_PROJECT", "chora-489812"),
+		SourceProject:      env.GetOrDefault("CHORA_SOURCE_PROJECT", project),
 		SourceService:      sourceService,
 		SchemaVersion:      1,
 		ChoraImdaDimension: "accountability",
@@ -306,34 +311,4 @@ func bytesToUint64(b []byte) uint64 {
 		v = v<<8 | uint64(x)
 	}
 	return v
-}
-
-// attrs mirrors chora-payments' outbox dispatcher pubsubAttributes so the
-// message is indistinguishable on the wire from a real capture in every
-// field EXCEPT source_service, which honestly names this tool. Nothing
-// routes on source_service; claiming chora-payments emitted a
-// reconstruction would make the provenance false.
-//
-// occurred_at and published_at MUST parse as RFC3339Nano or the subscriber's
-// envelopeFromAttributes nacks the message before the handler ever sees it.
-func attrs(env envelopepkg.Envelope, p purchaseSpec) map[string]string {
-	a := map[string]string{
-		"event_id":             env.EventID,
-		"idempotency_key":      env.IdempotencyKey,
-		"tenant_id":            env.TenantID,
-		"aggregate_type":       "tenant_mana_topup",
-		"aggregate_id":         p.PurchaseID,
-		"source_project":       env.SourceProject,
-		"source_service":       env.SourceService,
-		"occurred_at":          env.OccurredAt.UTC().Format(time.RFC3339Nano),
-		"published_at":         env.PublishedAt.UTC().Format(time.RFC3339Nano),
-		"schema_version":       "1",
-		"topic":                topic,
-		"traceparent":          env.Traceparent,
-		"chora_imda_dimension": env.ChoraImdaDimension,
-	}
-	if env.GCID != "" {
-		a["gcid"] = env.GCID
-	}
-	return a
 }

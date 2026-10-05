@@ -4,13 +4,10 @@
 // ADR-217 (Hierarchical tenancy, Model β) Phase-1 migration 0026. CHO-2003.
 //
 // Reuses the liveDB(t) harness in integration_test.go (same pg_test package).
-// Point it at either the local Postgres-18 mirror or dev Cloud SQL:
+// Point it at the local Postgres 18:
 //
-//	# local mirror
+//	# local Postgres
 //	export CHORA_TEST_DSN='postgres://chora_tenancy_app_rw:dev@localhost:5432/chora_tenancy?sslmode=disable'
-//	# or dev (app_rw is NOBYPASSRLS, so RLS assertions are real)
-//	export CHORA_TEST_DSN_SECRET_ID=chora-dev-cloudsql-chora_tenancy-app_rw-dsn
-//	export CHORA_TEST_DB_PROJECT=chora-489812
 //	go test -tags integration ./internal/adapter/pg/ -run ADR217 -v
 //
 // Every write runs inside a transaction that is ROLLED BACK — this suite never

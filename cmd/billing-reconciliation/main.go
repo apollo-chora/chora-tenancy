@@ -1,12 +1,11 @@
-// Package main is the chora-tenancy billing-reconciliation Cloud Run Job
-// entrypoint.
+// Package main is the chora-tenancy billing-reconciliation job entrypoint.
 //
 // Subsumes services/chora-billing-webhook/cmd/reconciliation-job (M12.2
 // Batch-1 consolidation). Per locked architecture (CLAUDE.md §1) Tenancy +
 // Billing are a single combined supporting domain — daily Stripe vs chora
-// event-log reconciliation runs as a Cloud Run Job under chora-tenancy.
+// event-log reconciliation runs as a scheduled job under chora-tenancy.
 //
-// Triggered daily by Cloud Scheduler with the previous-day date in the
+// Triggered daily by the scheduler with the previous-day date in the
 // `RECONCILIATION_DAY` env var (YYYY-MM-DD UTC). When unset, defaults to
 // "yesterday UTC".
 //
@@ -24,13 +23,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/apollo-chora/chora-common/observability"
-	cgcpubsub "github.com/apollo-chora/chora-common/pubsub"
+	"github.com/apollo-chora/chora-common/eventbus"
 
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingpubsub"
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingstripe"
 	"github.com/apollo-chora/chora-tenancy/internal/config"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
+	"github.com/apollo-chora/chora-tenancy/internal/observability"
 )
 
 const (
@@ -64,7 +63,7 @@ func main() {
 	log.Printf("recon: day=%s tolerance_bps=%d", day.Format("2006-01-02"), cfg.ToleranceBPS)
 
 	// Bus + emitter (recon writes 2 governance events per run).
-	bus := cgcpubsub.NewInMemoryBus()
+	bus := eventbus.NewInMemoryBus()
 	defer bus.Close()
 	emitter := billingpubsub.NewReconciliationEmitter(billingpubsub.EmitterConfig{
 		Bus:           bus,
@@ -78,10 +77,9 @@ func main() {
 	})
 
 	// Event-log feeder: subscribes to the bus AND can be pre-loaded from a
-	// snapshot. For the Cloud Run Job MVP this is a fresh in-memory feeder
-	// that only sees events arriving during the run window. Production swaps
-	// to a BigQuery-backed feeder pulling from chora-489812's centralised
-	// audit ledger (also via Pub/Sub event subscription / BQ stream).
+	// snapshot. For the job MVP this is a fresh in-memory feeder that only
+	// sees events arriving during the run window. Production swaps to a
+	// warehouse-backed feeder pulling from the centralised audit ledger.
 	feeder := billingpubsub.NewEventLogReplayFeeder()
 	defer feeder.Close()
 	if err := feeder.Subscribe(ctx, bus); err != nil {
