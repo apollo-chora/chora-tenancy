@@ -825,13 +825,24 @@ func main() {
 	// ADR-164: the familiar-egg checkout handler delegates the Stripe Checkout
 	// session + familiar_egg_purchases persistence to chora-payments via gRPC
 	// (chora-tenancy stays the FamiliarEgg originating service + provisions the
-	// egg on payment_captured). CHORA_PAYMENTS_GRPC_ADDR is REQUIRED — fail
-	// loud, no local-Stripe fallback (the tenancy table was dropped by mig 0017).
-	eggPaymentsClient, err := payments.NewGRPCClientFromEnv()
-	if err != nil {
-		log.Fatalf("tenancy: familiar-egg payments gRPC client init failed (CHORA_PAYMENTS_GRPC_ADDR required, fail-loud): %v", err)
+	// egg on payment_captured).
+	//
+	// The dependency is FEATURE-scoped, not service-wide: only the egg checkout
+	// and the mana top-up session need chora-payments. Tenant reads, membership
+	// resolution and every other capability are unaffected, so an UNSET
+	// CHORA_PAYMENTS_GRPC_ADDR disables exactly those operations (they return
+	// codes.Unavailable) instead of refusing to boot the whole service. A
+	// malformed address is still fatal — that is a real misconfiguration.
+	var eggCheckoutClient familiarEggCheckoutClient
+	if eggPaymentsClient, err := payments.NewGRPCClientFromEnv(); err == nil {
+		eggCheckoutClient = eggPaymentsClient
+		log.Printf("tenancy: familiar-egg checkout delegates to chora-payments gRPC (ADR-164)")
+	} else if errors.Is(err, payments.ErrNoAddr) {
+		eggCheckoutClient = payments.Unavailable{}
+		log.Printf("tenancy: CHORA_PAYMENTS_GRPC_ADDR unset — familiar-egg checkout + mana top-up DISABLED (return codes.Unavailable); tenant/membership APIs unaffected")
+	} else {
+		log.Fatalf("tenancy: familiar-egg payments gRPC client init failed: %v", err)
 	}
-	log.Printf("tenancy: familiar-egg checkout delegates to chora-payments gRPC (ADR-164)")
 
 	eggDeps := httpapi.FamiliarEggDeps{
 		Purchases:     eggPurchases,
@@ -839,7 +850,7 @@ func main() {
 		Stripe:        eggStripeClient,
 		Publisher:     outboxPublisher,
 		WebhookIdem:   eggWebhookIdem,
-		Payments:      newFamiliarEggCheckoutAdapter(eggPaymentsClient),
+		Payments:      newFamiliarEggCheckoutAdapter(eggCheckoutClient),
 		WebhookSecret: stripeCreds.WebhookSecret,
 		SuccessURL:    envOrDefault("STRIPE_SUCCESS_URL", "https://chora.site/a/familiar/marketplace/checkout/success"),
 		CancelURL:     envOrDefault("STRIPE_CANCEL_URL", "https://chora.site/a/familiar/marketplace/checkout/cancel"),
@@ -1019,7 +1030,7 @@ func main() {
 	// in dev (in-memory catalog) the gRPC port stays unbound to avoid
 	// surprising callers with empty results.
 	// ----------------------------------------------------------------------
-	grpcPort := envOrDefault("GRPC_PORT", "9090")
+	grpcPort := grpcPortFromEnv()
 	var grpcSrv *grpc.Server
 	grpcErrCh := make(chan error, 1)
 	if pool != nil {

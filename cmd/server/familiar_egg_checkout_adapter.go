@@ -7,15 +7,24 @@ import (
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/payments"
 )
 
-// familiarEggCheckoutAdapter adapts the concrete chora-payments gRPC client to
+// familiarEggCheckoutClient is the subset of the payments client this adapter
+// needs. Declaring it as an interface (rather than the concrete
+// *payments.GRPCClient) lets cmd/server substitute payments.Unavailable when
+// CHORA_PAYMENTS_GRPC_ADDR is unset, so tenancy boots and only the
+// checkout/top-up operations report unavailable.
+type familiarEggCheckoutClient interface {
+	CreateFamiliarEggCheckoutSession(ctx context.Context, in payments.CreateFamiliarEggCheckoutInput) (payments.CreateFamiliarEggCheckoutOutput, error)
+}
+
+// familiarEggCheckoutAdapter adapts the chora-payments gRPC client to
 // the httpapi.FamiliarEggCheckoutClient port so the http handler package stays
 // decoupled from the payments adapter (ADR-164; mirrors paymentsHTTPAdapter).
 // It is a thin field-map — the two structs are field-identical by design.
 type familiarEggCheckoutAdapter struct {
-	cli *payments.GRPCClient
+	cli familiarEggCheckoutClient
 }
 
-func newFamiliarEggCheckoutAdapter(cli *payments.GRPCClient) familiarEggCheckoutAdapter {
+func newFamiliarEggCheckoutAdapter(cli familiarEggCheckoutClient) familiarEggCheckoutAdapter {
 	return familiarEggCheckoutAdapter{cli: cli}
 }
 
