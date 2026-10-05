@@ -3,7 +3,7 @@ module github.com/apollo-chora/chora-tenancy
 go 1.26.1
 
 require (
-	github.com/apollo-chora/chora-common v0.0.0-20261005024608-7c665d60df86
+	github.com/apollo-chora/chora-common v0.0.0-20261005034043-fc09e907868c
 	github.com/apollo-chora/chora-contracts/gen/go v0.0.0-20261004213314-68f152f9f455
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2

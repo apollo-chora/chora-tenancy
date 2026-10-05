@@ -1,7 +1,7 @@
 github.com/antithesishq/antithesis-sdk-go v0.8.0-default-no-op h1:1BOWQJweNyvZMlpAHXGLiZQn9S+QXGcz3xh94lC0w6E=
 github.com/antithesishq/antithesis-sdk-go v0.8.0-default-no-op/go.mod h1:FQyySiasQQM8735Ddel3MRojmy4dA1IqCeyJ5jmPMbI=
-github.com/apollo-chora/chora-common v0.0.0-20261005024608-7c665d60df86 h1:uVMQAdLe/ksTGWH8dt6O0Mpi3/vhmSGQnSPrX3WjbpI=
-github.com/apollo-chora/chora-common v0.0.0-20261005024608-7c665d60df86/go.mod h1:GXkR6Sasemkara7YU0Y01eWXDvWRSPHtrl1ZUW1fgyU=
+github.com/apollo-chora/chora-common v0.0.0-20261005034043-fc09e907868c h1:PqaAbS0dmS9MHqzgobB4Xfydww3R4hRi30dd26y+XCE=
+github.com/apollo-chora/chora-common v0.0.0-20261005034043-fc09e907868c/go.mod h1:GXkR6Sasemkara7YU0Y01eWXDvWRSPHtrl1ZUW1fgyU=
 github.com/apollo-chora/chora-contracts/gen/go v0.0.0-20261004213314-68f152f9f455 h1:xIkaCf28xUaGwgwoOe+qX3s6xV8tHt9OiX2BdSYUkw8=
 github.com/apollo-chora/chora-contracts/gen/go v0.0.0-20261004213314-68f152f9f455/go.mod h1:lP49emmpeh7Uw4NQ4sEavelSbScuJ2q49bScmnuemWY=
 github.com/aws/aws-sdk-go-v2 v1.47.1 h1:uOIZnp4PK3ZhKI0dNrJrhTEsLxbpXHTAJlwoS1pvAtw=
