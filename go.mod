@@ -3,7 +3,7 @@ module github.com/apollo-chora/chora-tenancy
 go 1.26.1
 
 require (
-	github.com/apollo-chora/chora-common v0.0.0-20261005034043-fc09e907868c
+	github.com/apollo-chora/chora-common v0.0.0-20261005042719-5373c91ce52b
 	github.com/apollo-chora/chora-contracts/gen/go v0.0.0-20261004213314-68f152f9f455
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.9.2
@@ -32,7 +32,6 @@ require (
 	github.com/aws/smithy-go v1.28.2 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
@@ -43,7 +42,6 @@ require (
 	github.com/nats-io/nats.go v1.54.0 // indirect
 	github.com/nats-io/nkeys v0.4.16 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
