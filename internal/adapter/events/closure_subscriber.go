@@ -117,9 +117,6 @@ func NewClosureSubscriber(repo ClosureRepository, pub ClosurePublisher, pii *con
 	}
 }
 
-// SubscribedTopic returns the inbound topic this subscriber binds to.
-func (s *ClosureSubscriber) SubscribedTopic() string { return TopicPseudonymiseRequested }
-
 // Handle processes one pseudonymise.requested.v1 message.
 func (s *ClosureSubscriber) Handle(ctx context.Context, env Header, payload PseudonymiseRequestedPayload) error {
 	if s == nil || s.repo == nil || s.pub == nil || s.pii == nil {
@@ -281,23 +278,4 @@ func (r *InMemoryClosureRepo) SetFailNext(b bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.failNext = b
-}
-
-// -----------------------------------------------------------------------------
-// Bootstrap helper for cmd/server/main.go
-// -----------------------------------------------------------------------------
-
-// BootstrapClosureSubscriber loads the per-domain PII_Closure_Map.yaml and
-// builds a fully-wired ClosureSubscriber against the supplied repo +
-// publisher (Recorder). Returns an error if the map fails to load.
-func BootstrapClosureSubscriber(piiMapPath string, repo ClosureRepository, pub *Recorder, inbox idempotent.Store) (*ClosureSubscriber, error) {
-	pii, err := loadPIIMap(piiMapPath)
-	if err != nil {
-		return nil, err
-	}
-	return NewClosureSubscriber(repo, pub, pii, inbox), nil
-}
-
-func loadPIIMap(path string) (*config.PIIClosureMap, error) {
-	return config.LoadFromFile(path)
 }

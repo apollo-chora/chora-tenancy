@@ -150,49 +150,6 @@ func TestCreateSubscriptionSchedule_IdempotentByTenantSubscription(t *testing.T)
 }
 
 // ---------------------------------------------------------------------------
-// CancelSubscriptionSchedule
-// ---------------------------------------------------------------------------
-
-func TestCancelSubscriptionSchedule_HappyPath(t *testing.T) {
-	t.Parallel()
-	c := newScheduleClient(t)
-	res, err := c.CreateSubscriptionSchedule(context.Background(),
-		stripestub.SubscriptionScheduleInput{
-			TenantID: "tenant-1", CustomerID: "cus_1", SubscriptionID: "sub_1",
-			FromPriceID: "p1", ToPriceID: "p2",
-			ProrationBehavior: "none", DeferToCycleEnd: true,
-			CycleEndAt: time.Now().UTC().AddDate(0, 0, 7),
-		})
-	if err != nil {
-		t.Fatalf("create: %v", err)
-	}
-	cancelled, err := c.CancelSubscriptionSchedule(context.Background(), res.ScheduleID)
-	if err != nil {
-		t.Fatalf("cancel: %v", err)
-	}
-	if !cancelled {
-		t.Fatalf("expected cancelled=true on first cancel")
-	}
-	// Second cancel: false (already gone).
-	cancelled, _ = c.CancelSubscriptionSchedule(context.Background(), res.ScheduleID)
-	if cancelled {
-		t.Fatalf("expected cancelled=false on second cancel")
-	}
-}
-
-func TestCancelSubscriptionSchedule_UnknownIDReturnsFalse(t *testing.T) {
-	t.Parallel()
-	c := newScheduleClient(t)
-	cancelled, err := c.CancelSubscriptionSchedule(context.Background(), "sched_does_not_exist")
-	if err != nil {
-		t.Fatalf("cancel unknown: %v", err)
-	}
-	if cancelled {
-		t.Fatalf("expected cancelled=false for unknown id")
-	}
-}
-
-// ---------------------------------------------------------------------------
 // PreviewSubscriptionScheduleChange — preview-only (no state mutation)
 // ---------------------------------------------------------------------------
 
@@ -241,18 +198,5 @@ func TestPreviewSubscriptionScheduleChange_DeferredDefaultCycleEnd(t *testing.T)
 		stripestub.SubscriptionScheduleInput{TenantID: "t", CustomerID: "c", SubscriptionID: "s",
 			FromPriceID: "a", ToPriceID: "b", ProrationBehavior: "bogus"}); err == nil {
 		t.Fatal("expected invalid proration error")
-	}
-}
-
-func TestCancelSubscriptionSchedule_RemovesStored(t *testing.T) {
-	t.Parallel()
-	c := newScheduleClient(t)
-	if _, err := c.CancelSubscriptionSchedule(context.Background(), ""); err == nil {
-		t.Fatal("expected error for blank schedule id")
-	}
-	// Cancel an id that was never stored → false, nil.
-	ok, err := c.CancelSubscriptionSchedule(context.Background(), "sched_missing")
-	if err != nil || ok {
-		t.Fatalf("expected (false, nil), got (%v, %v)", ok, err)
 	}
 }

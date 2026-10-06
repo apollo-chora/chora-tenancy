@@ -1,12 +1,11 @@
 // Targeted coverage tests for the ADR-164 PaymentsSubscriber — covers the
-// validator-error paths + WithInboxTTL override + subscription name edge
-// cases not exercised by the happy-path subscriber tests.
+// validator-error paths + subscription name edge cases not exercised by the
+// happy-path subscriber tests.
 package events_test
 
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/apollo-chora/chora-common/idempotent"
 
@@ -19,31 +18,6 @@ func newCoverageSub() *events.PaymentsSubscriber {
 		Pool:      &fakePoolApplier{},
 		Inbox:     idempotent.NewMemoryStore(),
 	})
-}
-
-func TestPaymentsSubscriber_WithInboxTTL_OverridesDefault(t *testing.T) {
-	sub := newCoverageSub()
-	got := sub.WithInboxTTL(5 * time.Hour)
-	if got != sub {
-		t.Fatalf("WithInboxTTL should return receiver for chaining")
-	}
-}
-
-func TestPaymentsSubscriber_WithInboxTTL_RejectsZeroAndNegative(t *testing.T) {
-	sub := newCoverageSub()
-	if got := sub.WithInboxTTL(0); got != sub {
-		t.Fatalf("WithInboxTTL(0) should be a no-op (return receiver)")
-	}
-	if got := sub.WithInboxTTL(-1 * time.Hour); got != sub {
-		t.Fatalf("WithInboxTTL(negative) should be a no-op (return receiver)")
-	}
-}
-
-func TestPaymentsSubscriber_WithInboxTTL_NilReceiver(t *testing.T) {
-	var sub *events.PaymentsSubscriber
-	if got := sub.WithInboxTTL(time.Hour); got != nil {
-		t.Fatalf("WithInboxTTL on nil receiver should return nil")
-	}
 }
 
 func TestPaymentsSubscriber_SubscriptionNameForTopic_EdgeCases(t *testing.T) {

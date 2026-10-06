@@ -95,47 +95,6 @@ func TestRegistry_BulkInvite_DedupesWithinSameBatch(t *testing.T) {
 	}
 }
 
-func TestPureBulkInvite_DedupesWithinBatch(t *testing.T) {
-	t.Parallel()
-	res, err := member.BulkInvite(tenantA, []member.InviteRequest{
-		{Email: "alice@acme.com", Roles: []string{"learner"}},
-		{Email: "ALICE@acme.com", Roles: []string{"learner"}},
-		{Email: "bob@acme.com", Roles: []string{"made-up-role"}}, // rejected
-	})
-	if err != nil {
-		t.Fatalf("BulkInvite: %v", err)
-	}
-	if len(res.Invited) != 1 {
-		t.Fatalf("expected 1 invited; got %d", len(res.Invited))
-	}
-	if res.DuplicateCount != 1 {
-		t.Fatalf("expected DuplicateCount=1; got %d", res.DuplicateCount)
-	}
-	if res.RejectedCount != 1 {
-		t.Fatalf("expected RejectedCount=1; got %d", res.RejectedCount)
-	}
-}
-
-func TestPureBulkInvite_RejectsBatchTooLarge(t *testing.T) {
-	t.Parallel()
-	reqs := make([]member.InviteRequest, member.MaxBatchSize+1)
-	for i := range reqs {
-		reqs[i] = member.InviteRequest{Email: "x", Roles: []string{"learner"}}
-	}
-	if _, err := member.BulkInvite(tenantA, reqs); err == nil {
-		t.Fatalf("expected ErrBatchTooLarge")
-	}
-}
-
-func TestPureBulkInvite_RequiresTenantID(t *testing.T) {
-	t.Parallel()
-	if _, err := member.BulkInvite(" ", []member.InviteRequest{
-		{Email: "alice@acme.com", Roles: []string{"learner"}},
-	}); err == nil {
-		t.Fatalf("expected ErrInvalidArgument for empty tenant_id")
-	}
-}
-
 func TestSuspendWithError_HappyPath(t *testing.T) {
 	t.Parallel()
 	m, _ := member.NewMember(tenantA, "alice@acme.com", []string{"learner"})
@@ -176,32 +135,6 @@ func TestNewMember_ValidationBranches(t *testing.T) {
 	}
 	if _, err := member.NewMember("t", "a@b.com", []string{"bogus-role"}); err == nil {
 		t.Fatal("expected error for invalid role")
-	}
-}
-
-func TestPureBulkInvite_CountsRejectedVariants(t *testing.T) {
-	t.Parallel()
-	// Each invalid variant increments RejectedCount: blank email, bad email,
-	// empty roles, invalid role, plus a duplicate and a valid one.
-	res, err := member.BulkInvite("t-1", []member.InviteRequest{
-		{Email: "", Roles: []string{"learner"}},
-		{Email: "nope", Roles: []string{"learner"}},
-		{Email: "a@b.com", Roles: nil},
-		{Email: "b@c.com", Roles: []string{"ghost"}},
-		{Email: "c@d.com", Roles: []string{"learner"}},
-		{Email: "c@d.com", Roles: []string{"learner"}}, // duplicate
-	})
-	if err != nil {
-		t.Fatalf("BulkInvite: %v", err)
-	}
-	if res.RejectedCount != 4 {
-		t.Fatalf("expected 4 rejected, got %d", res.RejectedCount)
-	}
-	if res.DuplicateCount != 1 {
-		t.Fatalf("expected 1 duplicate, got %d", res.DuplicateCount)
-	}
-	if len(res.Invited) != 1 {
-		t.Fatalf("expected 1 invited, got %d", len(res.Invited))
 	}
 }
 

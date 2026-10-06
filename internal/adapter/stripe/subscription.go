@@ -118,27 +118,6 @@ func (c *Client) PreviewSubscriptionScheduleChange(ctx context.Context, in Subsc
 	}, nil
 }
 
-// CancelSubscriptionSchedule removes a stored schedule. Returns true if it
-// was actually cancelled, false if unknown / already cancelled.
-func (c *Client) CancelSubscriptionSchedule(ctx context.Context, scheduleID string) (bool, error) {
-	if strings.TrimSpace(scheduleID) == "" {
-		return false, fmt.Errorf("%w: schedule_id required", ErrInvalidArgument)
-	}
-	store := c.initScheduleStore()
-	store.mu.Lock()
-	defer store.mu.Unlock()
-	if !store.ids[scheduleID] {
-		return false, nil
-	}
-	delete(store.ids, scheduleID)
-	for k, v := range store.by {
-		if v != nil && v.ScheduleID == scheduleID {
-			delete(store.by, k)
-		}
-	}
-	return true, nil
-}
-
 // validateScheduleInput enforces the field rules.
 func validateScheduleInput(c *Client, in SubscriptionScheduleInput) error {
 	if strings.TrimSpace(c.cfg.APIURL) == "" {

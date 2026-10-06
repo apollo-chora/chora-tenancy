@@ -10,7 +10,6 @@ import (
 	"github.com/apollo-chora/chora-common/eventbus"
 
 	"github.com/apollo-chora/chora-tenancy/internal/adapter/billingpubsub"
-	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
 )
 
 func TestEventLogReplayFeeder_Record(t *testing.T) {
@@ -54,11 +53,9 @@ func TestEventLogReplayFeeder_HandlesPubSubMessage(t *testing.T) {
 	}
 
 	day := time.Date(2026, 5, 8, 12, 0, 0, 0, time.UTC)
-	payload, _ := json.Marshal(webhook.Payload{
-		StripeEventID: "evt_pubsub_1",
-		AmountCents:   199_900,
-		Currency:      "USD",
-		OccurredAt:    day,
+	payload, _ := json.Marshal(map[string]any{
+		"AmountCents": 199_900,
+		"OccurredAt":  day,
 	})
 
 	env := cgcenvelope.Build(context.Background(), cgcenvelope.BuildOpts{
@@ -116,7 +113,7 @@ func TestEventLogReplayFeeder_IgnoresZeroAmountAndZeroTime(t *testing.T) {
 		SourceProject: "chora-489812",
 		SourceService: billingpubsub.DefaultSourceService,
 	})
-	payload, _ := json.Marshal(webhook.Payload{StripeEventID: "evt_zero"})
+	payload, _ := json.Marshal(map[string]any{"StripeEventID": "evt_zero"})
 	if err := bus.Publish(context.Background(), "chora.identity.payment.captured.v1", env, payload); err != nil {
 		t.Fatalf("Publish: %v", err)
 	}

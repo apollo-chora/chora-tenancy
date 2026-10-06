@@ -292,18 +292,8 @@ func traceparentFromContext(ctx context.Context) string {
 }
 
 // traceparentCtxKey is the context-key type for the W3C traceparent
-// header. Exported indirectly via WithTraceparent / traceparentFromContext.
+// header.
 type traceparentCtxKey struct{}
-
-// WithTraceparent stamps a W3C traceparent string on the context so the
-// outbox row can echo it into the event envelope. Called by the HTTP
-// handler before invoking Service.Bootstrap.
-func WithTraceparent(ctx context.Context, traceparent string) context.Context {
-	if traceparent == "" {
-		return ctx
-	}
-	return context.WithValue(ctx, traceparentCtxKey{}, traceparent)
-}
 
 // Compile-time check: *BootstrapRepository satisfies bootstrap.Repository.
 var _ bootstrap.Repository = (*BootstrapRepository)(nil)

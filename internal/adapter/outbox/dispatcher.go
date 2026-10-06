@@ -120,9 +120,6 @@ func NewDispatcher(cfg DispatcherConfig) *Dispatcher {
 	return &Dispatcher{cfg: cfg}
 }
 
-// MaxAttempts returns the configured retry ceiling. Exposed for tests.
-func (d *Dispatcher) MaxAttempts() int { return d.cfg.MaxAttempts }
-
 // DrainOnce drains one batch of pending rows. Returns the count of
 // successfully published rows.
 //

@@ -253,17 +253,6 @@ func TestDispatcher_Validates_RequiresWorkerID(t *testing.T) {
 	})
 }
 
-func TestDispatcher_Validates_DefaultsMaxAttempts(t *testing.T) {
-	t.Parallel()
-	d := outbox.NewDispatcher(outbox.DispatcherConfig{
-		Store: outbox.NewInMemoryStore(), Bus: &recordingBus{},
-		WorkerID: "w1",
-	})
-	if d.MaxAttempts() != 5 {
-		t.Errorf("default MaxAttempts = %d; want 5", d.MaxAttempts())
-	}
-}
-
 func TestDispatcher_Run_StopsOnContextCancel(t *testing.T) {
 	t.Parallel()
 	store := outbox.NewInMemoryStore()

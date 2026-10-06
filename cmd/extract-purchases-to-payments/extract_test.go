@@ -35,30 +35,6 @@ func TestMapEggStateToPayments(t *testing.T) {
 	}
 }
 
-func TestMapEggStateToTenancy(t *testing.T) {
-	cases := map[string]string{
-		"checkout_started": "checkout_started",
-		"payment_captured": "paid",
-		"payment_failed":   "payment_failed",
-		"provisioned":      "provisioned",
-		"refunded":         "refunded",
-		"expired":          "expired",
-	}
-	for in, want := range cases {
-		got, err := MapEggStateToTenancy(in)
-		if err != nil {
-			t.Errorf("%q: %v", in, err)
-			continue
-		}
-		if got != want {
-			t.Errorf("MapEggStateToTenancy(%q) = %q want %q", in, got, want)
-		}
-	}
-	if _, err := MapEggStateToTenancy("nope"); err == nil {
-		t.Fatalf("expected error for unknown canonical state")
-	}
-}
-
 func TestMapEggRefundReason(t *testing.T) {
 	cases := map[string]string{
 		"":                      "",

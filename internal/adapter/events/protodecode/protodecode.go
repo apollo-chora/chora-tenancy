@@ -45,71 +45,11 @@ var binaryDecoders = map[string]struct {
 	project projector
 }{}
 
-// DecodePayloadMap decodes inbound event-bus message bytes into a snake_case
-// map[string]any.
-//
-// Use DecodePayloadMapWithAttrs when the caller has message attributes
-// available — the publisher places envelope fields (event_id / tenant_id /
-// gcid / traceparent) there, not in the payload body.
-func DecodePayloadMap(topic string, payload []byte) (map[string]any, error) {
-	return DecodePayloadMapWithAttrs(topic, payload, nil)
-}
-
-// DecodePayloadMapWithAttrs decodes inbound event-bus message bytes + the
-// publisher-supplied message attributes into a snake_case map[string]any.
-//
-// Field precedence (high → low):
-//  1. Binary proto Envelope (when payload is binary-decodable for this topic)
-//  2. Message attributes (publisher's canonical envelope projection)
-//  3. JSON payload body
-//
-// nil attrs ⇒ legacy DecodePayloadMap behaviour. Empty payload ⇒
-// ErrEmptyPayload regardless of attrs.
-func DecodePayloadMapWithAttrs(topic string, payload []byte, attrs map[string]string) (map[string]any, error) {
-	if len(payload) == 0 {
-		return nil, ErrEmptyPayload
-	}
-
-	if entry, ok := binaryDecoders[topic]; ok {
-		msg, err := entry.decode(payload)
-		if err == nil && msg != nil && entry.project != nil {
-			out := make(map[string]any)
-			mergeAttrsEnvelope(attrs, out)
-			entry.project(msg, out)
-			return out, nil
-		}
-		warnBinaryFallback(topic, err)
-	} else {
-		warnUnknownTopic(topic)
-	}
-
-	var body map[string]any
-	if err := json.Unmarshal(payload, &body); err != nil {
-		return nil, fmt.Errorf("protodecode: topic %q neither binary-decodable nor JSON-decodable: %w", topic, err)
-	}
-	out := make(map[string]any, len(body)+len(attrs))
-	for k, v := range body {
-		out[k] = v
-	}
-	mergeAttrsEnvelope(attrs, out)
-	return out, nil
-}
-
-// DecodePayloadInto decodes inbound bytes directly into the supplied JSON-
-// tagged destination struct. Use when the consumer has a stable typed shape
-// (e.g., the payment.captured minimalPaymentPayload) rather than a generic
-// map. Tries proto first only if the topic is registered for binary.
-//
-// Returns ErrEmptyPayload on zero-length input.
-func DecodePayloadInto(topic string, payload []byte, dst any) error {
-	return DecodePayloadIntoWithAttrs(topic, payload, nil, dst)
-}
-
-// DecodePayloadIntoWithAttrs is the attribute-aware variant of
-// DecodePayloadInto — envelope fields from msg.Attributes are merged into
-// the decoded map before re-marshalling into dst, so dst structs with JSON
-// tags for event_id / tenant_id / gcid populate correctly even when the
-// producer is on JSON-only.
+// DecodePayloadIntoWithAttrs is the attribute-aware variant of the
+// decode-into-struct entry point — envelope fields from msg.Attributes are
+// merged into the decoded map before re-marshalling into dst, so dst structs
+// with JSON tags for event_id / tenant_id / gcid populate correctly even when
+// the producer is on JSON-only.
 //
 // Returns ErrEmptyPayload on zero-length input regardless of attrs.
 func DecodePayloadIntoWithAttrs(topic string, payload []byte, attrs map[string]string, dst any) error {
@@ -208,9 +148,6 @@ func mergeAttrsEnvelope(attrs map[string]string, out map[string]any) {
 var (
 	warnedFallbackMu sync.Mutex
 	warnedFallback   = map[string]bool{}
-
-	warnedUnknownMu sync.Mutex
-	warnedUnknown   = map[string]bool{}
 )
 
 func warnBinaryFallback(topic string, err error) {
@@ -221,16 +158,4 @@ func warnBinaryFallback(topic string, err error) {
 	}
 	warnedFallback[topic] = true
 	log.Printf("WARN protodecode: topic %q registered for binary but binary unmarshal failed (%v) — falling back to JSON. Expected during producer-side flip; investigate if persistent.", topic, err)
-}
-
-func warnUnknownTopic(topic string) {
-	warnedUnknownMu.Lock()
-	defer warnedUnknownMu.Unlock()
-	if warnedUnknown[topic] {
-		return
-	}
-	warnedUnknown[topic] = true
-	// Note: NOT logged for chora-tenancy because payment.captured topics
-	// are intentionally JSON-only at this package landing — too noisy.
-	_ = topic
 }

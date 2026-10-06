@@ -88,12 +88,6 @@ func New(jobs tl.ExportJobRepository, read tl.ReadRepository, store tl.ExportSto
 	}
 }
 
-// WithClock overrides the time source (tests).
-func (w *Worker) WithClock(now func() time.Time) *Worker {
-	w.now = now
-	return w
-}
-
 // RunOnce claims + processes one batch. Returns the number of jobs processed.
 func (w *Worker) RunOnce(ctx context.Context) (int, error) {
 	jobs, err := w.jobs.ClaimPending(ctx, w.cfg.ClaimLimit)

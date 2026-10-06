@@ -411,15 +411,6 @@ func NewPaymentsSubscriber(deps PaymentsSubscriberDeps) *PaymentsSubscriber {
 	}
 }
 
-// WithInboxTTL overrides the default dedupe-key retention window.
-func (s *PaymentsSubscriber) WithInboxTTL(ttl time.Duration) *PaymentsSubscriber {
-	if s == nil || ttl <= 0 {
-		return s
-	}
-	s.ttl = ttl
-	return s
-}
-
 // SubscriptionNameForTopic maps an inbound topic to its canonical
 // subscription name in the chora-tenancy convention.
 func (s *PaymentsSubscriber) SubscriptionNameForTopic(topic string) string {

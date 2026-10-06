@@ -198,15 +198,6 @@ func TestRunOnce_PoisonJob_AbandonedAfterMaxAttempts(t *testing.T) {
 	}
 }
 
-func TestWorker_WithClock_Chain(t *testing.T) {
-	t.Parallel()
-	w := exportworker.New(&fakeJobRepo{}, &stubRead{}, &fakeStorage{}, exportworker.Config{}, nil)
-	now := time.Date(2026, 7, 1, 0, 0, 0, 0, time.UTC)
-	if got := w.WithClock(func() time.Time { return now }); got != w {
-		t.Fatalf("WithClock should return the receiver")
-	}
-}
-
 func TestWorker_RunLoop_ExitsOnCancel(t *testing.T) {
 	j := tenantJob("R1")
 	j.AttemptCount = 5 // poison → process() marks failed without touching read

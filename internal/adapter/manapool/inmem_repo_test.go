@@ -177,38 +177,6 @@ func TestInmemAllocationRepo_Get_NotFound(t *testing.T) {
 }
 
 // -----------------------------------------------------------------------------
-// LearnerCounter inmem
-// -----------------------------------------------------------------------------
-
-func TestInmemLearnerCounter_RegisterAndCount(t *testing.T) {
-	t.Parallel()
-	c := manapool.NewInmemLearnerCounter()
-	c.Register(tenantA, pool.LearnerContext{GCID: gcidL1, Role: "standard"})
-	c.Register(tenantA, pool.LearnerContext{GCID: gcidL2, Role: "power_user"})
-	n, err := c.CountActiveLearners(context.Background(), tenantA)
-	if err != nil {
-		t.Fatalf("CountActive: %v", err)
-	}
-	if n != 2 {
-		t.Fatalf("expected 2 active learners, got %d", n)
-	}
-	all, _ := c.ListActiveLearners(context.Background(), tenantA)
-	if len(all) != 2 {
-		t.Fatalf("expected list len 2")
-	}
-}
-
-func TestInmemLearnerCounter_RegisterIdempotent(t *testing.T) {
-	t.Parallel()
-	c := manapool.NewInmemLearnerCounter()
-	c.Register(tenantA, pool.LearnerContext{GCID: gcidL1, Role: "standard"})
-	c.Register(tenantA, pool.LearnerContext{GCID: gcidL1, Role: "standard"})
-	n, _ := c.CountActiveLearners(context.Background(), tenantA)
-	if n != 1 {
-		t.Fatalf("Register should be idempotent on gcid")
-	}
-}
-
 func TestInmemAllocationRepo_GetByIdempotencyKey_BlankKey(t *testing.T) {
 	repo := manapool.NewInmemAllocationRepo()
 	if _, err := repo.GetByIdempotencyKey(context.Background(), ""); err == nil {

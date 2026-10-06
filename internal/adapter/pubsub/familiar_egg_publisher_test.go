@@ -9,29 +9,6 @@ import (
 	familiareag "github.com/apollo-chora/chora-tenancy/internal/domain/familiar_egg"
 )
 
-func TestEmitCheckoutStarted_PublishesToCheckoutStartedTopic(t *testing.T) {
-	t.Parallel()
-	r := events.NewRecorder()
-	p := samplePurchase()
-	_, err := familiareggpub.EmitCheckoutStarted(r, events.Header{TenantID: p.TenantID}, p)
-	if err != nil {
-		t.Fatalf("EmitCheckoutStarted: %v", err)
-	}
-	got := r.RecordedByTopic(familiareggpub.TopicCheckoutStarted)
-	if len(got) != 1 {
-		t.Fatalf("expected 1 event; got %d", len(got))
-	}
-	if got[0].Payload["purchase_id"] != p.PurchaseID {
-		t.Errorf("purchase_id payload missing")
-	}
-	if got[0].Payload["target_tenant_id"] != p.TenantID {
-		t.Errorf("target_tenant_id missing")
-	}
-	if got[0].Payload["chora_imda_dimension"] != "accountability" {
-		t.Errorf("imda dimension missing")
-	}
-}
-
 func TestEmitPaymentSucceeded_PublishesPaidEvent(t *testing.T) {
 	t.Parallel()
 	r := events.NewRecorder()

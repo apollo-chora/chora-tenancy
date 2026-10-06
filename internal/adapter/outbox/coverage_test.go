@@ -108,21 +108,6 @@ func TestDispatcher_DrainOnce_StoreErrorSurfacedToCaller(t *testing.T) {
 	}
 }
 
-// TestDispatcher_DrainOnce_DefaultsApplied verifies the dispatcher defaults
-// kick in when zero values are passed.
-func TestDispatcher_DrainOnce_DefaultsApplied(t *testing.T) {
-	t.Parallel()
-	store := outbox.NewInMemoryStore()
-	bus := &recordingBus{}
-	d := outbox.NewDispatcher(outbox.DispatcherConfig{
-		Store: store, Bus: bus, WorkerID: "w1",
-		// All other fields default
-	})
-	if d.MaxAttempts() != 5 {
-		t.Errorf("MaxAttempts default = %d; want 5", d.MaxAttempts())
-	}
-}
-
 // TestDispatcher_Run_EmptyDrainSleepsAndExitsOnCancel exercises the
 // PollInterval branch + Run's empty-drain backoff path.
 func TestDispatcher_Run_EmptyDrainSleepsAndExitsOnCancel(t *testing.T) {

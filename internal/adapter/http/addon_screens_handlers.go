@@ -20,7 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 	stripestub "github.com/apollo-chora/chora-tenancy/internal/adapter/stripe"
 	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
@@ -535,18 +534,4 @@ func previewScheduleInputFor(tenantID string, sub *addon.Subscription,
 		DeferToCycleEnd:   deferred,
 		CycleEndAt:        cycleEnd,
 	}
-}
-
-// publishEventWithIMDA wraps deps.Events.Publish to ensure
-// `chora_imda_dimension=accountability` is present in the payload per
-// ADR-141 D1.
-//
-// Currently unused in this file (the callers above inline the attribute) but
-// retained as a helper for future event publishers in this package.
-func publishEventWithIMDA(deps V2Deps, topic string, header events.Header, payload map[string]interface{}) {
-	if payload == nil {
-		payload = map[string]interface{}{}
-	}
-	payload["chora_imda_dimension"] = imdaDimensionAccountability
-	deps.Events.Publish(topic, header, payload)
 }

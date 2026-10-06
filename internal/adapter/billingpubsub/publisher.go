@@ -30,7 +30,6 @@ import (
 	"github.com/apollo-chora/chora-common/eventbus"
 
 	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/reconciliation"
-	"github.com/apollo-chora/chora-tenancy/internal/domain/billing/webhook"
 )
 
 // DefaultSourceService is the canonical source_service envelope value used
@@ -56,70 +55,6 @@ type EmitterConfig struct {
 
 	// Now is injectable for tests; defaults to time.Now().UTC.
 	Now func() time.Time
-}
-
-// WebhookPublisher publishes a webhook.Classification to the chora event
-// topology, mediated by the chora-common eventbus.Publisher.
-type WebhookPublisher struct {
-	cfg EmitterConfig
-}
-
-// NewWebhookPublisher constructs a WebhookPublisher.
-func NewWebhookPublisher(cfg EmitterConfig) *WebhookPublisher {
-	if cfg.Now == nil {
-		cfg.Now = func() time.Time { return time.Now().UTC() }
-	}
-	if cfg.SourceService == "" {
-		cfg.SourceService = DefaultSourceService
-	}
-	if cfg.SourceProject == "" {
-		cfg.SourceProject = "chora-489812"
-	}
-	return &WebhookPublisher{cfg: cfg}
-}
-
-// Publish renders the classification onto the chora-common envelope +
-// Protobuf-equivalent JSON payload, then publishes to the canonical topic.
-//
-// On DLQ classifications: publishes to webhook.DLQTopic with the same
-// envelope + payload. The caller is responsible for choosing whether to
-// short-circuit before calling Publish (the HTTP layer does this so it can
-// return 202 Accepted for DLQ cases).
-func (p *WebhookPublisher) Publish(ctx context.Context, c webhook.Classification) error {
-	if c.Topic == "" {
-		return fmt.Errorf("billingpubsub: classification has empty topic")
-	}
-	if c.Payload == nil {
-		return fmt.Errorf("billingpubsub: classification has nil payload")
-	}
-	now := p.cfg.Now()
-	env := cgcenvelope.Build(ctx, cgcenvelope.BuildOpts{
-		EventType:          c.Topic,
-		SchemaVersion:      1,
-		SourceProject:      p.cfg.SourceProject,
-		SourceService:      p.cfg.SourceService,
-		IdempotencyKey:     c.IdempotencyKey,
-		ChoraImdaDimension: c.IMDADimension,
-		ImdaLifecycleStage: "runtime",
-		Now:                func() time.Time { return now },
-	})
-	// The envelope.Build pulls tenant_id from ctx; classification carries
-	// the canonical envelope tenant_id (which is "platform" for user-scoped
-	// events). Override.
-	if c.TenantID != "" {
-		env.TenantID = c.TenantID
-	}
-	if c.GCID != "" {
-		env.GCID = c.GCID
-	}
-	body, err := json.Marshal(c.Payload)
-	if err != nil {
-		return fmt.Errorf("billingpubsub: marshal payload: %w", err)
-	}
-	if err := p.cfg.Bus.Publish(ctx, c.Topic, env, body); err != nil {
-		return fmt.Errorf("billingpubsub: publish %s: %w", c.Topic, err)
-	}
-	return nil
 }
 
 // ReconciliationEmitter publishes the reconciliation `completed` + `anomaly`

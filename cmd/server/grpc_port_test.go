@@ -32,9 +32,6 @@ func TestGRPCPortFromEnvPrecedence(t *testing.T) {
 			if got := grpcPortFromEnv(); got != tc.want {
 				t.Errorf("grpcPortFromEnv() = %q; want %q", got, tc.want)
 			}
-			if got, want := grpcEnvIsCanonical(), tc.canonical != ""; got != want {
-				t.Errorf("grpcEnvIsCanonical() = %v; want %v", got, want)
-			}
 		})
 	}
 }

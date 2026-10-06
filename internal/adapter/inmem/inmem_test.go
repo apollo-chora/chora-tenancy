@@ -81,7 +81,14 @@ func TestPaymentMethodRepo_SaveAndListByTenant(t *testing.T) {
 	t.Parallel()
 	r := inmem.NewPaymentMethodRepo()
 	tt, _ := domain.NewTenant("Acme", false, "")
-	pm, _ := domain.NewPaymentMethod(tt.ID, "pm_x")
+	pm := &domain.PaymentMethod{
+		ID:                    domain.NewUUIDv7(),
+		TenantID:              tt.ID,
+		StripePaymentMethodID: "pm_x",
+		Status:                domain.PaymentMethodStatusActive,
+		CreatedAt:             time.Now().UTC(),
+		UpdatedAt:             time.Now().UTC(),
+	}
 	r.Save(pm)
 	all := r.ListByTenant(tt.ID)
 	if len(all) != 1 {

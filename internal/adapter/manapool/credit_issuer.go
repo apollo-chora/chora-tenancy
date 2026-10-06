@@ -196,12 +196,3 @@ func (i *CreditIssuer) IssueRefundCredit(
 func DeriveEggRefundIdempotencyKey(purchaseID string) string {
 	return "expiry-" + strings.TrimSpace(purchaseID)
 }
-
-// DeriveEggRefundAllocationID is retained for back-compat with the
-// pre-0009 in-memory deterministic-ID path. Now delegates to the
-// idempotency-key form. Deprecated: prefer DeriveEggRefundIdempotencyKey.
-//
-// Deprecated: use DeriveEggRefundIdempotencyKey.
-func DeriveEggRefundAllocationID(purchaseID string) string {
-	return DeriveEggRefundIdempotencyKey(purchaseID)
-}

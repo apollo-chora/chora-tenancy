@@ -14,7 +14,6 @@
 package member_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/apollo-chora/chora-tenancy/internal/domain/member"
@@ -177,103 +176,6 @@ func TestMember_UpdateRoles_RejectsUnknown(t *testing.T) {
 // Bulk invite (Comic Ch4 P9 P1 "12 students onboarded ... All from one screen")
 // -----------------------------------------------------------------------------
 
-func TestBulkInvite_DedupesEmailCaseInsensitive(t *testing.T) {
-	t.Parallel()
-	reqs := []member.InviteRequest{
-		{Email: "alice@acme.com", Roles: []string{"learner"}},
-		{Email: "ALICE@ACME.COM", Roles: []string{"learner"}},
-		{Email: "bob@acme.com", Roles: []string{"learner"}},
-	}
-	result, err := member.BulkInvite(tenantA, reqs)
-	if err != nil {
-		t.Fatalf("BulkInvite: unexpected error: %v", err)
-	}
-	if len(result.Invited) != 2 {
-		t.Fatalf("expected 2 unique invites, got %d", len(result.Invited))
-	}
-	if result.DuplicateCount != 1 {
-		t.Fatalf("expected 1 duplicate, got %d", result.DuplicateCount)
-	}
-}
-
-func TestBulkInvite_RejectsEmptyEmailRows(t *testing.T) {
-	t.Parallel()
-	reqs := []member.InviteRequest{
-		{Email: "alice@acme.com", Roles: []string{"learner"}},
-		{Email: "  ", Roles: []string{"learner"}},
-	}
-	result, err := member.BulkInvite(tenantA, reqs)
-	if err != nil {
-		t.Fatalf("BulkInvite: unexpected error: %v", err)
-	}
-	if len(result.Invited) != 1 {
-		t.Fatalf("expected 1 invite (empty row skipped), got %d", len(result.Invited))
-	}
-	if result.RejectedCount != 1 {
-		t.Fatalf("expected 1 rejection")
-	}
-}
-
-func TestBulkInvite_RejectsRowsWithoutRoles(t *testing.T) {
-	t.Parallel()
-	reqs := []member.InviteRequest{
-		{Email: "alice@acme.com", Roles: []string{"learner"}},
-		{Email: "bob@acme.com", Roles: nil},
-	}
-	result, _ := member.BulkInvite(tenantA, reqs)
-	if len(result.Invited) != 1 {
-		t.Fatalf("expected 1 invite (bob rejected for missing roles), got %d", len(result.Invited))
-	}
-	if result.RejectedCount != 1 {
-		t.Fatalf("expected 1 rejection for missing roles")
-	}
-}
-
-// Max 1000/batch — over-limit batches rejected wholesale.
-func TestBulkInvite_RejectsBatchLargerThan1000(t *testing.T) {
-	t.Parallel()
-	reqs := make([]member.InviteRequest, 1001)
-	for i := range reqs {
-		reqs[i] = member.InviteRequest{
-			Email: emailFor(i),
-			Roles: []string{"learner"},
-		}
-	}
-	if _, err := member.BulkInvite(tenantA, reqs); err == nil {
-		t.Fatalf("expected error for 1001-row batch")
-	}
-	if _, err := member.BulkInvite(tenantA, reqs); err != member.ErrBatchTooLarge {
-		t.Fatalf("expected ErrBatchTooLarge")
-	}
-}
-
-// 1000 exactly should be allowed.
-func TestBulkInvite_AllowsExactlyMaxBatch(t *testing.T) {
-	t.Parallel()
-	reqs := make([]member.InviteRequest, 1000)
-	for i := range reqs {
-		reqs[i] = member.InviteRequest{
-			Email: emailFor(i),
-			Roles: []string{"learner"},
-		}
-	}
-	result, err := member.BulkInvite(tenantA, reqs)
-	if err != nil {
-		t.Fatalf("BulkInvite (1000 rows): unexpected error: %v", err)
-	}
-	if len(result.Invited) != 1000 {
-		t.Fatalf("expected 1000 invites, got %d", len(result.Invited))
-	}
-}
-
-func TestBulkInvite_RejectsEmptyTenantID(t *testing.T) {
-	t.Parallel()
-	reqs := []member.InviteRequest{{Email: "alice@acme.com", Roles: []string{"learner"}}}
-	if _, err := member.BulkInvite("", reqs); err == nil {
-		t.Fatalf("expected error for empty tenant_id")
-	}
-}
-
 // -----------------------------------------------------------------------------
 // MemberRegistry — list / filter / update
 // -----------------------------------------------------------------------------
@@ -382,31 +284,3 @@ func TestMemberRegistry_BulkInviteSkipsExisting(t *testing.T) {
 // -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
-
-func emailFor(i int) string {
-	// Use a fast lookup-friendly format for high-volume tests.
-	var sb strings.Builder
-	sb.WriteString("user")
-	itoa(&sb, i)
-	sb.WriteString("@acme.com")
-	return sb.String()
-}
-
-func itoa(sb *strings.Builder, n int) {
-	if n == 0 {
-		sb.WriteByte('0')
-		return
-	}
-	if n < 0 {
-		sb.WriteByte('-')
-		n = -n
-	}
-	var buf [20]byte
-	pos := len(buf)
-	for n > 0 {
-		pos--
-		buf[pos] = byte('0' + n%10)
-		n /= 10
-	}
-	sb.Write(buf[pos:])
-}

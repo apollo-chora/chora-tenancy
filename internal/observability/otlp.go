@@ -25,7 +25,6 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -116,12 +115,6 @@ func newExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
 		opts = append(opts, otlptracegrpc.WithEndpoint(raw), otlptracegrpc.WithInsecure())
 	}
 	return otlptracegrpc.New(ctx, opts...)
-}
-
-// StartSpan starts a span scoped to the global tracer. Equivalent to
-// chora-common/observability.StartSpan.
-func StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
-	return otel.Tracer(ServiceName).Start(ctx, name, opts...)
 }
 
 // HTTPMiddleware re-exports the broker-neutral traceparent middleware so

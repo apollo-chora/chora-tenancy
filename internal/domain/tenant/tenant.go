@@ -364,34 +364,6 @@ func (r *Registry) CreateSubTenant(parentID, displayName, ownerGCID string, self
 	return t, nil
 }
 
-func (r *Registry) SetParent(tenantID, newParentID string) error {
-	if tenantID == newParentID {
-		return ErrSelfParent
-	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	t, ok := r.by[tenantID]
-	if !ok {
-		return ErrTenantNotFound
-	}
-	if newParentID != "" {
-		cursor := newParentID
-		for cursor != "" {
-			if cursor == tenantID {
-				return ErrCycleDetected
-			}
-			parent, ok := r.by[cursor]
-			if !ok {
-				return ErrParentNotFound
-			}
-			cursor = parent.ParentTenantID
-		}
-	}
-	t.ParentTenantID = newParentID
-	t.UpdatedAt = time.Now().UTC()
-	return nil
-}
-
 func (r *Registry) Save(t *Tenant) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -406,18 +378,6 @@ func (r *Registry) Get(id string) (*Tenant, bool) {
 	defer r.mu.RUnlock()
 	t, ok := r.by[id]
 	return t, ok
-}
-
-func (r *Registry) ListChildren(parentID string) []*Tenant {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	out := make([]*Tenant, 0)
-	for _, t := range r.by {
-		if t.ParentTenantID == parentID {
-			out = append(out, t)
-		}
-	}
-	return out
 }
 
 func (r *Registry) List() []*Tenant {

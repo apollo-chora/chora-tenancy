@@ -1,12 +1,7 @@
 // Package manapool is the adapter package for BE-USR-3 (Wave 3 of the
 // per-user economy / Q2=v1 tenant subsidy track). It exposes:
 //
-//   - HTTP handlers for the 8 mana-pool / mana-allocation endpoints
 //   - In-memory repositories for TenantManaPool + TenantManaAllocation
-//   - A Stripe stub adapter for pool top-ups
-//   - A recorder event-bus publisher emitting the 7 mana topics
-//   - An enrollment subscriber driving auto-allocation
-//   - A monthly ticker driving the EqualSplit distribution
 //
 // All package-level dependencies (Stripe URL, event-bus project) are sourced
 // from environment variables — no inline config (per
@@ -176,56 +171,4 @@ func (r *InmemAllocationRepo) ListByTenant(_ context.Context, tenantID string, f
 		limit = len(out)
 	}
 	return out[:limit], total, nil
-}
-
-// -----------------------------------------------------------------------------
-// InmemLearnerCounter — implements pool.LearnerCounter
-// -----------------------------------------------------------------------------
-
-// InmemLearnerCounter is the in-memory active-learner registry the policy
-// engine consults. It is populated by the enrollment subscriber.
-//
-// In production this lives in `chora_tenancy.members` (RLS-isolated). The
-// service NEVER cross-DB queries `chora_identity` — membership state is
-// projected via the `chora.identity.user_membership.created.v1` event.
-type InmemLearnerCounter struct {
-	mu sync.RWMutex
-	// tenantID -> gcid -> LearnerContext
-	by map[string]map[string]pool.LearnerContext
-}
-
-// NewInmemLearnerCounter returns an empty counter.
-func NewInmemLearnerCounter() *InmemLearnerCounter {
-	return &InmemLearnerCounter{by: make(map[string]map[string]pool.LearnerContext)}
-}
-
-// Register adds a learner under a tenant. Idempotent on (tenant, gcid).
-func (c *InmemLearnerCounter) Register(tenantID string, lctx pool.LearnerContext) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if c.by[tenantID] == nil {
-		c.by[tenantID] = make(map[string]pool.LearnerContext)
-	}
-	c.by[tenantID][lctx.GCID] = lctx
-}
-
-// CountActiveLearners returns the number of registered learners for a tenant.
-func (c *InmemLearnerCounter) CountActiveLearners(_ context.Context, tenantID string) (int, error) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	return len(c.by[tenantID]), nil
-}
-
-// ListActiveLearners returns the registered learners for a tenant, ordered
-// by GCID for deterministic test runs.
-func (c *InmemLearnerCounter) ListActiveLearners(_ context.Context, tenantID string) ([]pool.LearnerContext, error) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	m := c.by[tenantID]
-	out := make([]pool.LearnerContext, 0, len(m))
-	for _, l := range m {
-		out = append(out, l)
-	}
-	sort.Slice(out, func(i, j int) bool { return strings.Compare(out[i].GCID, out[j].GCID) < 0 })
-	return out, nil
 }

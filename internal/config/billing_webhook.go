@@ -42,27 +42,6 @@ type BillingWebhookConfig struct {
 	OTLPEndpoint string // OTEL_EXPORTER_OTLP_ENDPOINT
 }
 
-// LoadBillingWebhookServer loads config for the HTTP webhook server.
-// Returns descriptive error when STRIPE_WEBHOOK_SECRET is missing.
-func LoadBillingWebhookServer() (*BillingWebhookConfig, error) {
-	cfg := &BillingWebhookConfig{
-		Port:                envOr("PORT", "8080"),
-		StripeAPIBase:       envOr("STRIPE_API_BASE", "https://api.stripe.com"),
-		StripeSecretKey:     os.Getenv("STRIPE_SECRET_KEY"),
-		StripeWebhookSecret: os.Getenv("STRIPE_WEBHOOK_SECRET"),
-		SignatureSkew:       envDuration("STRIPE_SIGNATURE_SKEW", 5*time.Minute),
-		SourceProject:       envOr("CHORA_SOURCE_PROJECT", "chora-489812"),
-		SourceService:       envOr("CHORA_SOURCE_SERVICE", "chora-tenancy-billing-webhook"),
-		ToleranceBPS:        envInt("RECONCILIATION_TOLERANCE_BPS", 10),
-		IdempotencyTTL:      envDuration("STRIPE_WEBHOOK_IDEMPOTENCY_TTL", 7*24*time.Hour),
-		OTLPEndpoint:        os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
-	}
-	if strings.TrimSpace(cfg.StripeWebhookSecret) == "" {
-		return nil, errors.New("config: STRIPE_WEBHOOK_SECRET required (no inline config — set it via the environment)")
-	}
-	return cfg, nil
-}
-
 // LoadBillingReconciliationJob loads config for the reconciliation job.
 // Differs from LoadBillingWebhookServer in that the webhook secret is
 // NOT required (the Job doesn't ingress webhooks) but the Stripe SECRET_KEY
@@ -88,18 +67,6 @@ func envOr(key, fallback string) string {
 		return fallback
 	}
 	return v
-}
-
-func envDuration(key string, fallback time.Duration) time.Duration {
-	v := strings.TrimSpace(os.Getenv(key))
-	if v == "" {
-		return fallback
-	}
-	d, err := time.ParseDuration(v)
-	if err != nil {
-		return fallback
-	}
-	return d
 }
 
 func envInt(key string, fallback int) int {

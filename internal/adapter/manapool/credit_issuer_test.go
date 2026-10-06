@@ -35,14 +35,6 @@ func TestDeriveEggRefundIdempotencyKey_HasExpectedPrefix(t *testing.T) {
 	}
 }
 
-func TestDeriveEggRefundAllocationID_DelegatesToIdempotencyKey(t *testing.T) {
-	// Back-compat: the legacy helper still returns the same string so
-	// any caller that depended on it pre-0009 keeps working.
-	if DeriveEggRefundAllocationID("p-x") != DeriveEggRefundIdempotencyKey("p-x") {
-		t.Errorf("back-compat helper diverged from canonical")
-	}
-}
-
 // ---------- NewCreditIssuer validation --------------------------------------
 
 func TestNewCreditIssuer_RequiresRepo(t *testing.T) {

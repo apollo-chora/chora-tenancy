@@ -170,55 +170,6 @@ type BulkInviteResult struct {
 	AlreadyExists  int
 }
 
-func BulkInvite(tenantID string, reqs []InviteRequest) (*BulkInviteResult, error) {
-	if strings.TrimSpace(tenantID) == "" {
-		return nil, fmt.Errorf("%w: tenant_id required", ErrInvalidArgument)
-	}
-	if len(reqs) > MaxBatchSize {
-		return nil, ErrBatchTooLarge
-	}
-	out := &BulkInviteResult{}
-	seen := map[string]struct{}{}
-	for _, req := range reqs {
-		em := normaliseEmail(req.Email)
-		if em == "" {
-			out.RejectedCount++
-			continue
-		}
-		if !emailRE.MatchString(em) {
-			out.RejectedCount++
-			continue
-		}
-		if len(req.Roles) == 0 {
-			out.RejectedCount++
-			continue
-		}
-		validRow := true
-		for _, r := range req.Roles {
-			if !IsValidRole(r) {
-				validRow = false
-				break
-			}
-		}
-		if !validRow {
-			out.RejectedCount++
-			continue
-		}
-		if _, dup := seen[em]; dup {
-			out.DuplicateCount++
-			continue
-		}
-		seen[em] = struct{}{}
-		m, err := NewMember(tenantID, em, req.Roles)
-		if err != nil {
-			out.RejectedCount++
-			continue
-		}
-		out.Invited = append(out.Invited, m)
-	}
-	return out, nil
-}
-
 type ListFilter struct {
 	Role   string
 	Status string

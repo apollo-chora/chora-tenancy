@@ -12,16 +12,7 @@
 //     month boundary by OnMonthlyTick).
 //   - TierBasedPolicy{tier→N}   — different allocation amounts per learner
 //     role (lookup by GCID's role at enrollment).
-//
-// PolicyConfig is the API config block (matches the OpenAPI
-// AllocationPolicyConfig schema). PolicyFromConfig materialises a typed
-// AllocationPolicy from the wire config.
 package pool
-
-import (
-	"fmt"
-	"strings"
-)
 
 // PolicyKind discriminates among the 4 variants.
 type PolicyKind string
@@ -120,44 +111,4 @@ func (p TierBasedPolicy) UnitsForLearner(ctx LearnerContext) (int64, bool) {
 		return 0, false
 	}
 	return units, true
-}
-
-// -----------------------------------------------------------------------------
-// PolicyConfig — wire-format config (OpenAPI AllocationPolicyConfig)
-// -----------------------------------------------------------------------------
-
-// PolicyConfig matches the OpenAPI `AllocationPolicyConfig` schema. Used by
-// the HTTP layer to ship a config block from `PATCH .../mana-pool/policy`
-// into the domain via PolicyFromConfig.
-type PolicyConfig struct {
-	Policy            string
-	UnitsOnEnrollment int64
-	TierAmounts       map[string]int64
-	AllocationTTLDays int
-}
-
-// PolicyFromConfig materialises a typed AllocationPolicy from the wire
-// config. Returns ErrInvalidArgument for unknown policy kinds or invalid
-// per-policy parameters.
-func PolicyFromConfig(c PolicyConfig) (AllocationPolicy, error) {
-	switch strings.TrimSpace(c.Policy) {
-	case string(PolicyKindManual):
-		return ManualPolicy{}, nil
-	case string(PolicyKindOnEnrollment):
-		if c.UnitsOnEnrollment < 0 {
-			return nil, fmt.Errorf("%w: units_on_enrollment must be >= 0", ErrInvalidArgument)
-		}
-		return OnEnrollmentPolicy{DefaultUnits: c.UnitsOnEnrollment}, nil
-	case string(PolicyKindEqualSplit):
-		return EqualSplitPolicy{}, nil
-	case string(PolicyKindTierBased):
-		for role, units := range c.TierAmounts {
-			if units < 0 {
-				return nil, fmt.Errorf("%w: tier_amounts[%q] must be >= 0", ErrInvalidArgument, role)
-			}
-		}
-		return TierBasedPolicy{TierToUnits: c.TierAmounts}, nil
-	default:
-		return nil, fmt.Errorf("%w: unknown policy %q", ErrInvalidArgument, c.Policy)
-	}
 }

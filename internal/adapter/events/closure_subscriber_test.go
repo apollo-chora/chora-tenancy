@@ -213,16 +213,6 @@ func TestClosureSubscriber_NilGuards(t *testing.T) {
 	}
 }
 
-func TestClosureSubscriber_SubscribedTopic(t *testing.T) {
-	t.Parallel()
-	rec := events.NewRecorder()
-	repo := events.NewInMemoryClosureRepo()
-	sub := events.NewClosureSubscriber(repo, rec, &config.PIIClosureMap{Domain: "x"}, nil)
-	if got := sub.SubscribedTopic(); got != events.TopicPseudonymiseRequested {
-		t.Fatalf("SubscribedTopic = %q want %q", got, events.TopicPseudonymiseRequested)
-	}
-}
-
 func TestInMemoryClosureRepo_IsPseudonymised_TenantScoped(t *testing.T) {
 	t.Parallel()
 	repo := events.NewInMemoryClosureRepo()

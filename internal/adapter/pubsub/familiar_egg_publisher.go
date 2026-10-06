@@ -38,25 +38,6 @@ type EggPublisher interface {
 	PublishWithError(topic string, h events.Header, payload map[string]interface{}) (events.PublishedEvent, error)
 }
 
-// EmitCheckoutStarted publishes the checkout_started.v1 event.
-func EmitCheckoutStarted(p EggPublisher, h events.Header, purchase *familiareag.Purchase) (events.PublishedEvent, error) {
-	payload := map[string]interface{}{
-		"purchase_id":             purchase.PurchaseID,
-		"purchaser_gcid":          purchase.PurchaserGCID,
-		"target_tenant_id":        purchase.TenantID,
-		"egg_sku":                 purchase.EggSKU,
-		"stripe_session_id":       purchase.StripeSessionID,
-		"stripe_checkout_url":     purchase.StripeCheckoutURL,
-		"amount_cents":            purchase.AmountCents,
-		"currency":                purchase.Currency,
-		"suggested_focal_atom_id": purchase.SuggestedFocalAtomID,
-		"checkout_started_at":     purchase.CheckoutStartedAt.UTC().Format(time.RFC3339Nano),
-		// IMDA D1 evidence — accountability of the purchase event.
-		"chora_imda_dimension": "accountability",
-	}
-	return p.PublishWithError(TopicCheckoutStarted, h, payload)
-}
-
 // EmitPaymentSucceeded publishes the payment_succeeded.v1 event.
 func EmitPaymentSucceeded(p EggPublisher, h events.Header, purchase *familiareag.Purchase) (events.PublishedEvent, error) {
 	var paidAt string

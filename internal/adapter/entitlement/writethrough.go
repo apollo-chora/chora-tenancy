@@ -35,7 +35,6 @@ package entitlement
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 )
@@ -63,44 +62,4 @@ type Writer interface {
 // package calls so a test does not have to build a whole registry.
 type Evicter interface {
 	Evict(tenantID string)
-}
-
-// Persist writes an already-mutated subscription through to the durable store,
-// and evicts the tenant from the in-memory registry if that write fails.
-//
-// Call it IMMEDIATELY after the registry mutation and before answering the
-// caller. On a non-nil return the call site MUST surface an error and must not
-// return the mutated state: a 200 describing something PostgreSQL does not hold
-// is worse than a 503, because it teaches the caller a fact that will vanish.
-func Persist(ctx context.Context, w Writer, e Evicter, sub *addon.Subscription) error {
-	if sub == nil {
-		// Not "nothing to do": every mutation this wraps returns a
-		// subscription, so a nil one means the call site is wired wrong and
-		// silently writing nothing would hide it.
-		return errors.New("entitlement.Persist: nil subscription")
-	}
-
-	// Order matters on this path too. The in-memory mutation has ALREADY
-	// happened by the time Persist is called, so a missing store leaves memory
-	// ahead exactly as a failed write would, and the eviction is owed either
-	// way.
-	if w == nil {
-		evict(e, sub.TenantID)
-		return fmt.Errorf("entitlement.Persist %s/%s: %w", sub.TenantID, sub.AddOnCode, ErrNoDurableStore)
-	}
-
-	if err := w.Upsert(ctx, sub); err != nil {
-		evict(e, sub.TenantID)
-		return fmt.Errorf("entitlement.Persist %s/%s: %w", sub.TenantID, sub.AddOnCode, err)
-	}
-	return nil
-}
-
-// evict tolerates a nil Evicter. The failure path is already the unhappy one,
-// and panicking there would turn a recoverable write error into a crash.
-func evict(e Evicter, tenantID string) {
-	if e == nil {
-		return
-	}
-	e.Evict(tenantID)
 }

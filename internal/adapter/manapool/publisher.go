@@ -11,8 +11,7 @@
 //  7. chora.tenancy.tenant_mana_allocation.expired.v1
 //
 // The Publisher port is implemented in production by the event-bus
-// adapter (M12+). For the BE-USR-3 skeleton we ship a recorder that
-// captures published events in-process for test assertions.
+// adapter (M12+). RecorderPublisher is the in-process test double.
 //
 // Mandatory envelope fields per CLAUDE.md §6:
 //

@@ -58,38 +58,6 @@ func TestRegistry_Save_RegistersSlug(t *testing.T) {
 	}
 }
 
-func TestRegistry_SetParent_ErrorsAndCycle(t *testing.T) {
-	t.Parallel()
-	r := tenant.NewRegistry()
-	root, _ := r.CreateRoot("Root", "g", true)
-	middle, _ := r.CreateSubTenant(root.ID, "Middle", "g", false)
-	leaf, _ := r.CreateSubTenant(middle.ID, "Leaf", "g", false)
-
-	// Self-parent.
-	if err := r.SetParent(leaf.ID, leaf.ID); err != tenant.ErrSelfParent {
-		t.Fatalf("expected ErrSelfParent, got %v", err)
-	}
-	// Unknown tenant.
-	if err := r.SetParent("missing", root.ID); err != tenant.ErrTenantNotFound {
-		t.Fatalf("expected ErrTenantNotFound, got %v", err)
-	}
-	// Unknown parent.
-	if err := r.SetParent(leaf.ID, "ghost"); err != tenant.ErrParentNotFound {
-		t.Fatalf("expected ErrParentNotFound, got %v", err)
-	}
-	// Cycle: middle's parent would make root a descendant of middle.
-	if err := r.SetParent(root.ID, leaf.ID); err != tenant.ErrCycleDetected {
-		t.Fatalf("expected ErrCycleDetected, got %v", err)
-	}
-	// Detach to "".
-	if err := r.SetParent(leaf.ID, ""); err != nil {
-		t.Fatalf("detach: %v", err)
-	}
-	if got, _ := r.Get(leaf.ID); got.ParentTenantID != "" {
-		t.Fatalf("expected detached parent, got %q", got.ParentTenantID)
-	}
-}
-
 func TestRegistry_CreateSubTenant_Errors(t *testing.T) {
 	t.Parallel()
 	r := tenant.NewRegistry()

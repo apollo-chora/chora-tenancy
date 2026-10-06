@@ -58,43 +58,6 @@ func withFakeDecoder(t *testing.T) {
 	}
 }
 
-func TestDecodePayloadMapWithAttrs_BinaryPath(t *testing.T) {
-	withFakeDecoder(t)
-	out, err := DecodePayloadMapWithAttrs("chora.tenancy.test.binary_ok.v1", []byte("anything"),
-		map[string]string{
-			"event_id": "evt-1", "tenant_id": "attr-tenant", "gcid": "g-1",
-			"traceparent": "00-abc-123-01", "occurred_at": "2026-07-01T00:00:00Z",
-		})
-	if err != nil {
-		t.Fatalf("DecodePayloadMapWithAttrs: %v", err)
-	}
-	// Binary projection wins over attrs for tenant_id (precedence #1).
-	if out["tenant_id"] != "proj-tenant" {
-		t.Fatalf("expected binary projection tenant, got %v", out["tenant_id"])
-	}
-	if out["kind"] != "test" || out["event_id"] != "evt-1" || out["gcid"] != "g-1" {
-		t.Fatalf("unexpected merged map %v", out)
-	}
-	if out["traceparent"] != "00-abc-123-01" || out["occurred_at"] != "2026-07-01T00:00:00Z" {
-		t.Fatalf("attrs not merged: %v", out)
-	}
-}
-
-func TestDecodePayloadMapWithAttrs_BinaryFailureFallsBack(t *testing.T) {
-	withFakeDecoder(t)
-	out, err := DecodePayloadMapWithAttrs("chora.tenancy.test.binary_fail.v1", []byte(`{"a":"b"}`), nil)
-	if err != nil {
-		t.Fatalf("expected JSON fallback after binary failure, got %v", err)
-	}
-	if out["a"] != "b" {
-		t.Fatalf("unexpected fallback map %v", out)
-	}
-	// Binary decode fails AND JSON invalid → wrapped error.
-	if _, err := DecodePayloadMapWithAttrs("chora.tenancy.test.binary_fail.v1", []byte("bad-binary"), nil); err == nil {
-		t.Fatalf("expected both-fail error")
-	}
-}
-
 func TestDecodePayloadIntoWithAttrs_BinaryAndJSONPaths(t *testing.T) {
 	withFakeDecoder(t)
 	type dstT struct {
@@ -128,9 +91,6 @@ func TestDecodePayloadIntoWithAttrs_BinaryAndJSONPaths(t *testing.T) {
 	}
 	// Empty payload everywhere.
 	for _, f := range []func() error{
-		func() error { _, err := DecodePayloadMap("t", nil); return err },
-		func() error { _, err := DecodePayloadMapWithAttrs("t", nil, nil); return err },
-		func() error { return DecodePayloadInto("t", nil, &d3) },
 		func() error { return DecodePayloadIntoWithAttrs("t", nil, nil, &d3) },
 	} {
 		if err := f(); !errors.Is(err, ErrEmptyPayload) {

@@ -93,26 +93,6 @@ func MapEggStateToPayments(legacy string) (string, error) {
 	}
 }
 
-// MapEggStateToTenancy is the reverse mapping (Stage G rollback).
-func MapEggStateToTenancy(canonical string) (string, error) {
-	switch strings.ToLower(strings.TrimSpace(canonical)) {
-	case "checkout_started":
-		return "checkout_started", nil
-	case "payment_captured":
-		return "paid", nil
-	case "payment_failed":
-		return "payment_failed", nil
-	case "provisioned":
-		return "provisioned", nil
-	case "refunded":
-		return "refunded", nil
-	case "expired":
-		return "expired", nil
-	default:
-		return "", fmt.Errorf("extract: unknown canonical state %q", canonical)
-	}
-}
-
 // MapEggRefundReason maps the chora_tenancy refund_reason enum to the
 // chora_payments refund_reason enum. Legacy chora_tenancy had a richer
 // set (`hard_expiry_unhatched`, `tenant_policy`); the canonical chora_

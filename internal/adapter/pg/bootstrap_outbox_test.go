@@ -7,7 +7,6 @@
 package pg
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -208,23 +207,6 @@ func TestBuildBootstrapOutboxRow_tenantIDAndGCIDPopulated(t *testing.T) {
 	}
 	if row.GCID != b.Tenant.OwnerGCID {
 		t.Errorf("row.GCID = %q, want %q", row.GCID, b.Tenant.OwnerGCID)
-	}
-}
-
-func TestWithTraceparent_RoundTrip(t *testing.T) {
-	// WithTraceparent stamps; traceparentFromContext + the bootstrap row
-	// builder echo it into the outbox row.
-	ctx := WithTraceparent(context.Background(), "00-aa-bb-01")
-	if got := traceparentFromContext(ctx); got != "00-aa-bb-01" {
-		t.Fatalf("expected stamped traceparent, got %q", got)
-	}
-	// Empty traceparent → unchanged ctx (+ no key).
-	if got := traceparentFromContext(WithTraceparent(ctx, "")); got != "00-aa-bb-01" {
-		t.Fatalf("empty traceparent must not clobber, got %q", got)
-	}
-	// Nil ctx is a no-op.
-	if got := traceparentFromContext(nil); got != "" {
-		t.Fatalf("nil ctx must yield empty, got %q", got)
 	}
 }
 

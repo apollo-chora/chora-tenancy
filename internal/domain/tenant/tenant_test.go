@@ -171,47 +171,6 @@ func TestTenantRegistry_CreateSubTenant_AllowsValidParent(t *testing.T) {
 	}
 }
 
-// Cycle prevention: A is parent of B; B cannot be parent of A.
-func TestTenantRegistry_CreateSubTenant_RejectsDirectCycle(t *testing.T) {
-	t.Parallel()
-	reg := tenant.NewRegistry()
-	a, _ := reg.CreateRoot("A", "owner-a", false)
-	b, _ := reg.CreateSubTenant(a.ID, "B", "owner-b", false)
-	if _, err := reg.CreateSubTenant(b.ID, "A2", "owner-c", false); err != nil {
-		t.Fatalf("creating A2 under B should be fine: %v", err)
-	}
-	// Now try to make A's parent = B (would form a cycle B → A → B)
-	if err := reg.SetParent(a.ID, b.ID); err == nil {
-		t.Fatalf("expected cycle error setting A's parent to B")
-	}
-}
-
-// Cycle prevention: 3-node ring A → B → C → A
-func TestTenantRegistry_SetParent_RejectsTransitiveCycle(t *testing.T) {
-	t.Parallel()
-	reg := tenant.NewRegistry()
-	a, _ := reg.CreateRoot("A", "owner-a", false)
-	b, _ := reg.CreateSubTenant(a.ID, "B", "owner-b", false)
-	c, _ := reg.CreateSubTenant(b.ID, "C", "owner-c", false)
-	// A's parent = C would create cycle A → C → B → A
-	if err := reg.SetParent(a.ID, c.ID); err == nil {
-		t.Fatalf("expected transitive cycle error")
-	}
-}
-
-// SetParent self-reference is rejected (Same tenant cannot be its own parent).
-func TestTenantRegistry_SetParent_RejectsSelfReference(t *testing.T) {
-	t.Parallel()
-	reg := tenant.NewRegistry()
-	a, _ := reg.CreateRoot("A", "owner-a", false)
-	if err := reg.SetParent(a.ID, a.ID); err == nil {
-		t.Fatalf("expected error for self-reference")
-	}
-	if err := reg.SetParent(a.ID, a.ID); err != tenant.ErrSelfParent {
-		t.Fatalf("expected ErrSelfParent")
-	}
-}
-
 // Get returns the tenant by ID; misses return false.
 func TestTenantRegistry_Get(t *testing.T) {
 	t.Parallel()
@@ -243,26 +202,6 @@ func TestTenantRegistry_Save_UpdatesExisting(t *testing.T) {
 }
 
 // ListChildren returns direct children only (not recursive).
-func TestTenantRegistry_ListChildren(t *testing.T) {
-	t.Parallel()
-	reg := tenant.NewRegistry()
-	a, _ := reg.CreateRoot("A", "owner-a", false)
-	b, _ := reg.CreateSubTenant(a.ID, "B", "owner-b", false)
-	c, _ := reg.CreateSubTenant(a.ID, "C", "owner-c", false)
-	reg.CreateSubTenant(b.ID, "D", "owner-d", false) // grandchild
-	children := reg.ListChildren(a.ID)
-	if len(children) != 2 {
-		t.Fatalf("expected 2 direct children, got %d", len(children))
-	}
-	got := []string{children[0].ID, children[1].ID}
-	expectIDs := map[string]bool{b.ID: true, c.ID: true}
-	for _, id := range got {
-		if !expectIDs[id] {
-			t.Fatalf("unexpected child: %s", id)
-		}
-	}
-}
-
 // List returns all non-closed tenants (excluding soft-deleted).
 func TestTenantRegistry_List_ExcludesClosed(t *testing.T) {
 	t.Parallel()

@@ -1,7 +1,7 @@
 // whitebox_coverage_test.go — in-package (package httpapi) branch coverage
 // for small unexported helpers the end-to-end HTTP tests leave sparse:
 // paging, v2Header/firstNonEmpty, addonDisplayName, v2InvoiceDTO,
-// publishEventWithIMDA and the v2 middleware/health helpers.
+// and the v2 middleware/health helpers.
 package httpapi
 
 import (
@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/apollo-chora/chora-tenancy/internal/adapter/events"
 	addon "github.com/apollo-chora/chora-tenancy/internal/domain/add_on"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/billing"
 	"github.com/apollo-chora/chora-tenancy/internal/domain/tenant"
@@ -88,27 +87,6 @@ func TestV2InvoiceDTO(t *testing.T) {
 	}
 	if _, ok := out["period_start"].(string); !ok || out["period_start"] == "" {
 		t.Fatalf("expected formatted period_start, got %v", out["period_start"])
-	}
-}
-
-func TestPublishEventWithIMDA(t *testing.T) {
-	t.Parallel()
-	deps := NewDefaultV2Deps()
-	deps.Events = events.NewRecorder()
-	hdr := events.Header{TenantID: "t-1", GCID: "g-1"}
-	// Nil payload → synthesised map with the mandated dimension.
-	publishEventWithIMDA(deps, "chora.tenancy.tenant.created.v1", hdr, nil)
-	// Non-nil payload → dimension injected.
-	publishEventWithIMDA(deps, "chora.tenancy.tenant.created.v1", hdr, map[string]interface{}{"id": "t-1"})
-	rec, _ := deps.Events.(*events.Recorder)
-	recs := rec.Recorded()
-	if len(recs) != 2 {
-		t.Fatalf("expected 2 published events, got %d", len(recs))
-	}
-	for _, ev := range recs {
-		if ev.Payload["chora_imda_dimension"] != "accountability" {
-			t.Fatalf("IMDA dimension missing from %+v", ev.Payload)
-		}
 	}
 }
 
